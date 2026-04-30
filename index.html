@@ -543,6 +543,27 @@ tr:hover .td-actions{opacity:1}
 @media(max-width:1000px){.grid-2{grid-template-columns:1fr}.stats-row{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:780px){:root{--sidebar-w:180px}.timer-digits{font-size:32px}.stats-row{grid-template-columns:repeat(2,1fr)}.fg-row-3{grid-template-columns:1fr 1fr}}
 
+/* ── ANALYTICS V2 ───────────────────────────── */
+.ana-period-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--c-border);gap:12px;flex-wrap:wrap;background:var(--c-surface)}
+.ana-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.ana-bar-grid{display:flex;gap:2px;align-items:flex-end;height:110px;overflow-x:auto;padding-bottom:2px}
+.ana-bar-col{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-width:14px}
+.ana-bar-wrap{width:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;flex:1;position:relative;min-height:0}
+.ana-bar-goal{position:absolute;left:0;right:0;height:1px;background:var(--c-gold);opacity:.5;pointer-events:none}
+.ana-bar-prod{width:80%;border-radius:2px 2px 0 0;background:var(--c-teal);opacity:.85;min-height:2px;transition:height .3s}
+.ana-bar-brk{width:80%;background:var(--c-amber);opacity:.7;min-height:1px}
+.ana-bar-trans{width:80%;background:var(--c-transit);opacity:.75;min-height:1px}
+.ana-bar-lbl{font-size:8px;color:var(--c-text3);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;letter-spacing:.3px}
+.ana-bar-val{font-size:8px;font-weight:600;color:var(--c-text2)}
+.ana-bar-col.today .ana-bar-lbl{color:var(--c-gold);font-weight:700}
+.insight-row{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--c-border)}
+.insight-row:last-child{border-bottom:none}
+.brk-row{margin-bottom:9px}
+.brk-row-head{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;color:var(--c-text2)}
+.brk-bar-bg{height:5px;border-radius:3px;background:var(--c-border2);overflow:hidden}
+.brk-bar-fill{height:100%;border-radius:3px;background:var(--c-amber)}
+@media(max-width:768px){.ana-kpi-row{grid-template-columns:repeat(2,1fr)}.ana-period-nav{padding:8px 14px}.grid-2{grid-template-columns:1fr}}
+
 /* ── MOBILE NAV ──────────────────────────────── */
 .mobile-nav{display:none}
 .mn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 2px 6px;border:none;background:none;color:var(--c-text3);cursor:pointer;gap:2px;transition:color .15s;-webkit-tap-highlight-color:transparent}
@@ -969,45 +990,64 @@ tr:hover .td-actions{opacity:1}
   <!-- ═══ ANALÍTICA ═══ -->
   <section id="page-analitica" class="page" aria-label="Métricas">
     <div class="topbar">
-      <h1 class="topbar-title">Métricas</h1>
+      <h1 class="topbar-title">Reportes</h1>
+      <div class="topbar-tabs" role="tablist">
+        <button class="ttab active" id="anaTabWeek" onclick="setAnaView('week')">Semana</button>
+        <button class="ttab" id="anaTabMonth" onclick="setAnaView('month')">Mes</button>
+      </div>
+    </div>
+    <div class="ana-period-nav">
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="date-nav-arrow" onclick="shiftAnaPeriod(-1)">‹</button>
+        <span id="anaPeriodLabel" style="font-size:14px;font-weight:600;min-width:170px;text-align:center;color:var(--c-text)"></span>
+        <button class="date-nav-arrow" onclick="shiftAnaPeriod(1)">›</button>
+      </div>
+      <select class="field-input" id="anaCoFilter" onchange="renderAnalytics()" style="width:auto;min-width:150px;font-size:12px;height:30px;padding:0 10px">
+        <option value="">Todas las empresas</option>
+      </select>
     </div>
     <div class="page-content">
-      <!-- Semana overview -->
+      <!-- KPIs -->
+      <div class="ana-kpi-row" id="anaKpiRow"></div>
+      <!-- Gráfica de barras -->
       <div class="card" style="margin-bottom:14px">
         <div class="card-header">
-          <span class="card-title">Últimos 7 días — Productivo vs Descanso vs Traslado</span>
+          <span class="card-title">Productividad diaria</span>
           <div class="chart-legend" style="margin:0">
             <span><span class="legend-dot" style="background:var(--c-teal)"></span>Productivo</span>
-            <span><span class="legend-dot" style="background:var(--c-amber)"></span>Descanso</span>
             <span><span class="legend-dot" style="background:var(--c-transit)"></span>Traslado</span>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="metric-week-grid" id="weekChart"></div>
-        </div>
-      </div>
-
-      <!-- Por empresa -->
-      <div class="card" style="margin-bottom:14px">
-        <div class="card-header">
-          <span class="card-title">Tiempo total por empresa</span>
-          <div class="chart-legend" style="margin:0">
-            <span><span class="legend-dot" style="background:var(--c-teal)"></span>Productivo</span>
             <span><span class="legend-dot" style="background:var(--c-amber)"></span>Descanso</span>
+            <span><span class="legend-dot" style="background:var(--c-gold);opacity:.5"></span>Meta</span>
           </div>
         </div>
-        <div class="card-body" id="coAnalytics"></div>
+        <div class="card-body" style="overflow-x:auto"><div id="anaChart" class="ana-bar-grid"></div></div>
       </div>
-
-      <div class="grid-2">
+      <!-- Por empresa + No productivo -->
+      <div class="grid-2" style="margin-bottom:14px">
         <div class="card">
-          <div class="card-header"><span class="card-title">Resumen de tareas</span></div>
-          <div class="card-body" id="taskAnalytics"></div>
+          <div class="card-header"><span class="card-title">Tiempo por empresa</span></div>
+          <div class="card-body" id="anaCoTable"></div>
         </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Tiempo no productivo</span></div>
+          <div class="card-body" id="anaBreakTable"></div>
+        </div>
+      </div>
+      <!-- Horas pico + Por día semana -->
+      <div class="grid-2" style="margin-bottom:14px">
         <div class="card">
           <div class="card-header"><span class="card-title">Franja horaria más productiva</span></div>
-          <div class="card-body" id="hourAnalytics"></div>
+          <div class="card-body" id="anaHourChart"></div>
         </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Promedio por día de semana</span></div>
+          <div class="card-body" id="anaWdayChart"></div>
+        </div>
+      </div>
+      <!-- Insights -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header"><span class="card-title">Insights del período</span></div>
+        <div class="card-body" id="anaInsights"></div>
       </div>
     </div>
   </section>
@@ -1383,6 +1423,7 @@ function getDay(ds) {
 // ── App State ─────────────────────────────────────────────────────────────────
 let VIEW_DATE = '';
 let _timerTick = null, _clockTick = null, _breakMenuOpen = false, _warnDismissed = false;
+let _anaView = 'week', _anaRef = '';
 
 // ── Timer ─────────────────────────────────────────────────────────────────────
 function startWork(coId) {
@@ -1985,63 +2026,228 @@ function deleteCompany(i){
   STATE.companies.splice(i,1);save();renderCompanyList();_renderTimerCompanies();
 }
 
-// ── Analytics ─────────────────────────────────────────────────────────────────
-function renderAnalytics(){_renderWeekChart();_renderCoAnalytics();_renderTaskAnalytics();_renderHourAnalytics();}
-function _getLast7(){
-  const days=[];
-  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(new Intl.DateTimeFormat('en-CA',{timeZone:'America/Bogota'}).format(d));}
-  return days;
-}
-function _renderWeekChart(){
-  const e2=el('weekChart');if(!e2)return;
-  const today=todayStr(), maxH=8*60;
-  e2.innerHTML=_getLast7().map(ds=>{
-    const sess=(STATE.days[ds]&&STATE.days[ds].sessions)||[];
-    let prod=0,brk=0,trans=0;
-    sess.forEach(s=>{if(s.mode==='productive')prod+=s.mins;else if(s.mode==='break')brk+=s.mins;else if(s.mode==='transit')trans+=s.mins;});
-    const label=new Date(ds+'T12:00:00').toLocaleDateString('es-CO',{weekday:'short',day:'numeric'});
-    const pp=Math.min(100,prod/maxH*100),pb=Math.min(100,brk/maxH*100),pt=Math.min(100,trans/maxH*100);
-    return `<div class="metric-day-col ${ds===today?'today':''}">
-      <div class="metric-day-bar-wrap">
-        <div class="metric-day-prod" style="height:${pp}%" title="${fmtMins(prod)}"></div>
-        <div style="width:80%;height:${pt}%;background:var(--c-transit);opacity:.7;min-height:${trans?2:0}px"></div>
-        <div class="metric-day-brk" style="height:${pb}%" title="${fmtMins(brk)}"></div>
-      </div>
-      <div class="metric-day-lbl">${label}</div>
-      <div class="metric-day-val">${prod||brk||trans?fmtMins(prod):''}</div>
-    </div>`;
-  }).join('');
-}
-function _renderCoAnalytics(){
-  const e2=el('coAnalytics');if(!e2)return;
-  const coMins={};
-  _getLast7().forEach(ds=>{((STATE.days[ds]&&STATE.days[ds].sessions)||[]).forEach(s=>{if(s.mode==='productive')coMins[s.companyId]=(coMins[s.companyId]||0)+s.mins;});});
-  const maxM=Math.max(...Object.values(coMins),1);
-  const rows=STATE.companies.filter(co=>coMins[co.id]).map(co=>{
-    const m=coMins[co.id]||0;
-    return `<div class="metric-co-row">
-      <div class="metric-co-header"><span class="metric-co-name"><span class="dot" style="background:${co.color}"></span>${co.name}</span><span class="metric-co-total">${fmtMins(m)}</span></div>
-      <div class="metric-co-bar"><div class="metric-co-prod" style="width:${Math.round(m/maxM*100)}%;background:${co.color}"></div></div>
-    </div>`;
+// ── Analytics V2 ──────────────────────────────────────────────────────────────
+function setAnaView(v) {
+  _anaView = v;
+  ['Week','Month'].forEach(t => {
+    const b = el('anaTab'+t); if(b) b.classList.toggle('active', t.toLowerCase()===v);
   });
-  e2.innerHTML=rows.length?rows.join(''):'<div class="empty">Sin datos de la semana.</div>';
+  renderAnalytics();
 }
-function _renderTaskAnalytics(){
-  const e2=el('taskAnalytics');if(!e2)return;
-  const total=STATE.tasks.length,done=STATE.tasks.filter(t=>t.estado==='done'||t.done).length,pending=STATE.tasks.filter(t=>t.estado==='pending').length;
-  e2.innerHTML=`<div class="task-summary-grid">
-    <div class="task-summary-item"><div class="task-summary-num">${total}</div><div class="task-summary-lbl">Total</div></div>
-    <div class="task-summary-item"><div class="task-summary-num" style="color:var(--c-teal)">${done}</div><div class="task-summary-lbl">Completadas</div></div>
-    <div class="task-summary-item"><div class="task-summary-num" style="color:var(--c-gold)">${pending}</div><div class="task-summary-lbl">Pendientes</div></div>
-    <div class="task-summary-item"><div class="task-summary-num">${total>0?Math.round(done/total*100):0}%</div><div class="task-summary-lbl">Completitud</div></div>
-  </div>`;
+function shiftAnaPeriod(dir) {
+  const d = new Date((_anaRef||todayStr()) + 'T12:00:00');
+  if (_anaView === 'week') d.setDate(d.getDate() + dir*7);
+  else d.setMonth(d.getMonth() + dir);
+  _anaRef = new Intl.DateTimeFormat('en-CA',{timeZone:'America/Bogota'}).format(d);
+  renderAnalytics();
 }
-function _renderHourAnalytics(){
-  const e2=el('hourAnalytics');if(!e2)return;
-  const hourMap={};
-  Object.values(STATE.days).forEach(day=>{(day.sessions||[]).filter(s=>s.mode==='productive').forEach(s=>{const h=parseInt((s.startDisplay||'0').split(':')[0]);hourMap[h]=(hourMap[h]||0)+s.mins;});});
-  const maxM=Math.max(...Object.values(hourMap),1);
-  e2.innerHTML=`<div class="hour-grid">${Array.from({length:13},(_,i)=>i+7).map(h=>{const m=hourMap[h]||0;return`<div class="hour-col"><div class="hour-bar" style="height:${Math.round(m/maxM*100)}%"></div><span class="hour-lbl">${h}</span></div>`;}).join('')}</div>`;
+function _getAnaDates() {
+  const ref = _anaRef || todayStr();
+  if (_anaView === 'week') {
+    const d = new Date(ref+'T12:00:00'), day = d.getDay()||7;
+    const mon = new Date(d); mon.setDate(d.getDate()-day+1);
+    return Array.from({length:7},(_,i)=>{const nd=new Date(mon);nd.setDate(mon.getDate()+i);return new Intl.DateTimeFormat('en-CA').format(nd);});
+  } else {
+    const d=new Date(ref+'T12:00:00'), y=d.getFullYear(), m=d.getMonth(), days=[], cur=new Date(y,m,1);
+    while(cur.getMonth()===m){days.push(new Intl.DateTimeFormat('en-CA').format(cur));cur.setDate(cur.getDate()+1);}
+    return days;
+  }
+}
+function _getAnaLabel() {
+  const ref = _anaRef || todayStr();
+  const d = new Date(ref+'T12:00:00');
+  if (_anaView === 'week') {
+    const dates=_getAnaDates();
+    const fmt=dt=>new Date(dt+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'});
+    return fmt(dates[0])+' – '+fmt(dates[6]);
+  }
+  return d.toLocaleDateString('es-CO',{month:'long',year:'numeric'}).replace(/^\w/,c=>c.toUpperCase());
+}
+function renderAnalytics() {
+  if (!_anaRef) _anaRef = todayStr();
+  // Populate company filter
+  const cf=el('anaCoFilter');
+  if(cf){const prev=cf.value;cf.innerHTML='<option value="">Todas las empresas</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');cf.value=prev;}
+  if(el('anaPeriodLabel')) el('anaPeriodLabel').textContent=_getAnaLabel();
+  ['Week','Month'].forEach(t=>{const b=el('anaTab'+t);if(b)b.classList.toggle('active',t.toLowerCase()===_anaView);});
+
+  const dates=_getAnaDates();
+  const coFilter=(el('anaCoFilter')||{}).value||'';
+  const today=todayStr(), goalMins=(STATE.settings.dailyGoal||8)*60;
+
+  // Aggregate by day
+  const dayData={};
+  dates.forEach(ds=>{
+    const d={prod:0,brk:0,trans:0};
+    ((STATE.days[ds]&&STATE.days[ds].sessions)||[]).forEach(s=>{
+      if(coFilter&&s.mode==='productive'&&s.companyId!==coFilter)return;
+      if(s.mode==='productive')d.prod+=s.mins;
+      else if(s.mode==='break')d.brk+=s.mins;
+      else if(s.mode==='transit')d.trans+=s.mins;
+    });
+    dayData[ds]=d;
+  });
+
+  const totProd=dates.reduce((a,ds)=>a+dayData[ds].prod,0);
+  const totBrk=dates.reduce((a,ds)=>a+dayData[ds].brk,0);
+  const totTrans=dates.reduce((a,ds)=>a+dayData[ds].trans,0);
+  const totNP=totBrk+totTrans;
+  const workDays=dates.filter(ds=>dayData[ds].prod+dayData[ds].brk+dayData[ds].trans>0).length;
+  const goalDays=dates.filter(ds=>dayData[ds].prod>=goalMins).length;
+  const eff=(totProd+totNP)>0?Math.round(totProd/(totProd+totNP)*100):0;
+  const avgProd=workDays>0?Math.round(totProd/workDays):0;
+  const bestDay=dates.filter(ds=>dayData[ds].prod>0).sort((a,b)=>dayData[b].prod-dayData[a].prod)[0];
+
+  // ── KPI Cards ──
+  const kpiEl=el('anaKpiRow');
+  if(kpiEl){
+    const effColor=eff>=80?'teal':eff>=60?'gold':'amber';
+    kpiEl.innerHTML=[
+      {cls:'gold',   lbl:'Productivo',    val:fmtMins(totProd),         sub:`${workDays} día${workDays!==1?'s':''} trabajado${workDays!==1?'s':''}`},
+      {cls:'amber',  lbl:'No productivo', val:fmtMins(totNP),           sub:`${fmtMins(totBrk)} descanso · ${fmtMins(totTrans)} traslado`},
+      {cls:effColor, lbl:'Eficiencia',    val:eff+'%',                  sub:'tiempo en pantalla útil'},
+      {cls:'teal',   lbl:'Meta diaria',   val:`${goalDays}/${workDays}`, sub:`Promedio ${fmtMins(avgProd)}/día`},
+    ].map(k=>`<div class="stat-card ${k.cls}">
+      <div class="stat-label">${k.lbl}</div>
+      <div class="stat-value ${k.cls}">${k.val}</div>
+      <div class="stat-sub">${k.sub}</div>
+    </div>`).join('');
+  }
+
+  // ── Bar Chart ──
+  const chartEl=el('anaChart');
+  if(chartEl){
+    const maxH=Math.max(goalMins,...dates.map(ds=>dayData[ds].prod+dayData[ds].brk+dayData[ds].trans),1);
+    const isMonth=_anaView==='month';
+    const lblFmt=isMonth?{day:'numeric'}:{weekday:'short',day:'numeric'};
+    chartEl.style.gridTemplateColumns='';
+    chartEl.innerHTML=dates.map(ds=>{
+      const d=dayData[ds], total=d.prod+d.brk+d.trans;
+      const pp=Math.min(100,d.prod/maxH*100), pb=Math.min(100,d.brk/maxH*100), pt=Math.min(100,d.trans/maxH*100);
+      const gp=Math.min(100,goalMins/maxH*100);
+      const lbl=new Date(ds+'T12:00:00').toLocaleDateString('es-CO',lblFmt);
+      return `<div class="ana-bar-col${ds===today?' today':''}${!total?' empty':''}">
+        <div class="ana-bar-wrap">
+          <div class="ana-bar-goal" style="bottom:${gp}%"></div>
+          <div class="ana-bar-prod" style="height:${pp}%" title="Productivo: ${fmtMins(d.prod)}"></div>
+          <div class="ana-bar-trans" style="height:${pt}%;width:80%;min-height:${d.trans?2:0}px" title="Traslado: ${fmtMins(d.trans)}"></div>
+          <div class="ana-bar-brk" style="height:${pb}%;width:80%;min-height:${d.brk?2:0}px" title="Descanso: ${fmtMins(d.brk)}"></div>
+        </div>
+        <div class="ana-bar-lbl">${lbl}</div>
+        ${total?`<div class="ana-bar-val">${fmtMins(d.prod)}</div>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  // ── Tiempo por empresa ──
+  const coEl=el('anaCoTable');
+  if(coEl){
+    const coData={};
+    dates.forEach(ds=>{((STATE.days[ds]&&STATE.days[ds].sessions)||[]).forEach(s=>{
+      if(s.mode==='productive'){if(!coData[s.companyId])coData[s.companyId]=0;coData[s.companyId]+=s.mins;}
+    });});
+    const maxProd=Math.max(...Object.values(coData),1);
+    const rows=STATE.companies.filter(co=>coData[co.id]>0).sort((a,b)=>coData[b.id]-coData[a.id]).map(co=>{
+      const m=coData[co.id], pct=totProd>0?Math.round(m/totProd*100):0;
+      return `<div class="metric-co-row">
+        <div class="metric-co-header">
+          <span class="metric-co-name"><span class="dot" style="background:${co.color}"></span>${co.name}</span>
+          <span class="metric-co-pct">${pct}%</span>
+          <span class="metric-co-total">${fmtMins(m)}</span>
+        </div>
+        <div class="metric-co-bar"><div style="height:100%;width:${Math.round(m/maxProd*100)}%;background:${co.color};border-radius:3px;opacity:.85"></div></div>
+      </div>`;
+    });
+    coEl.innerHTML=rows.length?rows.join(''):'<div class="empty">Sin sesiones en este período.</div>';
+  }
+
+  // ── Tiempo no productivo ──
+  const brkEl=el('anaBreakTable');
+  if(brkEl){
+    const types={};
+    dates.forEach(ds=>{((STATE.days[ds]&&STATE.days[ds].sessions)||[]).forEach(s=>{
+      if(s.mode==='break'){const t=s.breakType||'Otro';types[t]=(types[t]||0)+s.mins;}
+      else if(s.mode==='transit'){types['🚗 Traslado']=(types['🚗 Traslado']||0)+s.mins;}
+    });});
+    const sorted=Object.entries(types).sort((a,b)=>b[1]-a[1]);
+    const maxT=Math.max(...sorted.map(e=>e[1]),1);
+    brkEl.innerHTML=sorted.length
+      ?`<div style="font-size:11px;color:var(--c-text3);margin-bottom:10px">Total: <strong style="color:var(--c-text)">${fmtMins(totNP)}</strong> · ${Math.round((totNP/(totProd+totNP||1))*100)}% del tiempo total</div>
+        ${sorted.map(([t,m])=>`<div class="brk-row">
+          <div class="brk-row-head"><span>${t}</span><span style="color:var(--c-text3)">${fmtMins(m)}</span></div>
+          <div class="brk-bar-bg"><div class="brk-bar-fill" style="width:${Math.round(m/maxT*100)}%"></div></div>
+        </div>`).join('')}`
+      :'<div class="empty">Sin descansos en este período.</div>';
+  }
+
+  // ── Franja horaria más productiva ──
+  const hourEl=el('anaHourChart');
+  if(hourEl){
+    const hMap={};
+    dates.forEach(ds=>{((STATE.days[ds]&&STATE.days[ds].sessions)||[]).filter(s=>s.mode==='productive').forEach(s=>{
+      const h=parseInt((s.startDisplay||'0').split(':')[0]);hMap[h]=(hMap[h]||0)+s.mins;
+    });});
+    const maxH2=Math.max(...Object.values(hMap),1);
+    const peak=Object.entries(hMap).sort((a,b)=>b[1]-a[1])[0];
+    hourEl.innerHTML=`${peak?`<div style="font-size:11px;color:var(--c-text3);margin-bottom:8px">Pico: <strong style="color:var(--c-teal)">${peak[0]}:00–${+peak[0]+1}:00</strong> (${fmtMins(peak[1])})</div>`:''}
+      <div class="hour-grid">${Array.from({length:16},(_,i)=>i+6).map(h=>{
+        const m=hMap[h]||0, isPeak=peak&&+peak[0]===h;
+        return`<div class="hour-col">
+          <div class="hour-bar" style="height:${m?Math.max(4,Math.round(m/maxH2*100)):2}%;background:${isPeak?'var(--c-teal)':'var(--c-gold)'};opacity:${m?.9:.15}"></div>
+          <span class="hour-lbl">${h}</span>
+        </div>`;
+      }).join('')}</div>`;
+  }
+
+  // ── Promedio por día de semana (histórico completo) ──
+  const wdEl=el('anaWdayChart');
+  if(wdEl){
+    const wMap={1:[],2:[],3:[],4:[],5:[],6:[],0:[]};
+    Object.entries(STATE.days).forEach(([ds,day])=>{
+      const dow=new Date(ds+'T12:00:00').getDay();
+      const prod=(day.sessions||[]).filter(s=>s.mode==='productive').reduce((a,s)=>a+s.mins,0);
+      if(prod>0)wMap[dow].push(prod);
+    });
+    const avg={};
+    [1,2,3,4,5,6,0].forEach(d=>{if(wMap[d].length)avg[d]=Math.round(wMap[d].reduce((a,b)=>a+b,0)/wMap[d].length);});
+    const maxAvg=Math.max(...Object.values(avg),1);
+    const names=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    wdEl.innerHTML=`<div style="font-size:11px;color:var(--c-text3);margin-bottom:8px">Promedio histórico productivo</div>
+      <div class="hour-grid">${[1,2,3,4,5,6,0].map(d=>{
+        const a=avg[d]||0;
+        return`<div class="hour-col">
+          <div class="hour-bar" style="height:${a?Math.max(4,Math.round(a/maxAvg*100)):2}%;background:var(--c-teal);opacity:${a?.85:.15}"></div>
+          <span class="hour-lbl" style="font-size:8px">${names[d]}</span>
+        </div>`;
+      }).join('')}</div>`;
+  }
+
+  // ── Insights ──
+  const insEl=el('anaInsights');
+  if(insEl){
+    const items=[];
+    if(bestDay){const lbl=new Date(bestDay+'T12:00:00').toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'short'});items.push({i:'🏆',t:`Mejor día: <strong>${lbl}</strong> — ${fmtMins(dayData[bestDay].prod)} productivos`});}
+    if(eff>=80)items.push({i:'🔥',t:`Eficiencia excelente: <strong>${eff}%</strong> del tiempo registrado fue productivo`});
+    else if(eff>0&&eff<50)items.push({i:'⚠️',t:`Eficiencia baja (<strong>${eff}%</strong>). Revisa la duración de los descansos`});
+    if(goalDays===workDays&&workDays>1)items.push({i:'✅',t:`<strong>Meta cumplida cada día</strong> — ¡racha perfecta del período!`});
+    else if(goalDays===0&&workDays>0)items.push({i:'💪',t:`Ningún día alcanzó la meta de ${fmtMins(goalMins)}. Intenta reducir descansos o ajustar la meta`});
+    // Sesión más larga
+    let longest=null;
+    dates.forEach(ds=>{((STATE.days[ds]&&STATE.days[ds].sessions)||[]).filter(s=>s.mode==='productive').forEach(s=>{if(!longest||s.mins>longest.mins)longest={...s,date:ds};});});
+    if(longest&&longest.mins>=60){const co=STATE.companies.find(c=>c.id===longest.companyId);items.push({i:'⚡',t:`Sesión más larga: <strong>${fmtMins(longest.mins)}</strong> en ${co?co.name:'sin empresa'} (${new Date(longest.date+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'})})`});}
+    // Cliente principal
+    const coData2={};
+    dates.forEach(ds=>{((STATE.days[ds]&&STATE.days[ds].sessions)||[]).filter(s=>s.mode==='productive').forEach(s=>{coData2[s.companyId]=(coData2[s.companyId]||0)+s.mins;});});
+    const topE=Object.entries(coData2).sort((a,b)=>b[1]-a[1])[0];
+    if(topE&&totProd>0){const co=STATE.companies.find(c=>c.id===topE[0]);if(co)items.push({i:'🏢',t:`Cliente principal: <strong>${co.name}</strong> — ${fmtMins(topE[1])} (${Math.round(topE[1]/totProd*100)}% del productivo)`});}
+    // Ratio descanso/productivo
+    if(totBrk>0&&totProd>0){const r=Math.round(totBrk/totProd*100);if(r>35)items.push({i:'⏸️',t:`Descansos representan el <strong>${r}%</strong> del tiempo productivo — considera reducirlos`});}
+    // Traslados
+    if(totTrans>30)items.push({i:'🚗',t:`Tiempo en traslados: <strong>${fmtMins(totTrans)}</strong> en el período`});
+    insEl.innerHTML=items.length
+      ?`<div style="display:flex;flex-direction:column">${items.map(i=>`<div class="insight-row"><span style="font-size:18px;line-height:1.3;flex-shrink:0">${i.i}</span><span style="font-size:13px;line-height:1.6;color:var(--c-text2)">${i.t}</span></div>`).join('')}</div>`
+      :'<div class="empty">Agrega sesiones para ver insights.</div>';
+  }
 }
 
 // ── Gestión de usuarios ───────────────────────────────────────────────────────
@@ -2180,6 +2386,7 @@ async function startApp(){
     setSyncStatus('local');
   }
   VIEW_DATE=todayStr();
+  _anaRef=todayStr();
   _renderTimerCompanies();
   _populateAllSelects();
   navigate('dashboard');
