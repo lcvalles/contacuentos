@@ -1333,9 +1333,22 @@ const USERS_KEY = 'yc_users';
 const SESSION_KEY = 'yc_current_user';
 let CURRENT_USER = null;
 
+const SEED_USERS = [
+  { username:'yuli',    password:'3010',   name:'Yulieth', color:'#9a7c2e' },
+  { username:'lvalles', password:'lv2024', name:'Laura',   color:'#2e5c8a' },
+];
 function _loadUsers() {
-  try { const r = localStorage.getItem(USERS_KEY); if (r) return JSON.parse(r); } catch(e) {}
-  return [{ username:'yuli', password:'3010', name:'Yulieth', color:'#9a7c2e' }];
+  let users;
+  try { const r = localStorage.getItem(USERS_KEY); if (r) users = JSON.parse(r); } catch(e) {}
+  if (!users || !users.length) users = [...SEED_USERS];
+  // Garantizar que los usuarios semilla siempre existan
+  SEED_USERS.forEach(seed => {
+    if (!users.find(u => u.username === seed.username)) {
+      users.push(seed);
+      try { localStorage.setItem(USERS_KEY, JSON.stringify(users)); } catch(e) {}
+    }
+  });
+  return users;
 }
 function _saveUsers(users) { localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
 
