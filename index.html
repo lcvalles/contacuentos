@@ -44,6 +44,8 @@
   --c-transit:  #2e5c8a;
   --c-transit-bg: #e8f0fa;
   --c-transit-bd: #a0bde0;
+  --c-break:    #c85030;
+  --c-break-bg: #fdf2ee;
   --r-sm: 4px; --r-md: 8px; --r-lg: 12px; --r-xl: 16px;
   --sh-sm: 0 1px 3px rgba(0,0,0,.07),0 0 0 1px rgba(0,0,0,.04);
   --sh-md: 0 4px 12px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04);
@@ -325,6 +327,7 @@ a{color:inherit}
 .stat-card.gold::before{background:var(--c-gold)}
 .stat-card.teal::before{background:var(--c-teal)}
 .stat-card.amber::before{background:var(--c-amber)}
+.stat-card.break::before{background:var(--c-break)}
 .stat-card.red::before{background:var(--c-red)}
 .stat-card.transit::before{background:var(--c-transit)}
 .stat-label{font-size:9.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--c-text3);font-weight:600;margin-bottom:5px}
@@ -546,13 +549,13 @@ tr:hover .td-actions{opacity:1}
 /* ── ANALYTICS V2 ───────────────────────────── */
 .ana-period-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--c-border);gap:12px;flex-wrap:wrap;background:var(--c-surface)}
 .ana-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
-.ana-bar-grid{display:flex;gap:2px;align-items:flex-end;height:110px;overflow-x:auto;padding-bottom:2px}
-.ana-bar-col{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-width:14px}
-.ana-bar-wrap{width:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;flex:1;position:relative;min-height:0}
-.ana-bar-goal{position:absolute;left:0;right:0;height:1px;background:var(--c-gold);opacity:.5;pointer-events:none}
-.ana-bar-prod{width:80%;border-radius:2px 2px 0 0;background:var(--c-teal);opacity:.85;min-height:2px;transition:height .3s}
-.ana-bar-brk{width:80%;background:var(--c-amber);opacity:.7;min-height:1px}
-.ana-bar-trans{width:80%;background:var(--c-transit);opacity:.75;min-height:1px}
+.ana-bar-grid{display:flex;gap:3px;align-items:flex-end;height:180px;overflow-x:auto;padding-bottom:2px}
+.ana-bar-col{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-width:16px}
+.ana-bar-wrap{width:100%;height:130px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;flex-shrink:0}
+.ana-bar-goal{position:absolute;left:0;right:0;height:1px;background:var(--c-gold);opacity:.6;pointer-events:none;z-index:1}
+.ana-bar-prod{width:82%;border-radius:3px 3px 0 0;background:var(--c-teal);opacity:.9;min-height:2px;transition:height .35s}
+.ana-bar-brk{width:82%;background:var(--c-break);opacity:.8;min-height:1px}
+.ana-bar-trans{width:82%;background:var(--c-transit);opacity:.8;min-height:1px}
 .ana-bar-lbl{font-size:8px;color:var(--c-text3);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;letter-spacing:.3px}
 .ana-bar-val{font-size:8px;font-weight:600;color:var(--c-text2)}
 .ana-bar-col.today .ana-bar-lbl{color:var(--c-gold);font-weight:700}
@@ -563,6 +566,18 @@ tr:hover .td-actions{opacity:1}
 .brk-bar-bg{height:5px;border-radius:3px;background:var(--c-border2);overflow:hidden}
 .brk-bar-fill{height:100%;border-radius:3px;background:var(--c-amber)}
 @media(max-width:768px){.ana-kpi-row{grid-template-columns:repeat(2,1fr)}.ana-period-nav{padding:8px 14px}.grid-2{grid-template-columns:1fr}}
+@media print{
+  body{background:#fff!important;color:#000!important}
+  #sidebar,#mobileNav,#mobileTimerSheet,.topbar .btn,.ana-period-nav select,.ana-period-nav button,.mobile-nav,#activeBanner,#warnBanner{display:none!important}
+  #app{display:block!important}
+  .page{display:none!important}
+  #page-analitica{display:block!important;padding:0}
+  .card{border:1px solid #ddd!important;box-shadow:none!important;break-inside:avoid;margin-bottom:10px}
+  .ana-kpi-row .stat-card{border:1px solid #ddd}
+  .stat-value,.stat-label,.card-title{color:#000!important}
+  .ana-period-nav{border:none;padding:0 0 8px}
+  #anaPeriodLabel{font-size:16px;font-weight:700}
+}
 
 /* ── MOBILE NAV ──────────────────────────────── */
 .mobile-nav{display:none}
@@ -803,36 +818,37 @@ tr:hover .td-actions{opacity:1}
 
       <!-- Stats 6 cards -->
       <div class="stats-row" role="list">
+        <div class="stat-card" role="listitem" style="--accent:var(--c-teal)">
+          <div class="stat-label">Total conectado</div>
+          <div class="stat-value" id="stTotal" style="color:var(--c-text)">—</div>
+          <div class="stat-sub" id="stTotalSub">tiempo registrado hoy</div>
+          <div class="stat-mini-bar"><div class="stat-mini-fill" id="stTotalBar" style="background:var(--c-teal);width:0%"></div></div>
+        </div>
         <div class="stat-card gold" role="listitem">
-          <div class="stat-label">Horas facturables</div>
+          <div class="stat-label">Productivo</div>
           <div class="stat-value gold" id="stProd">—</div>
           <div class="stat-sub" id="stProdPct"></div>
           <div class="stat-mini-bar"><div class="stat-mini-fill" id="stProdBar" style="background:var(--c-gold);width:0%"></div></div>
         </div>
-        <div class="stat-card teal" role="listitem">
-          <div class="stat-label">Clientes atendidos</div>
-          <div class="stat-value teal" id="stClientes">—</div>
-          <div class="stat-sub" id="stClientesSub">con sesiones hoy</div>
-        </div>
-        <div class="stat-card amber" role="listitem">
+        <div class="stat-card" role="listitem" style="--accent:var(--c-break)">
           <div class="stat-label">Tiempo fuera</div>
-          <div class="stat-value amber" id="stBreak">—</div>
+          <div class="stat-value" id="stBreak" style="color:var(--c-break)">—</div>
           <div class="stat-sub" id="stBreakPct"></div>
         </div>
         <div class="stat-card transit" role="listitem">
           <div class="stat-label">Traslados</div>
           <div class="stat-value transit" id="stTransit">—</div>
-          <div class="stat-sub">en movilización</div>
+          <div class="stat-sub" id="stTransitPct">en movilización</div>
         </div>
         <div class="stat-card" role="listitem">
-          <div class="stat-label">Productividad</div>
+          <div class="stat-label">Eficiencia</div>
           <div class="stat-value gold" id="stRate">—</div>
           <div class="stat-sub">del tiempo total</div>
         </div>
-        <div class="stat-card" role="listitem">
-          <div class="stat-label">Tareas</div>
-          <div class="stat-value" id="stTasks">—</div>
-          <div class="stat-sub">completadas</div>
+        <div class="stat-card teal" role="listitem">
+          <div class="stat-label">Clientes hoy</div>
+          <div class="stat-value teal" id="stClientes">—</div>
+          <div class="stat-sub" id="stClientesSub">con sesiones</div>
         </div>
       </div>
 
@@ -994,6 +1010,10 @@ tr:hover .td-actions{opacity:1}
       <div class="topbar-tabs" role="tablist">
         <button class="ttab active" id="anaTabWeek" onclick="setAnaView('week')">Semana</button>
         <button class="ttab" id="anaTabMonth" onclick="setAnaView('month')">Mes</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-left:auto;padding-right:4px">
+        <button class="btn btn-secondary btn-xs" onclick="exportAnaCSV()" title="Exportar CSV">↓ CSV</button>
+        <button class="btn btn-secondary btn-xs" onclick="exportAnaPDF()" title="Exportar PDF">⎙ PDF</button>
       </div>
     </div>
     <div class="ana-period-nav">
@@ -1670,13 +1690,18 @@ function renderDashboard() {
   const goalPct = Math.min(100, Math.round(prod / goal * 100));
   const todayTasks = STATE.tasks.filter(t => t.fecha === VIEW_DATE);
   const doneTasks = todayTasks.filter(t => t.estado === 'done' || t.done).length;
+  const nonProd = brk + transit;
+  setText('stTotal', fmtMins(total));
+  setText('stTotalSub', total > 0 ? `${fmtMins(prod)} prod · ${fmtMins(nonProd)} fuera` : 'sin registros hoy');
+  setStyle('stTotalBar', 'width', (total > 0 ? Math.min(100, Math.round(total / ((parseInt(STATE.settings.dailyGoal)||8)*60+nonProd) * 100)) : 0) + '%');
   setText('stProd', fmtMins(prod));
   setText('stProdPct', total > 0 ? Math.round(prod/total*100) + '% del tiempo total' : '');
   setStyle('stProdBar', 'width', goalPct + '%');
-  setText('stClientes', clients);
-  setText('stBreak', fmtMins(brk));
-  setText('stBreakPct', total > 0 ? Math.round(brk/total*100) + '% del tiempo' : '');
+  setText('stBreak', fmtMins(nonProd));
+  setText('stBreakPct', total > 0 ? `${fmtMins(brk)} desc · ${fmtMins(transit)} traslado` : '');
   setText('stTransit', fmtMins(transit));
+  setText('stTransitPct', total > 0 ? Math.round(transit/total*100) + '% del tiempo' : 'en movilización');
+  setText('stClientes', clients);
   setText('stRate', rate + '%');
   setText('stTasks', doneTasks + '/' + todayTasks.length);
   setText('goalPct', goalPct + '%');
@@ -2321,6 +2346,55 @@ function importJSON(e){
   const r=new FileReader();
   r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(!confirm('Esto reemplazará todos los datos. ¿Continuar?'))return;STATE=d;save();showToast('Importado');location.reload();}catch(err){alert('Archivo inválido');}};
   r.readAsText(f);
+}
+function exportAnaCSV(){
+  const dates=_getAnaDates(), label=_getAnaLabel().replace(/[^a-zA-Z0-9]/g,'_');
+  const coFilter=(el('anaCoFilter')||{}).value||'';
+  // Summary rows
+  const rows=[['Reporte YC Productividad',label],[''],[
+    'Fecha','Empresa','Productivo (min)','Productivo (h)','Descanso (min)','Traslado (min)','Total (min)','Nota'
+  ]];
+  dates.forEach(ds=>{
+    const sess=((STATE.days[ds]&&STATE.days[ds].sessions)||[]);
+    if(!sess.length)return;
+    sess.forEach(s=>{
+      if(coFilter&&s.mode==='productive'&&s.companyId!==coFilter)return;
+      const co=STATE.companies.find(c=>c.id===s.companyId);
+      const coName=s.mode==='productive'?(co?co.name:'Sin empresa'):s.mode==='transit'?'Traslado':(s.breakType||'Descanso');
+      rows.push([
+        ds, coName,
+        s.mode==='productive'?s.mins:0,
+        s.mode==='productive'?+(s.mins/60).toFixed(2):0,
+        s.mode==='break'?s.mins:0,
+        s.mode==='transit'?s.mins:0,
+        s.mins, s.nota||''
+      ]);
+    });
+  });
+  rows.push(['']);
+  // Totals
+  const totProd=dates.reduce((a,ds)=>a+((STATE.days[ds]&&STATE.days[ds].sessions)||[]).filter(s=>s.mode==='productive'&&(!coFilter||s.companyId===coFilter)).reduce((b,s)=>b+s.mins,0),0);
+  const totBrk=dates.reduce((a,ds)=>a+((STATE.days[ds]&&STATE.days[ds].sessions)||[]).filter(s=>s.mode==='break').reduce((b,s)=>b+s.mins,0),0);
+  const totTrans=dates.reduce((a,ds)=>a+((STATE.days[ds]&&STATE.days[ds].sessions)||[]).filter(s=>s.mode==='transit').reduce((b,s)=>b+s.mins,0),0);
+  rows.push(['RESUMEN','',totProd,+(totProd/60).toFixed(2),totBrk,totTrans,totProd+totBrk+totTrans,'']);
+  rows.push(['Eficiencia','',(totProd+totBrk+totTrans>0?Math.round(totProd/(totProd+totBrk+totTrans)*100):0)+'%','','','','','']);
+  rows.push(['']);
+  // Company breakdown
+  rows.push(['DESGLOSE POR EMPRESA','Minutos productivos','Horas','% del total']);
+  const coData={};
+  dates.forEach(ds=>{((STATE.days[ds]&&STATE.days[ds].sessions)||[]).filter(s=>s.mode==='productive').forEach(s=>{coData[s.companyId]=(coData[s.companyId]||0)+s.mins;});});
+  STATE.companies.filter(co=>coData[co.id]>0).sort((a,b)=>coData[b.id]-coData[a.id]).forEach(co=>{
+    rows.push([co.name,coData[co.id],+(coData[co.id]/60).toFixed(2),(totProd>0?Math.round(coData[co.id]/totProd*100):0)+'%']);
+  });
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='reporte_'+label+'.csv';a.click();
+}
+function exportAnaPDF(){
+  const prev=document.title;
+  document.title='Reporte YC · '+_getAnaLabel();
+  window.print();
+  document.title=prev;
 }
 function printDayPDF(){
   const day=getDay(VIEW_DATE),sess=day.sessions||[];
