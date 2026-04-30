@@ -551,16 +551,16 @@ tr:hover .td-actions{opacity:1}
 <div id="loginOverlay" class="login-overlay">
   <div class="login-card">
     <div class="login-logo">Y · C</div>
-    <div class="login-tagline">Productividad Contable · Bogotá</div>
+    <div class="login-tagline">Productividad Contable · Medellín</div>
     <h1 class="login-title">Iniciar sesión</h1>
     <div id="loginError" class="login-error"></div>
     <div class="fg">
       <label class="field-label" for="loginUser">Usuario</label>
-      <input type="text" class="field-input" id="loginUser" placeholder="yuli" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
+      <input type="text" class="field-input" id="loginUser" placeholder="" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
     </div>
     <div class="fg">
       <label class="field-label" for="loginPass">Contraseña</label>
-      <input type="password" class="field-input" id="loginPass" placeholder="••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <input type="password" class="field-input" id="loginPass" placeholder="" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <label class="login-remember">
       <input type="checkbox" id="loginRemember" checked> Recordarme en este dispositivo
@@ -569,7 +569,7 @@ tr:hover .td-actions{opacity:1}
       Ingresar
     </button>
     <div style="margin-top:18px;font-size:10.5px;color:var(--c-text3);text-align:center;line-height:1.7">
-      YC · Sistema de Productividad Contable<br>Bogotá, Colombia
+      YC · Sistema de Productividad Contable<br>Medellín, Colombia
     </div>
   </div>
 </div>
@@ -1027,7 +1027,7 @@ tr:hover .td-actions{opacity:1}
       <div class="card">
         <div class="card-body" style="font-size:13px;color:var(--c-text2);line-height:1.8">
           <strong style="color:var(--c-text)">YC · Productividad Contable</strong><br>
-          Diseñada para <strong style="color:var(--c-gold)">Yulieth Castrillón</strong>, Contadora Pública · Bogotá<br>
+          Diseñada para <strong style="color:var(--c-gold)">Yulieth Castrillón</strong>, Contadora Pública · Medellín<br>
           <span id="ajustesFirebaseStatus" style="font-size:11.5px;color:var(--c-text3)">Cargando estado de sincronización…</span>
         </div>
       </div>
@@ -1172,6 +1172,7 @@ function checkSession() {
 function doLogin() {
   const u = (el('loginUser').value || '').trim().toLowerCase();
   const p = (el('loginPass').value || '').trim();
+  console.log('login intent:', u, p.length + ' chars');
   if (u === CREDS.user && p === CREDS.pass) {
     const remember = el('loginRemember') && el('loginRemember').checked;
     if (remember) localStorage.setItem('yc_session', '1');
@@ -1179,6 +1180,7 @@ function doLogin() {
     startApp();
   } else {
     el('loginError').textContent = 'Usuario o contraseña incorrectos.';
+    console.warn('login failed - user:', u, '| pass chars:', p.length);
   }
 }
 function doLogout() {
@@ -1399,7 +1401,7 @@ function updateClock() {
   const t = now.toLocaleTimeString('es-CO', { timeZone:'America/Bogota', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
   const d = now.toLocaleDateString('es-CO', { timeZone:'America/Bogota', weekday:'long', year:'numeric', month:'long', day:'numeric' });
   if (el('sidebarClock')) el('sidebarClock').textContent = t;
-  if (el('sidebarDate')) el('sidebarDate').textContent = d.charAt(0).toUpperCase() + d.slice(1);
+  if (el('sidebarDate')) el('sidebarDate').textContent = d.charAt(0).toUpperCase() + d.slice(1).replace('bogotá','Medellín').replace('Bogotá','Medellín');
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────────
