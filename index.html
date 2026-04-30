@@ -569,16 +569,33 @@ tr:hover .td-actions{opacity:1}
 .brk-bar-fill{height:100%;border-radius:3px;background:var(--c-amber)}
 @media(max-width:768px){.ana-kpi-row{grid-template-columns:repeat(2,1fr)}.ana-period-nav{padding:8px 14px}.grid-2{grid-template-columns:1fr}.topbar-user{display:none}}
 @media print{
-  body{background:#fff!important;color:#000!important}
-  #sidebar,#mobileNav,#mobileTimerSheet,.topbar .btn,.ana-period-nav select,.ana-period-nav button,.mobile-nav,#activeBanner,#warnBanner{display:none!important}
-  #app{display:block!important}
-  .page{display:none!important}
-  #page-analitica{display:block!important;padding:0}
-  .card{border:1px solid #ddd!important;box-shadow:none!important;break-inside:avoid;margin-bottom:10px}
-  .ana-kpi-row .stat-card{border:1px solid #ddd}
-  .stat-value,.stat-label,.card-title{color:#000!important}
-  .ana-period-nav{border:none;padding:0 0 8px}
-  #anaPeriodLabel{font-size:16px;font-weight:700}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{background:#fff!important;color:#1a1a1a!important;font-size:11px}
+  /* Ocultar todo lo que no es el reporte */
+  #sidebar,#mobileNav,#mobileTimerSheet,#activeBanner,#warnBanner,
+  .ana-period-nav button,.ana-period-nav select,
+  .topbar .btn,.topbar-user,#topbarUser{display:none!important}
+  /* Resetear el layout flex para que el contenido fluya normalmente */
+  #app,#main{display:block!important;height:auto!important;overflow:visible!important;width:100%!important}
+  .page{display:none!important;height:auto!important;overflow:visible!important}
+  #page-analitica{display:block!important;height:auto!important;overflow:visible!important;padding:0!important}
+  .page-content{overflow:visible!important;height:auto!important;padding:12px!important}
+  /* Encabezado del reporte */
+  .topbar{border-bottom:2px solid #333!important;padding:8px 12px!important;margin-bottom:12px}
+  .topbar-title{font-size:18px!important;color:#000!important}
+  #anaPeriodLabel{font-size:13px!important;font-weight:700!important;color:#333!important}
+  .ana-period-nav{padding:6px 12px!important;border-bottom:1px solid #ccc!important}
+  /* Cards */
+  .card{border:1px solid #ccc!important;box-shadow:none!important;break-inside:avoid;margin-bottom:10px!important;background:#fff!important}
+  .card-title,.stat-label,.stat-value,.stat-sub{color:#000!important}
+  .ana-kpi-row{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:8px!important}
+  .ana-kpi-row .stat-card{border:1px solid #ccc!important;padding:10px!important}
+  .grid-2{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important}
+  /* Barras visibles en print */
+  .ana-bar-prod{background:#0b7a6a!important}
+  .ana-bar-brk{background:#c85030!important}
+  .ana-bar-trans{background:#2e5c8a!important}
+  .metric-co-bar div,.brk-bar-fill,.hour-bar{print-color-adjust:exact}
 }
 
 /* ── MOBILE NAV ──────────────────────────────── */
