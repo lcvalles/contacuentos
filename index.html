@@ -20,20 +20,20 @@
   --c-text2:    #52514a;
   --c-text3:    #908e85;
   --c-text4:    #bab8b0;
-  --c-gold:       #9a7c2e;
-  --c-gold-lt:    #b8963a;
-  --c-gold-bg:    #fdf6e3;
-  --c-gold-bd:    #e8d49a;
-  --c-teal:     #1a6b5e;
-  --c-teal-lt:  #237a6c;
-  --c-teal-bg:  #e8f5f2;
-  --c-teal-bd:  #9ed3ca;
-  --c-amber:    #8a5e0a;
-  --c-amber-bg: #fff8e8;
-  --c-amber-bd: #f0d090;
-  --c-red:      #8b2020;
+  --c-gold:       #b08a1a;
+  --c-gold-lt:    #c8a028;
+  --c-gold-bg:    #fdf5dc;
+  --c-gold-bd:    #e8cc80;
+  --c-teal:     #0b7a6a;
+  --c-teal-lt:  #0e8e7a;
+  --c-teal-bg:  #e0f5f0;
+  --c-teal-bd:  #80ccc0;
+  --c-amber:    #a06010;
+  --c-amber-bg: #fff4e0;
+  --c-amber-bd: #f0c870;
+  --c-red:      #b02020;
   --c-red-bg:   #fdf0f0;
-  --c-red-bd:   #f0b0b0;
+  --c-red-bd:   #f0a8a8;
   --c-green:    #1a5e35;
   --c-green-bg: #eaf5ee;
   --c-purple:   #5e3a98;
@@ -248,6 +248,8 @@ a{color:inherit}
   padding:0 24px;display:flex;align-items:center;gap:10px;min-height:50px;flex-shrink:0;
 }
 .topbar-title{font-family:var(--f-display);font-size:20px;font-weight:300;color:var(--c-text);letter-spacing:.5px}
+.topbar-user{display:flex;align-items:center;gap:6px;padding:3px 10px 3px 6px;border-radius:20px;background:var(--c-surface3);border:1px solid var(--c-border);font-size:12px;font-weight:500;color:var(--c-text2);letter-spacing:.2px;white-space:nowrap}
+.topbar-user-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
 .topbar-tabs{display:flex;margin-left:auto}
 .ttab{
   padding:0 14px;height:50px;display:flex;align-items:center;font-size:12.5px;
@@ -565,7 +567,7 @@ tr:hover .td-actions{opacity:1}
 .brk-row-head{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;color:var(--c-text2)}
 .brk-bar-bg{height:5px;border-radius:3px;background:var(--c-border2);overflow:hidden}
 .brk-bar-fill{height:100%;border-radius:3px;background:var(--c-amber)}
-@media(max-width:768px){.ana-kpi-row{grid-template-columns:repeat(2,1fr)}.ana-period-nav{padding:8px 14px}.grid-2{grid-template-columns:1fr}}
+@media(max-width:768px){.ana-kpi-row{grid-template-columns:repeat(2,1fr)}.ana-period-nav{padding:8px 14px}.grid-2{grid-template-columns:1fr}.topbar-user{display:none}}
 @media print{
   body{background:#fff!important;color:#000!important}
   #sidebar,#mobileNav,#mobileTimerSheet,.topbar .btn,.ana-period-nav select,.ana-period-nav button,.mobile-nav,#activeBanner,#warnBanner{display:none!important}
@@ -736,11 +738,11 @@ tr:hover .td-actions{opacity:1}
   <section id="page-dashboard" class="page active" aria-label="Dashboard">
     <div class="topbar">
       <h1 class="topbar-title">Dashboard</h1>
+      <div id="topbarUser" class="topbar-user" style="margin-left:12px"></div>
       <div style="display:flex;gap:6px;align-items:center;margin-left:auto">
-        <button class="btn btn-secondary btn-sm" onclick="openModalQuick()">+ Sesión</button>
-        <button class="btn btn-save btn-sm" id="btnSave" onclick="doSave()">💾 Guardar</button>
-        <button class="btn btn-dl btn-sm" onclick="exportCSV()">↓ CSV</button>
-        <button class="btn btn-pdf btn-sm" onclick="printDayPDF()">PDF</button>
+        <button class="btn btn-primary btn-sm" onclick="openModalQuick()">+ Sesión</button>
+        <button class="btn btn-dl btn-sm" onclick="exportCSV()" title="Exportar CSV">↓ CSV</button>
+        <button class="btn btn-pdf btn-sm" onclick="printDayPDF()" title="Imprimir día">⎙ PDF</button>
       </div>
     </div>
 
@@ -2443,6 +2445,15 @@ function _renderTimerCompanies(){
   if(el('mTimerSel')) el('mTimerSel').innerHTML=opts;
 }
 
+// ── User pill ─────────────────────────────────────────────────────────────────
+function _renderUserPill(){
+  const pill=el('topbarUser'); if(!pill||!CURRENT_USER)return;
+  const name=CURRENT_USER.name||CURRENT_USER.username;
+  const initial=name.charAt(0).toUpperCase();
+  const color=CURRENT_USER.color||'var(--c-gold)';
+  pill.innerHTML=`<div class="topbar-user-dot" style="background:${color}">${initial}</div>${name}`;
+}
+
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 async function startApp(){
   if(el('loginOverlay'))el('loginOverlay').style.display='none';
@@ -2467,6 +2478,7 @@ async function startApp(){
   _anaRef=todayStr();
   _renderTimerCompanies();
   _populateAllSelects();
+  _renderUserPill();
   navigate('dashboard');
   _updateTimerUI();
   _renderBanner();
