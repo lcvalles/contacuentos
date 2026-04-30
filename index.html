@@ -1013,6 +1013,23 @@ tr:hover .td-actions{opacity:1}
         </div>
       </div>
       <div class="card" style="margin-bottom:14px">
+        <div class="card-header"><span class="card-title">Usuarios</span></div>
+        <div class="card-body">
+          <div id="usersList" style="margin-bottom:14px"></div>
+          <div style="border-top:1px solid var(--c-border);padding-top:14px">
+            <div style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--c-text3);margin-bottom:10px">Agregar usuario</div>
+            <div class="fg-row-3">
+              <div><label class="field-label">Nombre</label><input type="text" class="field-input" id="newUserName" placeholder="Nombre completo" autocomplete="off"></div>
+              <div><label class="field-label">Usuario</label><input type="text" class="field-input" id="newUserUsername" placeholder="sin espacios, minúscula" autocomplete="off"></div>
+              <div><label class="field-label">Contraseña</label><input type="password" class="field-input" id="newUserPass" placeholder="mínimo 4 caracteres"></div>
+            </div>
+            <div id="newUserError" style="color:var(--c-red);font-size:11.5px;margin:6px 0"></div>
+            <button class="btn btn-primary btn-sm" onclick="addUser()">+ Agregar usuario</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
         <div class="card-header"><span class="card-title">Exportar / Importar datos</span></div>
         <div class="card-body">
           <div style="display:flex;gap:9px;flex-wrap:wrap">
@@ -1164,28 +1181,44 @@ try {
   }
 } catch(e) { console.warn('Firebase:', e); }
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
-const CREDS = { user: 'yuli', pass: '3010' };
+// ── Usuarios ──────────────────────────────────────────────────────────────────
+const USERS_KEY = 'yc_users';
+const SESSION_KEY = 'yc_current_user';
+let CURRENT_USER = null;
+
+function _loadUsers() {
+  try { const r = localStorage.getItem(USERS_KEY); if (r) return JSON.parse(r); } catch(e) {}
+  return [{ username:'yuli', password:'3010', name:'Yulieth', color:'#9a7c2e' }];
+}
+function _saveUsers(users) { localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
+
 function checkSession() {
-  return localStorage.getItem('yc_session') === '1' || sessionStorage.getItem('yc_session') === '1';
+  const u = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
+  if (!u) return false;
+  const users = _loadUsers();
+  const found = users.find(x => x.username === u);
+  if (found) { CURRENT_USER = found; return true; }
+  return false;
 }
 function doLogin() {
   const u = (el('loginUser').value || '').trim().toLowerCase();
   const p = (el('loginPass').value || '').trim();
-  console.log('login intent:', u, p.length + ' chars');
-  if (u === CREDS.user && p === CREDS.pass) {
+  const users = _loadUsers();
+  const user = users.find(x => x.username === u && x.password === p);
+  if (user) {
+    CURRENT_USER = user;
     const remember = el('loginRemember') && el('loginRemember').checked;
-    if (remember) localStorage.setItem('yc_session', '1');
-    else sessionStorage.setItem('yc_session', '1');
+    if (remember) localStorage.setItem(SESSION_KEY, u);
+    else sessionStorage.setItem(SESSION_KEY, u);
     startApp();
   } else {
     el('loginError').textContent = 'Usuario o contraseña incorrectos.';
-    console.warn('login failed - user:', u, '| pass chars:', p.length);
   }
 }
 function doLogout() {
-  localStorage.removeItem('yc_session');
-  sessionStorage.removeItem('yc_session');
+  localStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(SESSION_KEY);
+  CURRENT_USER = null;
   location.reload();
 }
 
@@ -1201,15 +1234,20 @@ const Sync = {
   async _push() {
     try {
       setSyncStatus('saving');
-      await db.collection('yuli').doc('productivity').set(STATE);
+      const uid = CURRENT_USER ? CURRENT_USER.username : 'yuli';
+      await db.collection('productivity').doc(uid).set(STATE);
       setSyncStatus('ok');
     } catch(e) { console.error('Firestore save:', e); setSyncStatus('error'); }
   },
   async pull() {
     if (!USE_FB) { setSyncStatus('local'); return null; }
     try {
-      const snap = await db.collection('yuli').doc('productivity').get();
-      return snap.exists ? snap.data() : null;
+      const uid = CURRENT_USER ? CURRENT_USER.username : 'yuli';
+      const snap = await db.collection('productivity').doc(uid).get();
+      if (snap.exists) return snap.data();
+      // compatibilidad: intentar ruta antigua
+      const old = await db.collection('yuli').doc('productivity').get();
+      return old.exists ? old.data() : null;
     } catch(e) { console.error('Firestore pull:', e); setSyncStatus('error'); return null; }
   }
 };
@@ -1230,7 +1268,7 @@ function getCoHHMM(d) {
 }
 
 // ── State ─────────────────────────────────────────────────────────────────────
-const SK = 'yc_v6';
+function SK() { return 'yc_data_' + (CURRENT_USER ? CURRENT_USER.username : 'yuli'); }
 const SEED_COS = [
   { id:'co1', name:'Podenza',   color:'#2e5c8a', desc:'' },
   { id:'co2', name:'IAC',       color:'#1a6b5e', desc:'' },
@@ -1242,14 +1280,14 @@ const SEED_COS = [
 let STATE = { companies:[], tasks:[], days:{}, settings:{ dailyGoal:8, breakAlert:90 }, activeSession:null };
 
 function loadState() {
-  try { const r = localStorage.getItem(SK); if (r) STATE = JSON.parse(r); } catch(e) {}
+  try { const r = localStorage.getItem(SK()); if (r) STATE = JSON.parse(r); } catch(e) {}
   if (!STATE.companies || !STATE.companies.length) STATE.companies = JSON.parse(JSON.stringify(SEED_COS));
   if (!STATE.tasks)    STATE.tasks    = [];
   if (!STATE.days)     STATE.days     = {};
   if (!STATE.settings) STATE.settings = { dailyGoal:8, breakAlert:90 };
   if (!STATE.activeSession) STATE.activeSession = null;
 }
-function save() { localStorage.setItem(SK, JSON.stringify(STATE)); Sync.schedule(); }
+function save() { localStorage.setItem(SK(), JSON.stringify(STATE)); Sync.schedule(); }
 function getDay(ds) {
   if (!STATE.days[ds]) STATE.days[ds] = { sessions:[], entries:[] };
   return STATE.days[ds];
@@ -1887,11 +1925,54 @@ function _renderHourAnalytics(){
   e2.innerHTML=`<div class="hour-grid">${Array.from({length:13},(_,i)=>i+7).map(h=>{const m=hourMap[h]||0;return`<div class="hour-col"><div class="hour-bar" style="height:${Math.round(m/maxM*100)}%"></div><span class="hour-lbl">${h}</span></div>`;}).join('')}</div>`;
 }
 
+// ── Gestión de usuarios ───────────────────────────────────────────────────────
+function renderUsers() {
+  const e2 = el('usersList'); if (!e2) return;
+  const users = _loadUsers();
+  e2.innerHTML = users.map((u, i) => {
+    const isCurrent = CURRENT_USER && u.username === CURRENT_USER.username;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--c-border)">
+      <div style="width:34px;height:34px;border-radius:50%;background:${u.color||'var(--c-gold)'};display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600;flex-shrink:0">${(u.name||u.username).charAt(0).toUpperCase()}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:500">${u.name||u.username}</div>
+        <div style="font-size:11px;color:var(--c-text3)">@${u.username}${isCurrent?' · <span style="color:var(--c-teal)">sesión activa</span>':''}</div>
+      </div>
+      ${!isCurrent ? `<button class="icon-btn" style="color:var(--c-red)" onclick="deleteUser('${u.username}')">✕</button>` : ''}
+    </div>`;
+  }).join('');
+}
+function addUser() {
+  const name     = (el('newUserName')     || {}).value?.trim() || '';
+  const username = (el('newUserUsername') || {}).value?.trim().toLowerCase().replace(/\s+/g,'') || '';
+  const pass     = (el('newUserPass')     || {}).value?.trim() || '';
+  const errEl    = el('newUserError');
+  if (!name || !username || !pass) { if(errEl) errEl.textContent='Completa todos los campos.'; return; }
+  if (pass.length < 4)             { if(errEl) errEl.textContent='La contraseña debe tener mínimo 4 caracteres.'; return; }
+  const users = _loadUsers();
+  if (users.find(u => u.username === username)) { if(errEl) errEl.textContent='Ese nombre de usuario ya existe.'; return; }
+  const colors = ['#2e5c8a','#1a6b5e','#8a5e0a','#5e3a98','#8b2020'];
+  users.push({ username, password:pass, name, color:colors[users.length % colors.length] });
+  _saveUsers(users);
+  if(errEl) errEl.textContent='';
+  ['newUserName','newUserUsername','newUserPass'].forEach(id => { if(el(id)) el(id).value=''; });
+  renderUsers();
+  showToast(`Usuario @${username} creado`);
+}
+function deleteUser(username) {
+  if (!confirm(`¿Eliminar el usuario @${username}? Sus datos locales se conservan.`)) return;
+  const users = _loadUsers().filter(u => u.username !== username);
+  if (!users.length) { showToast('Debe haber al menos un usuario.'); return; }
+  _saveUsers(users);
+  renderUsers();
+  showToast(`Usuario @${username} eliminado`);
+}
+
 // ── Settings ──────────────────────────────────────────────────────────────────
 function loadSettings(){
   if(el('settGoal'))el('settGoal').value=STATE.settings.dailyGoal||8;
   if(el('settBreak'))el('settBreak').value=STATE.settings.breakAlert||90;
   setSyncStatus(USE_FB?'ok':'local');
+  renderUsers();
 }
 function saveSetting(key,val){STATE.settings[key]=parseFloat(val)||0;save();showToast('Ajuste guardado');}
 
@@ -1972,7 +2053,7 @@ async function startApp(){
       if(!STATE.tasks)STATE.tasks=[];
       if(!STATE.days)STATE.days={};
       if(!STATE.settings)STATE.settings={dailyGoal:8,breakAlert:90};
-      localStorage.setItem(SK,JSON.stringify(STATE));
+      localStorage.setItem(SK(),JSON.stringify(STATE));
     }
     setSyncStatus('ok');
   } else {
