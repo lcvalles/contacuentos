@@ -542,7 +542,40 @@ tr:hover .td-actions{opacity:1}
 @media(max-width:1200px){.stats-row{grid-template-columns:repeat(3,1fr)}.task-summary-grid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:1000px){.grid-2{grid-template-columns:1fr}.stats-row{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:780px){:root{--sidebar-w:180px}.timer-digits{font-size:32px}.stats-row{grid-template-columns:repeat(2,1fr)}.fg-row-3{grid-template-columns:1fr 1fr}}
-@media(max-width:600px){#sidebar{width:52px;min-width:52px}.brand-sub,.nav-section-label,.brand-logo,.timer-fields,.timer-btn-break,.timer-btn-transit,.break-chips,.sidebar-footer .sync-status,.clock-date{display:none}.nav-link{justify-content:center;padding:10px}.timer-block{padding:10px 6px}.timer-digits{font-size:20px;letter-spacing:1px}.sidebar-clock{padding:7px 6px}.clock-time{font-size:18px}}
+
+/* ── MOBILE NAV ──────────────────────────────── */
+.mobile-nav{display:none}
+.mn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 2px 6px;border:none;background:none;color:var(--c-text3);cursor:pointer;gap:2px;transition:color .15s;-webkit-tap-highlight-color:transparent}
+.mn-item.active{color:var(--c-gold)}
+.mn-icon{font-size:20px;line-height:1}
+.mn-label{font-size:9px;letter-spacing:.4px;font-weight:500;text-transform:uppercase}
+.mn-timer-dot{width:7px;height:7px;border-radius:50%;background:var(--c-border2);margin:0 auto 2px;transition:background .3s}
+.mn-timer-dot.on{background:var(--c-teal);box-shadow:0 0 0 3px var(--c-teal-bg);animation:pulse-anim 1.8s infinite}
+.mn-timer-dot.brk{background:var(--c-amber);animation:pulse-anim 1.8s infinite}
+.mn-timer-dot.transit{background:var(--c-transit);animation:pulse-anim 1.8s infinite}
+
+/* ── MOBILE TIMER SHEET ──────────────────────── */
+.mobile-sheet{display:none;position:fixed;bottom:60px;left:0;right:0;z-index:150;background:var(--c-surface);border-top:1px solid var(--c-border);border-radius:var(--r-xl) var(--r-xl) 0 0;padding:20px 20px 12px;box-shadow:0 -8px 32px rgba(0,0,0,.12);animation:sheet-in .22s ease}
+.mobile-sheet.open{display:block}
+@keyframes sheet-in{from{transform:translateY(100%)}to{transform:none}}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--c-border2);margin:0 auto 16px}
+.sheet-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:18px;color:var(--c-text3);cursor:pointer;padding:4px}
+
+@media(max-width:768px){
+  #sidebar{display:none!important}
+  .mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--c-surface);border-top:1px solid var(--c-border);z-index:100;padding-bottom:env(safe-area-inset-bottom,0px)}
+  #main{padding-bottom:64px}
+  .page-content{padding:14px 14px}
+  .qe-row{flex-wrap:wrap}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .topbar{padding:0 14px;flex-wrap:wrap;gap:6px;min-height:44px}
+  .topbar-title{font-size:17px}
+  .topbar-tabs{margin-left:0;order:2;width:100%;border-top:1px solid var(--c-border);margin:0 -14px;padding:0 14px}
+  .date-nav{padding:8px 14px}
+  .qe-card{padding:10px 14px}
+  .page-content .card{margin-bottom:10px}
+  .banner{padding:8px 14px;font-size:12px}
+}
 </style>
 </head>
 <body>
@@ -1057,6 +1090,60 @@ tr:hover .td-actions{opacity:1}
 <div id="printArea" style="display:none"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<!-- ═══ MOBILE BOTTOM NAV ═══ -->
+<nav class="mobile-nav" id="mobileNav" aria-label="Navegación móvil">
+  <button class="mn-item active" id="mnDashboard" onclick="navigate('dashboard')">
+    <span class="mn-icon">▦</span><span class="mn-label">Inicio</span>
+  </button>
+  <button class="mn-item" id="mnRegistro" onclick="navigate('registro')">
+    <span class="mn-icon">≡</span><span class="mn-label">Registro</span>
+  </button>
+  <button class="mn-item" id="mnTimer" onclick="toggleMobileTimer()">
+    <div class="mn-timer-dot" id="mnTimerDot"></div>
+    <span class="mn-icon">⏱</span><span class="mn-label">Timer</span>
+  </button>
+  <button class="mn-item" id="mnTareas" onclick="navigate('tareas')">
+    <span class="mn-icon">☐</span><span class="mn-label">Tareas</span>
+  </button>
+  <button class="mn-item" id="mnAjustes" onclick="navigate('ajustes')">
+    <span class="mn-icon">◎</span><span class="mn-label">Más</span>
+  </button>
+</nav>
+
+<!-- ═══ MOBILE TIMER SHEET ═══ -->
+<div class="mobile-sheet" id="mobileTimerSheet">
+  <div class="sheet-handle"></div>
+  <button class="sheet-close" onclick="closeMobileTimer()">✕</button>
+
+  <div style="text-align:center;margin-bottom:14px">
+    <div style="font-size:36px;font-family:var(--f-display);font-weight:300;letter-spacing:3px;color:var(--c-text)" id="mSheetDigits">00:00:00</div>
+    <div style="font-size:12px;color:var(--c-text3);margin-top:4px" id="mSheetLabel">Inactivo</div>
+  </div>
+
+  <div style="margin-bottom:12px">
+    <label class="field-label" style="font-size:9px">Empresa</label>
+    <select class="field-input" id="mTimerSel" style="width:100%"></select>
+  </div>
+
+  <button class="timer-btn-main" id="mTimerMainBtn" onclick="toggleTimer()" style="margin-bottom:8px">▶ Iniciar</button>
+
+  <button class="timer-btn-break" onclick="toggleBreakMenu()" style="margin-bottom:4px">☕ Tiempo fuera</button>
+  <div class="break-chips" id="mBreakChips" style="margin-bottom:8px">
+    <button class="bchip" onclick="selectBreak(this,'Comidas')">🍽️ Comidas</button>
+    <button class="bchip" onclick="selectBreak(this,'Tequila')">🐾 Tequila</button>
+    <button class="bchip" onclick="selectBreak(this,'Amor')">💜 Amor</button>
+    <button class="bchip" onclick="selectBreak(this,'Pausa activa')">🧘 Pausa</button>
+    <button class="bchip" onclick="selectBreak(this,'Llamada')">📞 Llamada</button>
+    <button class="bchip" onclick="selectBreak(this,'Casa')">🏠 Casa</button>
+    <button class="bchip" onclick="toggleOtherBreak(this)">· · · Otro</button>
+  </div>
+  <div class="bchip-other-wrap" id="mOtherBreakWrap" style="margin-bottom:8px">
+    <input type="text" class="tf-input" id="mOtherBreakText" placeholder="¿Qué actividad?">
+    <button onclick="confirmMobileOtherBreak()" class="btn btn-primary btn-xs">OK</button>
+  </div>
+  <button class="timer-btn-transit" onclick="toggleTransit()" id="mTransitBtn">🚗 Traslado / Movilización</button>
+</div>
+
 <!-- MODAL: Editar sesión -->
 <div class="overlay" id="modalSess" role="dialog" aria-modal="true">
   <div class="modal">
@@ -1335,7 +1422,7 @@ function toggleTimer() {
   if (STATE.activeSession && STATE.activeSession.mode === 'productive') {
     _stopActive(false);
   } else {
-    const coId = (el('timerSel') && el('timerSel').value) || '';
+    const coId = (el('timerSel') && el('timerSel').value) || (el('mTimerSel') && el('mTimerSel').value) || '';
     if (!coId) { showToast('Selecciona una empresa primero'); return; }
     startWork(coId);
   }
@@ -1367,6 +1454,22 @@ function confirmOtherBreak() {
   el('otherBreakText').value = '';
   if (el('otherBreakWrap')) el('otherBreakWrap').style.display = 'none';
 }
+// ── Mobile Timer Sheet ────────────────────────────────────────────────────────
+function toggleMobileTimer() {
+  const sheet = el('mobileTimerSheet');
+  if (sheet) sheet.classList.toggle('open');
+}
+function closeMobileTimer() {
+  const sheet = el('mobileTimerSheet');
+  if (sheet) sheet.classList.remove('open');
+}
+function confirmMobileOtherBreak() {
+  const txt = ((el('mOtherBreakText') || {}).value || '').trim();
+  if (!txt) return;
+  startBreak('Otro: ' + txt);
+  if (el('mOtherBreakText')) el('mOtherBreakText').value = '';
+  if (el('mOtherBreakWrap')) el('mOtherBreakWrap').classList.remove('open');
+}
 function toggleTransit() {
   if (STATE.activeSession && STATE.activeSession.mode === 'transit') _stopActive(false);
   else startTransit();
@@ -1389,6 +1492,12 @@ function _updateTimerUI() {
     if (mainBtn)  { mainBtn.textContent = '▶ Iniciar'; mainBtn.classList.remove('stop'); }
     if (breakBtn)   breakBtn.classList.remove('active');
     if (transitBtn) { transitBtn.classList.remove('active'); transitBtn.textContent = '🚗 Traslado / Movilización'; }
+    // Mobile: reset
+    if(el('mSheetDigits')) el('mSheetDigits').textContent='00:00:00';
+    if(el('mSheetLabel'))  el('mSheetLabel').textContent='Inactivo';
+    if(el('mTimerMainBtn')){el('mTimerMainBtn').textContent='▶ Iniciar';el('mTimerMainBtn').classList.remove('stop');}
+    if(el('mTransitBtn')){el('mTransitBtn').classList.remove('active');el('mTransitBtn').textContent='🚗 Traslado / Movilización';}
+    if(el('mnTimerDot'))   el('mnTimerDot').className='mn-timer-dot';
     return;
   }
   const modeClass = s.mode === 'productive' ? 'productive' : s.mode === 'transit' ? 'transit' : 'on-break';
@@ -1400,12 +1509,18 @@ function _updateTimerUI() {
   if (mainBtn) { mainBtn.textContent = s.mode === 'productive' ? '⏹ Detener' : '▶ Iniciar'; mainBtn.classList.toggle('stop', s.mode === 'productive'); }
   if (breakBtn) breakBtn.classList.toggle('active', s.mode === 'break');
   if (transitBtn) { transitBtn.classList.toggle('active', s.mode === 'transit'); transitBtn.textContent = s.mode === 'transit' ? '⏹ Detener traslado' : '🚗 Traslado / Movilización'; }
+  // Mobile: sync active state
+  if(el('mSheetLabel'))   el('mSheetLabel').textContent=stateLabel?stateLabel.textContent:'';
+  if(el('mTimerMainBtn')){el('mTimerMainBtn').textContent=s.mode==='productive'?'⏹ Detener':'▶ Iniciar';el('mTimerMainBtn').classList.toggle('stop',s.mode==='productive');}
+  if(el('mTransitBtn')){el('mTransitBtn').classList.toggle('active',s.mode==='transit');el('mTransitBtn').textContent=s.mode==='transit'?'⏹ Detener traslado':'🚗 Traslado / Movilización';}
+  if(el('mnTimerDot'))    el('mnTimerDot').className='mn-timer-dot '+(s.mode==='productive'?'on':s.mode==='transit'?'transit':'brk');
   function tick() {
     const sec = Math.floor((Date.now() - new Date(s.startIso).getTime()) / 1000);
     const h = String(Math.floor(sec / 3600)).padStart(2, '0');
     const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
     const sc = String(sec % 60).padStart(2, '0');
     if (digits) digits.textContent = `${h}:${m}:${sc}`;
+    if(el('mSheetDigits')) el('mSheetDigits').textContent=`${h}:${m}:${sc}`;
     if (!_warnDismissed && s.mode === 'productive') {
       const alertMins = parseInt(STATE.settings.breakAlert) || 90;
       if (alertMins > 0 && sec >= alertMins * 60) {
@@ -1450,6 +1565,10 @@ function navigate(page) {
   document.querySelectorAll('.nav-link').forEach(n => {
     if ((n.getAttribute('onclick') || '').includes("'" + page + "'")) n.classList.add('active');
   });
+  // Mobile bottom nav active state
+  ['mnDashboard','mnRegistro','mnTareas','mnAjustes'].forEach(id=>{const b=el(id);if(b)b.classList.remove('active');});
+  const _mMap={dashboard:'mnDashboard',registro:'mnRegistro',tareas:'mnTareas',ajustes:'mnAjustes',analitica:'mnAjustes',empresas:'mnAjustes'};
+  if(_mMap[page]&&el(_mMap[page]))el(_mMap[page]).classList.add('active');
   if (page === 'dashboard') renderDashboard();
   if (page === 'analitica') renderAnalytics();
   if (page === 'tareas')    { renderTasks(); _populateAllSelects(); }
@@ -2035,8 +2154,9 @@ function _populateSel(id){
   s.innerHTML='<option value="">Sin empresa</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
 }
 function _renderTimerCompanies(){
-  const s=el('timerSel');if(!s)return;
-  s.innerHTML='<option value="">— Empresa —</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
+  const opts='<option value="">— Empresa —</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
+  if(el('timerSel'))  el('timerSel').innerHTML=opts;
+  if(el('mTimerSel')) el('mTimerSel').innerHTML=opts;
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
