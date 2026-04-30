@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YC · Productividad Contable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+:root {
+  --c-bg:       #f2f1ed;
+  --c-surface:  #ffffff;
+  --c-surface2: #faf9f6;
+  --c-surface3: #f5f4f0;
+  --c-border:   #e4e2da;
+  --c-border2:  #cbc9c0;
+  --c-text:     #181815;
+  --c-text2:    #52514a;
+  --c-text3:    #908e85;
+  --c-text4:    #bab8b0;
+  --c-gold:       #9a7c2e;
+  --c-gold-lt:    #b8963a;
+  --c-gold-bg:    #fdf6e3;
+  --c-gold-bd:    #e8d49a;
+  --c-teal:     #1a6b5e;
+  --c-teal-lt:  #237a6c;
+  --c-teal-bg:  #e8f5f2;
+  --c-teal-bd:  #9ed3ca;
+  --c-amber:    #8a5e0a;
+  --c-amber-bg: #fff8e8;
+  --c-amber-bd: #f0d090;
+  --c-red:      #8b2020;
+  --c-red-bg:   #fdf0f0;
+  --c-red-bd:   #f0b0b0;
+  --c-green:    #1a5e35;
+  --c-green-bg: #eaf5ee;
+  --c-purple:   #5e3a98;
+  --c-purple-bg:#f3effe;
+  --c-blue:     #1a4a8a;
+  --c-blue-bg:  #e8f0fd;
+  --c-gray-bg:  #eeecea;
+  --c-transit:  #2e5c8a;
+  --c-transit-bg: #e8f0fa;
+  --c-transit-bd: #a0bde0;
+  --r-sm: 4px; --r-md: 8px; --r-lg: 12px; --r-xl: 16px;
+  --sh-sm: 0 1px 3px rgba(0,0,0,.07),0 0 0 1px rgba(0,0,0,.04);
+  --sh-md: 0 4px 12px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04);
+  --sh-lg: 0 8px 28px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.05);
+  --f-display:'Crimson Pro',Georgia,serif;
+  --f-body:'DM Sans',system-ui,sans-serif;
+  --sidebar-w: 220px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px;-webkit-font-smoothing:antialiased}
+body{font-family:var(--f-body);background:var(--c-bg);color:var(--c-text);min-height:100vh;line-height:1.5}
+button{font-family:var(--f-body);cursor:pointer}
+input,select,textarea{font-family:var(--f-body)}
+a{color:inherit}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--c-border2);border-radius:10px}
+
+/* ── LOGIN ──────────────────────────────────── */
+.login-overlay{
+  position:fixed;inset:0;
+  background:var(--c-bg);
+  display:flex;align-items:center;justify-content:center;
+  z-index:9999;
+}
+.login-card{
+  background:var(--c-surface);
+  border:1px solid var(--c-border);
+  border-radius:var(--r-xl);
+  padding:44px 40px 36px;
+  width:360px;max-width:96vw;
+  box-shadow:var(--sh-lg);
+}
+.login-logo{
+  font-family:var(--f-display);font-size:34px;font-weight:300;
+  color:var(--c-gold);letter-spacing:6px;text-align:center;
+  margin-bottom:3px;
+}
+.login-tagline{
+  font-size:9.5px;color:var(--c-text3);letter-spacing:2px;
+  text-transform:uppercase;text-align:center;margin-bottom:30px;
+}
+.login-title{
+  font-family:var(--f-display);font-size:21px;font-weight:300;
+  margin-bottom:18px;
+}
+.login-error{
+  background:var(--c-red-bg);border:1px solid var(--c-red-bd);
+  border-radius:var(--r-md);padding:9px 12px;
+  font-size:12px;color:var(--c-red);margin-bottom:14px;display:none;
+}
+.login-remember{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;color:var(--c-text2);margin-bottom:18px;cursor:pointer;
+}
+
+/* ── LAYOUT ─────────────────────────────────── */
+#app{display:flex;height:100vh;overflow:hidden}
+
+/* ── SIDEBAR ────────────────────────────────── */
+#sidebar{
+  width:var(--sidebar-w);min-width:var(--sidebar-w);
+  background:var(--c-surface);border-right:1px solid var(--c-border);
+  display:flex;flex-direction:column;overflow-y:auto;z-index:20;
+}
+.brand{padding:18px 20px 12px;border-bottom:1px solid var(--c-border)}
+.brand-logo{
+  font-family:var(--f-display);font-size:24px;font-weight:300;
+  color:var(--c-gold);letter-spacing:4px;display:block;line-height:1;margin-bottom:3px;
+}
+.brand-sub{font-size:9px;color:var(--c-text3);letter-spacing:1.8px;text-transform:uppercase}
+
+.sidebar-clock{
+  padding:10px 20px 11px;border-bottom:1px solid var(--c-border);
+  text-align:center;background:var(--c-surface2);
+}
+.clock-time{
+  font-family:var(--f-display);font-size:26px;font-weight:300;
+  color:var(--c-text2);letter-spacing:3px;line-height:1;
+}
+.clock-date{font-size:9.5px;color:var(--c-text3);margin-top:3px;letter-spacing:.5px;text-transform:capitalize}
+
+.nav-section{padding:14px 0 4px}
+.nav-section-label{
+  font-size:9px;font-weight:600;letter-spacing:1.6px;text-transform:uppercase;
+  color:var(--c-text4);padding:0 20px;display:block;margin-bottom:2px;
+}
+.nav-link{
+  display:flex;align-items:center;gap:9px;padding:8px 20px;
+  font-size:13px;font-weight:400;color:var(--c-text2);border:none;
+  background:none;width:100%;text-align:left;border-left:2px solid transparent;
+  transition:background .12s,color .12s;cursor:pointer;
+}
+.nav-link:hover{background:var(--c-bg);color:var(--c-text)}
+.nav-link.active{color:var(--c-gold);border-left-color:var(--c-gold);background:var(--c-gold-bg);font-weight:500}
+.nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+
+/* ── TIMER BLOCK ────────────────────────────── */
+.timer-block{
+  margin-top:auto;border-top:1px solid var(--c-border);
+  padding:18px 16px 14px;background:var(--c-surface);
+}
+.timer-state-row{display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:8px}
+.timer-pulse{width:7px;height:7px;border-radius:50%;background:var(--c-border2);flex-shrink:0;transition:background .3s,box-shadow .3s}
+.timer-pulse.productive{background:var(--c-teal);box-shadow:0 0 0 3px var(--c-teal-bg);animation:pulse-anim 1.8s infinite}
+.timer-pulse.on-break{background:var(--c-amber);box-shadow:0 0 0 3px var(--c-amber-bg);animation:pulse-anim 1.8s infinite}
+.timer-pulse.transit{background:var(--c-transit);box-shadow:0 0 0 3px var(--c-transit-bg);animation:pulse-anim 1.8s infinite}
+@keyframes pulse-anim{0%,100%{opacity:1}50%{opacity:.5}}
+.timer-state-label{font-size:10px;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;color:var(--c-text3);transition:color .3s}
+.timer-state-label.productive{color:var(--c-teal)}
+.timer-state-label.on-break{color:var(--c-amber)}
+.timer-state-label.transit{color:var(--c-transit)}
+
+.timer-digits{
+  font-family:var(--f-display);font-size:40px;font-weight:300;
+  text-align:center;letter-spacing:3px;line-height:1;color:var(--c-text);
+  margin-bottom:3px;transition:color .3s;
+}
+.timer-digits.productive{color:var(--c-teal)}
+.timer-digits.on-break{color:var(--c-amber)}
+.timer-digits.transit{color:var(--c-transit)}
+
+.timer-co-name{text-align:center;font-size:11px;color:var(--c-text3);font-style:italic;min-height:16px;margin-bottom:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.timer-btn-main{
+  width:100%;padding:10px;border-radius:var(--r-md);border:none;
+  font-size:13px;font-weight:500;letter-spacing:.3px;
+  background:var(--c-gold);color:#fff;margin-bottom:6px;
+  transition:background .15s,opacity .15s;
+}
+.timer-btn-main:hover:not(:disabled){background:var(--c-gold-lt)}
+.timer-btn-main.stop{background:var(--c-surface);color:var(--c-red);border:1px solid var(--c-red-bd)}
+.timer-btn-main.stop:hover:not(:disabled){background:var(--c-red-bg)}
+.timer-btn-main:disabled{opacity:.38;cursor:default}
+
+.timer-btn-break{
+  width:100%;padding:7px;border-radius:var(--r-md);border:1px solid var(--c-border);
+  font-size:12px;font-weight:400;color:var(--c-text2);background:var(--c-surface);
+  margin-bottom:4px;transition:all .15s;
+}
+.timer-btn-break:hover:not(:disabled){border-color:var(--c-amber-bd);color:var(--c-amber);background:var(--c-amber-bg)}
+.timer-btn-break.active{background:var(--c-amber-bg);color:var(--c-amber);border-color:var(--c-amber-bd);font-weight:500}
+.timer-btn-break:disabled{opacity:.38;cursor:default}
+
+.timer-btn-transit{
+  width:100%;padding:7px;border-radius:var(--r-md);border:1px solid var(--c-transit-bd);
+  font-size:12px;font-weight:400;color:var(--c-transit);background:var(--c-transit-bg);
+  margin-bottom:6px;transition:all .15s;
+}
+.timer-btn-transit:hover:not(:disabled){background:var(--c-transit);color:#fff}
+.timer-btn-transit.active{background:var(--c-transit);color:#fff;font-weight:500}
+.timer-btn-transit:disabled{opacity:.38;cursor:default}
+
+.break-chips{display:none;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.break-chips.open{display:flex}
+.bchip{
+  padding:3px 9px;border-radius:20px;border:1px solid var(--c-border);
+  background:var(--c-surface);color:var(--c-text2);font-size:11px;
+  cursor:pointer;transition:all .12s;white-space:nowrap;
+}
+.bchip:hover{border-color:var(--c-amber-bd);color:var(--c-amber);background:var(--c-amber-bg)}
+.bchip.active{border-color:var(--c-amber-bd);background:var(--c-amber-bg);color:var(--c-amber);font-weight:500}
+.bchip-other-wrap{display:none;gap:5px;align-items:center;margin-bottom:6px}
+.bchip-other-wrap.open{display:flex}
+
+.timer-fields{display:flex;flex-direction:column;gap:7px;margin-top:6px}
+.tf-group label{display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--c-text3);margin-bottom:3px;font-weight:500}
+.tf-input{
+  width:100%;background:var(--c-surface3);border:1px solid var(--c-border);
+  border-radius:var(--r-sm);color:var(--c-text);font-size:12px;padding:6px 9px;
+  outline:none;transition:border-color .15s,background .15s;
+}
+.tf-input:focus{border-color:var(--c-gold);background:var(--c-surface)}
+.tf-input:disabled{opacity:.5}
+
+.sidebar-footer{
+  border-top:1px solid var(--c-border);padding:8px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.sync-status{font-size:10px;font-weight:500;letter-spacing:.5px}
+.sync-local{color:var(--c-text4)}
+.sync-syncing{color:var(--c-gold)}
+.sync-synced{color:var(--c-teal)}
+.sync-error{color:var(--c-red)}
+.btn-logout{
+  font-size:10px;color:var(--c-text3);background:none;border:none;
+  cursor:pointer;padding:3px 6px;border-radius:3px;
+  transition:color .12s,background .12s;
+}
+.btn-logout:hover{color:var(--c-red);background:var(--c-red-bg)}
+
+/* ── MAIN ────────────────────────────────────── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.page{display:none;flex:1;flex-direction:column;overflow-y:auto;min-width:0}
+.page.active{display:flex}
+
+/* ── TOPBAR ──────────────────────────────────── */
+.topbar{
+  background:var(--c-surface);border-bottom:1px solid var(--c-border);
+  padding:0 24px;display:flex;align-items:center;gap:10px;min-height:50px;flex-shrink:0;
+}
+.topbar-title{font-family:var(--f-display);font-size:20px;font-weight:300;color:var(--c-text);letter-spacing:.5px}
+.topbar-tabs{display:flex;margin-left:auto}
+.ttab{
+  padding:0 14px;height:50px;display:flex;align-items:center;font-size:12.5px;
+  color:var(--c-text2);cursor:pointer;border-bottom:2px solid transparent;
+  transition:all .15s;font-weight:400;border:none;background:none;
+}
+.ttab:hover{color:var(--c-text)}
+.ttab.active{color:var(--c-gold);border-bottom:2px solid var(--c-gold);font-weight:500}
+
+/* ── BANNERS ─────────────────────────────────── */
+.banner{display:none;align-items:center;gap:10px;padding:9px 24px;font-size:12.5px;flex-shrink:0;border-bottom:1px solid transparent}
+.banner.visible{display:flex}
+.banner.productive{background:var(--c-teal-bg);border-color:var(--c-teal-bd);color:var(--c-teal)}
+.banner.on-break{background:var(--c-amber-bg);border-color:var(--c-amber-bd);color:var(--c-amber)}
+.banner.transit{background:var(--c-transit-bg);border-color:var(--c-transit-bd);color:var(--c-transit)}
+.banner.warn{background:var(--c-red-bg);border-color:var(--c-red-bd);color:var(--c-red)}
+.banner-dot{width:8px;height:8px;border-radius:50%;background:currentColor;flex-shrink:0;animation:pulse-anim 1.6s infinite}
+.banner-stop{margin-left:auto;padding:4px 12px;border-radius:var(--r-sm);border:1px solid currentColor;background:transparent;color:inherit;font-size:11.5px;font-weight:500;cursor:pointer}
+.banner-stop:hover{opacity:.8}
+.banner-dismiss{padding:4px 10px;border-radius:var(--r-sm);border:1px solid currentColor;background:transparent;color:inherit;font-size:11.5px;cursor:pointer;opacity:.7}
+
+/* ── DATE NAV ────────────────────────────────── */
+.date-nav{
+  display:flex;align-items:center;gap:8px;padding:9px 24px;
+  background:var(--c-surface);border-bottom:1px solid var(--c-border);flex-shrink:0;
+}
+.date-nav-arrow{width:28px;height:28px;border:1px solid var(--c-border);border-radius:var(--r-sm);background:var(--c-surface);color:var(--c-text2);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;flex-shrink:0}
+.date-nav-arrow:hover{border-color:var(--c-gold);color:var(--c-gold)}
+.date-nav-center{flex:1;text-align:center}
+.date-nav-main{font-size:14px;font-weight:500;color:var(--c-text);cursor:pointer;text-transform:capitalize;background:none;border:none;font-family:var(--f-body)}
+.date-nav-main:hover{color:var(--c-gold)}
+.date-nav-sub{font-size:10px;color:var(--c-text3);margin-top:1px}
+.date-nav-today-btn{padding:4px 12px;border-radius:var(--r-sm);border:1px solid var(--c-gold-bd);background:var(--c-gold-bg);color:var(--c-gold);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}
+.date-nav-today-btn:hover{background:var(--c-gold);color:#fff;border-color:var(--c-gold)}
+#datePickerHidden{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
+
+/* ── QUICK ENTRY (card) ───────────────────────── */
+.qe-card{
+  background:var(--c-surface);border-bottom:1px solid var(--c-border);
+  padding:12px 24px;flex-shrink:0;
+}
+.qe-card-header{
+  display:flex;align-items:center;gap:8px;margin-bottom:10px;
+}
+.qe-card-title{font-size:10px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--c-text3)}
+.qe-row{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.qe-field{display:flex;flex-direction:column;gap:3px}
+.qe-field label{font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--c-text3);font-weight:600}
+.qe-input{
+  background:var(--c-surface3);border:1px solid var(--c-border);border-radius:var(--r-sm);
+  color:var(--c-text);font-size:12.5px;padding:5px 9px;height:32px;outline:none;
+  transition:border-color .15s;
+}
+.qe-input:focus{border-color:var(--c-gold)}
+.qe-time-wrap{display:flex;gap:4px;align-items:center}
+.qe-now-btn{height:32px;padding:0 8px;font-size:10px;font-weight:600;letter-spacing:.5px;border:1px solid var(--c-teal-bd);background:var(--c-teal-bg);color:var(--c-teal);border-radius:var(--r-sm);cursor:pointer;white-space:nowrap;transition:all .12s}
+.qe-now-btn:hover{background:var(--c-teal);color:#fff}
+.qe-dur-badge{
+  font-size:12px;font-weight:600;color:var(--c-teal);
+  min-width:50px;text-align:center;align-self:center;padding-bottom:2px;
+}
+.qe-add-btn{height:32px;padding:0 16px;border-radius:var(--r-sm);border:none;background:var(--c-gold);color:#fff;font-size:12.5px;font-weight:500;cursor:pointer;transition:background .15s;white-space:nowrap;align-self:flex-end}
+.qe-add-btn:hover{background:var(--c-gold-lt)}
+.qe-err-msg{font-size:11px;color:var(--c-red);font-weight:500;align-self:center}
+
+/* ── PAGE CONTENT ────────────────────────────── */
+.page-content{padding:20px 24px}
+
+/* ── STAT CARDS ──────────────────────────────── */
+.stats-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}
+.stat-card{
+  background:var(--c-surface);border:1px solid var(--c-border);
+  border-radius:var(--r-lg);padding:13px 14px;box-shadow:var(--sh-sm);
+  position:relative;overflow:hidden;
+}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--c-border)}
+.stat-card.gold::before{background:var(--c-gold)}
+.stat-card.teal::before{background:var(--c-teal)}
+.stat-card.amber::before{background:var(--c-amber)}
+.stat-card.red::before{background:var(--c-red)}
+.stat-card.transit::before{background:var(--c-transit)}
+.stat-label{font-size:9.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--c-text3);font-weight:600;margin-bottom:5px}
+.stat-value{font-family:var(--f-display);font-size:24px;font-weight:300;line-height:1;color:var(--c-text)}
+.stat-value.gold{color:var(--c-gold)}
+.stat-value.teal{color:var(--c-teal)}
+.stat-value.amber{color:var(--c-amber)}
+.stat-value.transit{color:var(--c-transit)}
+.stat-sub{font-size:10px;color:var(--c-text3);margin-top:4px}
+.stat-mini-bar{height:3px;border-radius:2px;background:var(--c-bg);margin-top:6px;overflow:hidden}
+.stat-mini-fill{height:100%;border-radius:2px;transition:width .6s}
+
+/* Goal card */
+.goal-card{
+  background:var(--c-surface);border:1px solid var(--c-border);
+  border-radius:var(--r-lg);padding:13px 16px;
+  display:flex;align-items:center;gap:14px;margin-bottom:16px;box-shadow:var(--sh-sm);
+}
+.goal-pct-big{font-family:var(--f-display);font-size:30px;font-weight:300;color:var(--c-gold);min-width:58px;line-height:1}
+.goal-info{flex:1}
+.goal-main-txt{font-size:12.5px;font-weight:500;color:var(--c-text2);margin-bottom:5px}
+.goal-track{background:var(--c-bg);border-radius:20px;height:5px;overflow:hidden}
+.goal-fill{height:100%;border-radius:20px;background:var(--c-gold);transition:width .6s}
+.goal-sub-txt{font-size:11px;color:var(--c-text3);margin-top:4px}
+.goal-right{text-align:right;font-size:10px;color:var(--c-text3)}
+.goal-right strong{font-size:15px;font-weight:600;color:var(--c-text2);display:block;margin-top:2px}
+
+/* ── CARDS ───────────────────────────────────── */
+.card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-lg);box-shadow:var(--sh-sm);margin-bottom:14px;overflow:hidden}
+.card-header{padding:12px 16px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between;background:var(--c-surface2)}
+.card-title{font-size:12px;font-weight:600;color:var(--c-text);letter-spacing:.2px}
+.card-body{padding:14px 16px}
+.card-body-flush{padding:0 16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+
+/* ── SESSION ROWS ────────────────────────────── */
+.sess-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--c-border)}
+.sess-row:last-child{border-bottom:none}
+.sess-stripe{width:3px;height:34px;border-radius:2px;flex-shrink:0}
+.sess-info{flex:1;min-width:0}
+.sess-name{font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sess-meta{font-size:10.5px;color:var(--c-text3);margin-top:1px}
+.sess-right{text-align:right;flex-shrink:0}
+.sess-dur{font-family:var(--f-display);font-size:15px;font-weight:400;color:var(--c-text2)}
+.sess-actions{display:flex;gap:4px;opacity:0;transition:opacity .15s}
+.sess-row:hover .sess-actions{opacity:1}
+
+/* ── BADGES ──────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:var(--r-sm);font-size:10.5px;font-weight:500;letter-spacing:.2px;white-space:nowrap}
+.badge-productive{background:var(--c-teal-bg);color:var(--c-teal)}
+.badge-break{background:var(--c-amber-bg);color:var(--c-amber)}
+.badge-transit{background:var(--c-transit-bg);color:var(--c-transit)}
+.badge-pending{background:var(--c-gray-bg);color:var(--c-text3)}
+.badge-inprogress{background:var(--c-teal-bg);color:var(--c-teal)}
+.badge-blocked{background:var(--c-red-bg);color:var(--c-red)}
+.badge-waiting{background:var(--c-amber-bg);color:var(--c-amber)}
+.badge-review{background:var(--c-purple-bg);color:var(--c-purple)}
+.badge-done{background:var(--c-green-bg);color:var(--c-green)}
+.badge-cancelled{background:var(--c-gray-bg);color:var(--c-text3);text-decoration:line-through}
+
+/* ── BUTTONS ─────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--r-sm);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;border:1px solid;white-space:nowrap;line-height:1.4}
+.btn:focus-visible{outline:2px solid var(--c-gold);outline-offset:2px}
+.btn-primary{background:var(--c-gold);border-color:var(--c-gold);color:#fff}
+.btn-primary:hover{background:var(--c-gold-lt);border-color:var(--c-gold-lt)}
+.btn-secondary{background:var(--c-surface);border-color:var(--c-border);color:var(--c-text2)}
+.btn-secondary:hover{border-color:var(--c-gold);color:var(--c-gold)}
+.btn-danger{background:var(--c-surface);border-color:var(--c-red-bd);color:var(--c-red)}
+.btn-danger:hover{background:var(--c-red-bg)}
+.btn-teal{background:var(--c-teal-bg);border-color:var(--c-teal-bd);color:var(--c-teal)}
+.btn-teal:hover{background:var(--c-teal);color:#fff;border-color:var(--c-teal)}
+.btn-save{background:var(--c-teal-bg);border-color:var(--c-teal-bd);color:var(--c-teal)}
+.btn-save:hover{background:var(--c-teal);color:#fff}
+.btn-save.saved{background:var(--c-teal);color:#fff}
+.btn-dl{background:var(--c-gold-bg);border-color:var(--c-gold-bd);color:var(--c-gold)}
+.btn-dl:hover{background:var(--c-gold);color:#fff}
+.btn-pdf{background:var(--c-purple-bg);border-color:#c5b0e8;color:var(--c-purple)}
+.btn-pdf:hover{background:var(--c-purple);color:#fff;border-color:var(--c-purple)}
+.btn-sm{padding:4px 10px;font-size:11.5px}
+.btn-xs{padding:3px 7px;font-size:11px}
+.btn-icon{padding:4px 6px}
+
+/* ── FORMS ───────────────────────────────────── */
+.fg{margin-bottom:13px}
+.fg-row-2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px}
+.fg-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;margin-bottom:13px}
+.field-label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.1px;color:var(--c-text3);margin-bottom:5px;font-weight:600}
+.field-input{width:100%;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-md);color:var(--c-text);font-size:13px;padding:8px 11px;outline:none;transition:border-color .15s,box-shadow .15s;line-height:1.4}
+.field-input:focus{border-color:var(--c-gold);box-shadow:0 0 0 3px rgba(154,124,46,.1)}
+.field-input.error{border-color:var(--c-red)}
+textarea.field-input{resize:vertical;min-height:60px}
+.field-hint{font-size:10.5px;color:var(--c-text3);margin-top:4px}
+.field-dur-preview{font-size:12.5px;font-weight:600;color:var(--c-teal);margin-top:5px;min-height:18px}
+.time-field-wrap{display:flex;gap:5px;align-items:center}
+.time-now-btn{height:38px;padding:0 9px;font-size:10px;font-weight:600;border:1px solid var(--c-teal-bd);background:var(--c-teal-bg);color:var(--c-teal);border-radius:var(--r-md);cursor:pointer;white-space:nowrap;transition:all .12s}
+.time-now-btn:hover{background:var(--c-teal);color:#fff}
+.overlap-alert{display:none;background:var(--c-red-bg);border:1px solid var(--c-red-bd);border-radius:var(--r-md);padding:9px 13px;font-size:12px;color:var(--c-red);margin-bottom:13px;line-height:1.5}
+.overlap-alert.visible{display:block}
+
+/* ── TABLE ───────────────────────────────────── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--c-surface2)}
+th{text-align:left;padding:8px 12px;font-size:9.5px;letter-spacing:1px;color:var(--c-text3);text-transform:uppercase;font-weight:600;border-bottom:1px solid var(--c-border);white-space:nowrap}
+td{padding:9px 12px;font-size:12.5px;color:var(--c-text);border-bottom:1px solid var(--c-border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--c-gold-bg)}
+.td-actions{display:flex;gap:4px;opacity:0;transition:opacity .15s}
+tr:hover .td-actions{opacity:1}
+
+/* ── HISTORY GROUPS ──────────────────────────── */
+.day-group{margin-bottom:10px}
+.day-group-header{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-lg);cursor:pointer;transition:background .12s;box-shadow:var(--sh-sm)}
+.day-group-header:hover{background:var(--c-gold-bg)}
+.day-group-header.open{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom-color:transparent}
+.day-label{font-size:13px;font-weight:500;color:var(--c-text);flex:1;text-transform:capitalize}
+.day-totals{display:flex;gap:14px}
+.day-total-item{text-align:right}
+.day-total-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--c-text4);display:block}
+.day-total-val{font-size:12.5px;font-weight:600}
+.day-total-val.teal{color:var(--c-teal)}
+.day-total-val.amber{color:var(--c-amber)}
+.day-total-val.gold{color:var(--c-gold)}
+.day-load-link{font-size:11px;color:var(--c-gold);font-weight:500;padding:3px 9px;border:1px solid var(--c-gold-bd);border-radius:var(--r-sm);background:var(--c-gold-bg);cursor:pointer;transition:all .15s;white-space:nowrap}
+.day-load-link:hover{background:var(--c-gold);color:#fff}
+.day-group-body{display:none;background:var(--c-surface);border:1px solid var(--c-border);border-top:none;border-bottom-left-radius:var(--r-lg);border-bottom-right-radius:var(--r-lg);box-shadow:var(--sh-sm)}
+.day-group-body.open{display:block}
+
+/* ── TASKS ───────────────────────────────────── */
+.task-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--c-border)}
+.task-item:last-child{border-bottom:none}
+.task-cb{margin-top:2px;accent-color:var(--c-gold);width:15px;height:15px;flex-shrink:0;cursor:pointer}
+.task-body{flex:1;min-width:0}
+.task-desc{font-size:13px;color:var(--c-text);margin-bottom:4px;line-height:1.4}
+.task-desc.done{text-decoration:line-through;color:var(--c-text3)}
+.task-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.task-tag{font-size:10.5px;padding:1px 7px;border-radius:3px;background:var(--c-gold-bg);color:var(--c-gold);border:1px solid var(--c-gold-bd)}
+.task-actions{display:flex;gap:4px;opacity:0;transition:opacity .15s}
+.task-item:hover .task-actions{opacity:1}
+.quick-add-row{display:flex;gap:7px;padding:10px 0 8px;border-bottom:1px solid var(--c-border)}
+.quick-add-input{flex:1;background:var(--c-surface3);border:1px solid var(--c-border);border-radius:var(--r-sm);color:var(--c-text);font-size:12.5px;padding:6px 10px;outline:none;transition:border-color .15s,background .15s}
+.quick-add-input:focus{border-color:var(--c-gold);background:var(--c-surface)}
+
+/* ── COMPANY CARDS ───────────────────────────── */
+.co-card{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:11px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.co-swatch{width:13px;height:13px;border-radius:50%;flex-shrink:0}
+.co-name-txt{flex:1;font-size:13px;font-weight:500}
+.co-desc-txt{font-size:11px;color:var(--c-text3);margin-top:1px}
+
+/* ── MÉTRICAS REDISEÑADAS ────────────────────── */
+.metric-week-grid{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;
+}
+.metric-day-col{display:flex;flex-direction:column;align-items:center;gap:3px}
+.metric-day-bar-wrap{
+  width:100%;display:flex;flex-direction:column;align-items:center;
+  justify-content:flex-end;height:80px;gap:2px;
+}
+.metric-day-prod{width:80%;border-radius:3px 3px 0 0;min-height:2px;background:var(--c-teal);opacity:.8;transition:height .4s}
+.metric-day-brk{width:80%;min-height:0;background:var(--c-amber);opacity:.7;transition:height .4s}
+.metric-day-val{font-size:9px;font-weight:600;color:var(--c-text2)}
+.metric-day-lbl{font-size:9px;color:var(--c-text3);text-transform:uppercase;letter-spacing:.5px}
+.metric-day-col.today .metric-day-lbl{color:var(--c-gold);font-weight:700}
+
+.metric-co-row{margin-bottom:11px}
+.metric-co-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.metric-co-name{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:500;color:var(--c-text)}
+.metric-co-total{font-size:12.5px;font-weight:700;color:var(--c-text2)}
+.metric-co-bar{height:10px;border-radius:6px;overflow:hidden;display:flex;gap:0;background:var(--c-bg)}
+.metric-co-prod{height:100%;background:var(--c-teal);opacity:.8;transition:width .4s}
+.metric-co-brk{height:100%;background:var(--c-amber);opacity:.7;transition:width .4s}
+.metric-co-transit{height:100%;background:var(--c-transit);opacity:.7;transition:width .4s}
+.metric-co-detail{display:flex;gap:14px;font-size:10px;color:var(--c-text3);margin-top:4px}
+.metric-co-detail span{display:flex;align-items:center;gap:4px}
+.metric-co-pct{font-size:10.5px;color:var(--c-text3);margin-left:8px;font-weight:500}
+
+.hour-grid{display:flex;gap:3px;align-items:flex-end;height:64px}
+.hour-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.hour-bar{width:100%;border-radius:2px 2px 0 0;min-height:1px;background:var(--c-gold);opacity:.65;transition:height .3s}
+.hour-lbl{font-size:8px;color:var(--c-text4)}
+
+.task-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.task-summary-item{text-align:center;padding:10px 8px;border-radius:var(--r-md);background:var(--c-surface2);border:1px solid var(--c-border)}
+.task-summary-num{font-family:var(--f-display);font-size:26px;font-weight:300;color:var(--c-text2);line-height:1}
+.task-summary-lbl{font-size:9.5px;margin-top:4px}
+
+.chart-legend{display:flex;gap:14px;margin-top:10px;font-size:10.5px}
+.chart-legend span{display:flex;align-items:center;gap:5px}
+.legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+/* ── MISC ────────────────────────────────────── */
+.divider{border:none;border-top:1px solid var(--c-border);margin:13px 0}
+.empty{text-align:center;padding:30px 20px;color:var(--c-text3);font-size:13px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.co-inline{display:inline-flex;align-items:center;gap:6px;font-size:12.5px}
+.text-muted{color:var(--c-text3)}
+
+/* ── TOAST ───────────────────────────────────── */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--c-text);color:#fff;border-radius:var(--r-md);padding:10px 17px;font-size:12.5px;z-index:999;display:none;box-shadow:var(--sh-md);animation:toast-in .2s ease}
+@keyframes toast-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ── MODAL ───────────────────────────────────── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(18,18,15,.45);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.overlay.open{display:flex}
+.modal{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-xl);padding:26px;width:540px;max-width:96vw;max-height:92vh;overflow-y:auto;box-shadow:var(--sh-lg);animation:modal-in .18s ease}
+@keyframes modal-in{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.modal-title{font-family:var(--f-display);font-size:20px;font-weight:300;color:var(--c-text);margin-bottom:18px;letter-spacing:.3px}
+.modal-footer{display:flex;gap:9px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--c-border)}
+
+/* ── PRINT ───────────────────────────────────── */
+@media print{body *{visibility:hidden !important}#printArea,#printArea *{visibility:visible !important}#printArea{position:fixed;top:0;left:0;width:100%;padding:32px;background:#fff}}
+
+/* ── RESPONSIVE ──────────────────────────────── */
+@media(max-width:1200px){.stats-row{grid-template-columns:repeat(3,1fr)}.task-summary-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:1000px){.grid-2{grid-template-columns:1fr}.stats-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:780px){:root{--sidebar-w:180px}.timer-digits{font-size:32px}.stats-row{grid-template-columns:repeat(2,1fr)}.fg-row-3{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){#sidebar{width:52px;min-width:52px}.brand-sub,.nav-section-label,.brand-logo,.timer-fields,.timer-btn-break,.timer-btn-transit,.break-chips,.sidebar-footer .sync-status,.clock-date{display:none}.nav-link{justify-content:center;padding:10px}.timer-block{padding:10px 6px}.timer-digits{font-size:20px;letter-spacing:1px}.sidebar-clock{padding:7px 6px}.clock-time{font-size:18px}}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ LOGIN ═══════════ -->
+<div id="loginOverlay" class="login-overlay">
+  <div class="login-card">
+    <div class="login-logo">Y · C</div>
+    <div class="login-tagline">Productividad Contable · Bogotá</div>
+    <h1 class="login-title">Iniciar sesión</h1>
+    <div id="loginError" class="login-error"></div>
+    <div class="fg">
+      <label class="field-label" for="loginUser">Usuario</label>
+      <input type="text" class="field-input" id="loginUser" placeholder="yuli" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
+    </div>
+    <div class="fg">
+      <label class="field-label" for="loginPass">Contraseña</label>
+      <input type="password" class="field-input" id="loginPass" placeholder="••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <label class="login-remember">
+      <input type="checkbox" id="loginRemember" checked> Recordarme en este dispositivo
+    </label>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;font-size:13px" onclick="doLogin()" id="loginBtn">
+      Ingresar
+    </button>
+    <div style="margin-top:18px;font-size:10.5px;color:var(--c-text3);text-align:center;line-height:1.7">
+      YC · Sistema de Productividad Contable<br>Bogotá, Colombia
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ APP ═══════════ -->
+<div id="app" style="display:none">
+
+<!-- SIDEBAR -->
+<aside id="sidebar" role="navigation" aria-label="Navegación principal">
+  <div class="brand">
+    <span class="brand-logo">Y · C</span>
+    <span class="brand-sub">Contadora Pública</span>
+  </div>
+
+  <div class="sidebar-clock">
+    <div class="clock-time" id="sidebarClock">--:--:--</div>
+    <div class="clock-date" id="sidebarDate">Bogotá, Colombia</div>
+  </div>
+
+  <nav class="nav-section">
+    <span class="nav-section-label">Principal</span>
+    <button class="nav-link active" onclick="navigate('dashboard')"><span class="nav-icon">▦</span><span>Dashboard</span></button>
+    <button class="nav-link" onclick="navigate('registro')"><span class="nav-icon">≡</span><span>Registro</span></button>
+    <button class="nav-link" onclick="navigate('tareas')"><span class="nav-icon">☐</span><span>Tareas</span></button>
+  </nav>
+  <nav class="nav-section">
+    <span class="nav-section-label">Análisis</span>
+    <button class="nav-link" onclick="navigate('analitica')"><span class="nav-icon">◫</span><span>Métricas</span></button>
+  </nav>
+  <nav class="nav-section">
+    <span class="nav-section-label">Config.</span>
+    <button class="nav-link" onclick="navigate('empresas')"><span class="nav-icon">⬡</span><span>Empresas</span></button>
+    <button class="nav-link" onclick="navigate('ajustes')"><span class="nav-icon">◎</span><span>Ajustes</span></button>
+  </nav>
+
+  <!-- TIMER -->
+  <div class="timer-block" role="region" aria-label="Temporizador">
+    <div class="timer-state-row">
+      <div class="timer-pulse" id="timerPulse"></div>
+      <span class="timer-state-label" id="timerStateLabel">Inactivo</span>
+    </div>
+    <div class="timer-digits" id="timerDigits" aria-live="polite">00:00:00</div>
+    <div class="timer-co-name" id="timerCoName">—</div>
+    <button class="timer-btn-main" id="timerMainBtn" onclick="toggleTimer()">▶ Iniciar</button>
+    <button class="timer-btn-break" id="timerBreakBtn" onclick="toggleBreakMenu()">☕ Tiempo fuera</button>
+    <div class="break-chips" id="breakChips" role="group">
+      <button class="bchip" onclick="selectBreak(this,'Comidas')">🍽️ Comidas</button>
+      <button class="bchip" onclick="selectBreak(this,'Tequila')">🐾 Tequila</button>
+      <button class="bchip" onclick="selectBreak(this,'Amor')">💜 Amor</button>
+      <button class="bchip" onclick="selectBreak(this,'Pausa activa')">🧘 Pausa</button>
+      <button class="bchip" onclick="selectBreak(this,'Llamada')">📞 Llamada</button>
+      <button class="bchip" onclick="selectBreak(this,'Casa')">🏠 Casa</button>
+      <button class="bchip" id="bchipOtro" onclick="toggleOtherBreak(this)">· · · Otro</button>
+    </div>
+    <div class="bchip-other-wrap" id="otherBreakWrap">
+      <input type="text" class="tf-input" id="otherBreakText" placeholder="¿Qué actividad?" style="font-size:11px;padding:5px 8px">
+      <button onclick="confirmOtherBreak()" class="btn btn-primary btn-xs">OK</button>
+    </div>
+    <button class="timer-btn-transit" id="timerTransitBtn" onclick="toggleTransit()">🚗 Traslado / Movilización</button>
+
+    <div class="timer-fields">
+      <div class="tf-group">
+        <label for="timerActivity">¿Qué estás haciendo?</label>
+        <input type="text" class="tf-input" id="timerActivity" placeholder="Actividad actual…" autocomplete="off">
+      </div>
+      <div class="tf-group">
+        <label for="timerSel">Empresa</label>
+        <select class="tf-input" id="timerSel"></select>
+      </div>
+    </div>
+    <div class="timer-saved" id="timerSavedLabel" style="font-size:9px;color:var(--c-text4);text-align:center;margin-top:8px">—</div>
+  </div>
+
+  <div class="sidebar-footer">
+    <span id="syncStatus" class="sync-status sync-local">○ Local</span>
+    <button class="btn-logout" onclick="doLogout()" title="Cerrar sesión">⎋ Salir</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main id="main">
+
+  <div class="banner" id="activeBanner" role="status" aria-live="polite">
+    <div class="banner-dot"></div>
+    <span id="activeBannerText"></span>
+    <button class="banner-stop" onclick="toggleTimer()">Detener</button>
+  </div>
+  <div class="banner warn" id="warnBanner" role="alert">
+    ⚠ El temporizador lleva <strong id="warnTime"></strong> corriendo. ¿Olvidaste detenerlo?
+    <button class="banner-stop" onclick="toggleTimer()">Detener</button>
+    <button class="banner-dismiss" onclick="dismissWarn()">Ignorar</button>
+  </div>
+
+  <!-- ═══ DASHBOARD ═══ -->
+  <section id="page-dashboard" class="page active" aria-label="Dashboard">
+    <div class="topbar">
+      <h1 class="topbar-title">Dashboard</h1>
+      <div class="topbar-tabs" role="tablist">
+        <button class="ttab active" role="tab" aria-selected="true" onclick="setDashPeriod('day',this)">Día</button>
+        <button class="ttab" role="tab" onclick="setDashPeriod('week',this)">Semana</button>
+        <button class="ttab" role="tab" onclick="setDashPeriod('month',this)">Mes</button>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;margin-left:12px">
+        <button class="btn btn-secondary btn-sm" onclick="openModalQuick()">+ Sesión</button>
+        <button class="btn btn-save btn-sm" id="btnSave" onclick="doSave()">💾 Guardar</button>
+        <button class="btn btn-dl btn-sm" onclick="exportCSV()">↓ CSV</button>
+        <button class="btn btn-pdf btn-sm" onclick="printDayPDF()">PDF</button>
+      </div>
+    </div>
+
+    <div class="date-nav" role="navigation" aria-label="Navegación de fechas">
+      <button class="date-nav-arrow" onclick="shiftDate(-1)">‹</button>
+      <div class="date-nav-center">
+        <button class="date-nav-main" id="dateNavMain" onclick="openDatePicker()">—</button>
+        <div class="date-nav-sub" id="dateNavSub"></div>
+        <input type="date" id="datePickerHidden" onchange="pickDate(this.value)">
+      </div>
+      <button class="date-nav-arrow" onclick="shiftDate(1)">›</button>
+      <button class="date-nav-today-btn" id="btnGoToday" onclick="goToday()" style="display:none">Hoy</button>
+    </div>
+
+    <!-- QUICK ENTRY CARD -->
+    <div class="qe-card" role="form" aria-label="Entrada rápida">
+      <div class="qe-card-header">
+        <span class="qe-card-title">⚡ Entrada rápida</span>
+        <span class="qe-err-msg" id="qeErr" role="alert"></span>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:5px">
+          <span id="qeDurBadge" class="qe-dur-badge"></span>
+          <button class="qe-add-btn" onclick="quickEntry()">+ Agregar</button>
+        </div>
+      </div>
+      <div class="qe-row">
+        <div class="qe-field">
+          <label>Inicio</label>
+          <div class="qe-time-wrap">
+            <input type="time" class="qe-input" id="qeInicio" style="width:88px" oninput="qeCalcDur()">
+            <button class="qe-now-btn" onclick="setQeNow('qeInicio')">Ahora</button>
+          </div>
+        </div>
+        <div class="qe-field">
+          <label>Fin</label>
+          <div class="qe-time-wrap">
+            <input type="time" class="qe-input" id="qeFin" style="width:88px" oninput="qeCalcDur()">
+            <button class="qe-now-btn" onclick="setQeNow('qeFin')">Ahora</button>
+          </div>
+        </div>
+        <div class="qe-field" style="flex:1;min-width:140px">
+          <label>Actividad / nota</label>
+          <input type="text" class="qe-input" id="qeNota" style="width:100%" placeholder="¿Qué hiciste?" autocomplete="off">
+        </div>
+        <div class="qe-field">
+          <label>Empresa</label>
+          <select class="qe-input" id="qeEmpresa" style="width:120px"></select>
+        </div>
+        <div class="qe-field">
+          <label>Tipo</label>
+          <select class="qe-input" id="qeTipo" style="width:110px">
+            <option value="productive">Productiva</option>
+            <option value="break">Descanso</option>
+            <option value="transit">Traslado</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <!-- Goal -->
+      <div class="goal-card">
+        <div class="goal-pct-big" id="goalPct">0%</div>
+        <div class="goal-info">
+          <div class="goal-main-txt" id="goalMainTxt">—</div>
+          <div class="goal-track"><div class="goal-fill" id="goalFill" style="width:0%" role="progressbar"></div></div>
+          <div class="goal-sub-txt" id="goalSubTxt"></div>
+        </div>
+        <div class="goal-right">Meta diaria<br><strong id="goalHrsLabel">8h</strong></div>
+      </div>
+
+      <!-- Stats 6 cards -->
+      <div class="stats-row" role="list">
+        <div class="stat-card gold" role="listitem">
+          <div class="stat-label">Horas facturables</div>
+          <div class="stat-value gold" id="stProd">—</div>
+          <div class="stat-sub" id="stProdPct"></div>
+          <div class="stat-mini-bar"><div class="stat-mini-fill" id="stProdBar" style="background:var(--c-gold);width:0%"></div></div>
+        </div>
+        <div class="stat-card teal" role="listitem">
+          <div class="stat-label">Clientes atendidos</div>
+          <div class="stat-value teal" id="stClientes">—</div>
+          <div class="stat-sub" id="stClientesSub">con sesiones hoy</div>
+        </div>
+        <div class="stat-card amber" role="listitem">
+          <div class="stat-label">Tiempo fuera</div>
+          <div class="stat-value amber" id="stBreak">—</div>
+          <div class="stat-sub" id="stBreakPct"></div>
+        </div>
+        <div class="stat-card transit" role="listitem">
+          <div class="stat-label">Traslados</div>
+          <div class="stat-value transit" id="stTransit">—</div>
+          <div class="stat-sub">en movilización</div>
+        </div>
+        <div class="stat-card" role="listitem">
+          <div class="stat-label">Productividad</div>
+          <div class="stat-value gold" id="stRate">—</div>
+          <div class="stat-sub">del tiempo total</div>
+        </div>
+        <div class="stat-card" role="listitem">
+          <div class="stat-label">Tareas</div>
+          <div class="stat-value" id="stTasks">—</div>
+          <div class="stat-sub">completadas</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Sesiones del día</span>
+            <button class="btn btn-secondary btn-xs" onclick="navigate('registro')">Ver historial</button>
+          </div>
+          <div class="card-body-flush" id="dashSessions"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Tareas</span>
+            <button class="btn btn-secondary btn-xs" onclick="movePendingToday()">↓ Traer pendientes</button>
+          </div>
+          <div style="padding:0 16px">
+            <div class="quick-add-row">
+              <input type="text" class="quick-add-input" id="dashTaskInput" placeholder="Nueva tarea… (Enter)" autocomplete="off" onkeydown="if(event.key==='Enter')dashAddTask()">
+              <button class="btn btn-primary btn-xs" onclick="dashAddTask()">+ Agregar</button>
+            </div>
+            <div id="dashTasks"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span class="card-title">Tiempo por empresa</span></div>
+        <div class="card-body" id="coBreakdown"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span class="card-title">Horas más productivas del día</span></div>
+        <div class="card-body" id="bestHours"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ REGISTRO ═══ -->
+  <section id="page-registro" class="page" aria-label="Registro de sesiones">
+    <div class="topbar">
+      <h1 class="topbar-title">Registro de sesiones</h1>
+      <div class="topbar-tabs" role="tablist">
+        <button class="ttab active" role="tab" onclick="setRegTab('history',this)">Historial por día</button>
+        <button class="ttab" role="tab" onclick="setRegTab('manual',this)">+ Registro manual</button>
+      </div>
+    </div>
+    <div class="page-content">
+      <div id="regHistory"></div>
+      <div id="regManual" style="display:none">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Nuevo registro manual</span></div>
+          <div class="card-body">
+            <div class="overlap-alert" id="manualOverlapAlert" role="alert"></div>
+            <div class="fg-row-3">
+              <div>
+                <label class="field-label" for="mEmpresa">Empresa</label>
+                <select class="field-input" id="mEmpresa"></select>
+              </div>
+              <div>
+                <label class="field-label" for="mTipo">Tipo</label>
+                <select class="field-input" id="mTipo">
+                  <option value="productive">Productiva</option>
+                  <option value="break">Descanso</option>
+                  <option value="transit">Traslado</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label" for="mFecha">Fecha</label>
+                <input type="date" class="field-input" id="mFecha">
+              </div>
+            </div>
+            <div class="fg-row-2">
+              <div>
+                <label class="field-label">Hora inicio</label>
+                <div class="time-field-wrap">
+                  <input type="time" class="field-input" id="mInicio" oninput="manualCalcDur()">
+                  <button class="time-now-btn" onclick="setNow('mInicio','mDurPreview','mFin')">Ahora</button>
+                </div>
+              </div>
+              <div>
+                <label class="field-label">Hora fin</label>
+                <div class="time-field-wrap">
+                  <input type="time" class="field-input" id="mFin" oninput="manualCalcDur()">
+                  <button class="time-now-btn" onclick="setNow('mFin','mDurPreview',null)">Ahora</button>
+                </div>
+                <div class="field-dur-preview" id="mDurPreview"></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;margin-bottom:13px">
+              <button class="btn btn-secondary btn-xs" onclick="addQuickTime(30)">+ 30 min</button>
+              <button class="btn btn-secondary btn-xs" onclick="addQuickTime(60)">+ 1 hora</button>
+              <button class="btn btn-secondary btn-xs" onclick="addQuickTime(90)">+ 1.5 h</button>
+              <button class="btn btn-secondary btn-xs" onclick="addQuickTime(120)">+ 2 horas</button>
+            </div>
+            <div class="fg">
+              <label class="field-label" for="mNota">Nota / Actividad</label>
+              <textarea class="field-input" id="mNota" rows="2" placeholder="Describe la actividad realizada…"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="saveManual()">Guardar sesión</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ TAREAS ═══ -->
+  <section id="page-tareas" class="page" aria-label="Tareas">
+    <div class="topbar"><h1 class="topbar-title">Tareas</h1></div>
+    <div class="page-content">
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header"><span class="card-title">Nueva tarea</span></div>
+        <div class="card-body">
+          <div class="fg-row-2">
+            <div><label class="field-label" for="tDesc">Descripción</label><input type="text" class="field-input" id="tDesc" placeholder="¿Qué necesitas hacer?" autocomplete="off"></div>
+            <div><label class="field-label" for="tEmpresa">Empresa</label><select class="field-input" id="tEmpresa"><option value="">Sin empresa</option></select></div>
+          </div>
+          <div class="fg-row-3">
+            <div><label class="field-label" for="tEstado">Estado</label>
+              <select class="field-input" id="tEstado">
+                <option value="pending">Pendiente</option><option value="inprogress">En progreso</option>
+                <option value="blocked">Bloqueada</option><option value="waiting">En espera</option>
+                <option value="review">En revisión</option><option value="done">Completada</option>
+                <option value="cancelled">Cancelada</option>
+              </select>
+            </div>
+            <div><label class="field-label" for="tFecha">Fecha objetivo</label><input type="date" class="field-input" id="tFecha"></div>
+            <div><label class="field-label" for="tEtiqueta">Etiqueta</label><input type="text" class="field-input" id="tEtiqueta" placeholder="tributario, nómina…" autocomplete="off"></div>
+          </div>
+          <div class="fg"><label class="field-label" for="tNota">Nota</label><textarea class="field-input" id="tNota" rows="2"></textarea></div>
+          <button class="btn btn-primary" onclick="saveTask()">Agregar tarea</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Lista de tareas</span>
+          <div style="display:flex;gap:7px">
+            <select class="field-input" style="font-size:11.5px;padding:4px 9px;height:auto" id="tfEstado" onchange="renderTasks()">
+              <option value="">Todos los estados</option>
+              <option value="pending">Pendiente</option><option value="inprogress">En progreso</option>
+              <option value="blocked">Bloqueada</option><option value="waiting">En espera</option>
+              <option value="review">En revisión</option><option value="done">Completada</option>
+              <option value="cancelled">Cancelada</option>
+            </select>
+            <select class="field-input" style="font-size:11.5px;padding:4px 9px;height:auto" id="tfEmpresa" onchange="renderTasks()">
+              <option value="">Todas las empresas</option>
+            </select>
+          </div>
+        </div>
+        <div style="padding:0 16px 8px" id="taskList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ ANALÍTICA ═══ -->
+  <section id="page-analitica" class="page" aria-label="Métricas">
+    <div class="topbar">
+      <h1 class="topbar-title">Métricas</h1>
+    </div>
+    <div class="page-content">
+      <!-- Semana overview -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header">
+          <span class="card-title">Últimos 7 días — Productivo vs Descanso vs Traslado</span>
+          <div class="chart-legend" style="margin:0">
+            <span><span class="legend-dot" style="background:var(--c-teal)"></span>Productivo</span>
+            <span><span class="legend-dot" style="background:var(--c-amber)"></span>Descanso</span>
+            <span><span class="legend-dot" style="background:var(--c-transit)"></span>Traslado</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="metric-week-grid" id="weekChart"></div>
+        </div>
+      </div>
+
+      <!-- Por empresa -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header">
+          <span class="card-title">Tiempo total por empresa</span>
+          <div class="chart-legend" style="margin:0">
+            <span><span class="legend-dot" style="background:var(--c-teal)"></span>Productivo</span>
+            <span><span class="legend-dot" style="background:var(--c-amber)"></span>Descanso</span>
+          </div>
+        </div>
+        <div class="card-body" id="coAnalytics"></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Resumen de tareas</span></div>
+          <div class="card-body" id="taskAnalytics"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Franja horaria más productiva</span></div>
+          <div class="card-body" id="hourAnalytics"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ EMPRESAS ═══ -->
+  <section id="page-empresas" class="page" aria-label="Empresas">
+    <div class="topbar"><h1 class="topbar-title">Empresas y clientes</h1></div>
+    <div class="page-content">
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header"><span class="card-title">Agregar empresa</span></div>
+        <div class="card-body">
+          <div class="fg-row-2">
+            <div><label class="field-label" for="cNombre">Nombre</label><input type="text" class="field-input" id="cNombre" placeholder="Nombre de la empresa" autocomplete="off"></div>
+            <div><label class="field-label" for="cColor">Color</label><input type="color" class="field-input" id="cColor" value="#9a7c2e" style="padding:5px;height:42px"></div>
+          </div>
+          <div class="fg"><label class="field-label" for="cDesc">Descripción / NIT / contacto</label><input type="text" class="field-input" id="cDesc" placeholder="Información adicional" autocomplete="off"></div>
+          <button class="btn btn-primary" onclick="saveCompany()">Agregar empresa</button>
+        </div>
+      </div>
+      <div id="companyList"></div>
+    </div>
+  </section>
+
+  <!-- ═══ AJUSTES ═══ -->
+  <section id="page-ajustes" class="page" aria-label="Ajustes">
+    <div class="topbar"><h1 class="topbar-title">Ajustes</h1></div>
+    <div class="page-content">
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header"><span class="card-title">Objetivos y alertas</span></div>
+        <div class="card-body">
+          <div class="fg-row-2">
+            <div><label class="field-label" for="settGoal">Horas facturables / día</label><input type="number" class="field-input" id="settGoal" min="1" max="16" onchange="saveSetting('dailyGoal',this.value)"></div>
+            <div><label class="field-label" for="settBreak">Alerta de sesión abierta (min)</label><input type="number" class="field-input" id="settBreak" min="0" max="300" onchange="saveSetting('breakAlert',this.value)"></div>
+          </div>
+          <p class="field-hint">Con 0 minutos la alerta de sesión abierta se desactiva.</p>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header"><span class="card-title">Exportar / Importar datos</span></div>
+        <div class="card-body">
+          <div style="display:flex;gap:9px;flex-wrap:wrap">
+            <button class="btn btn-secondary" onclick="exportJSON()">↓ Exportar JSON</button>
+            <button class="btn btn-secondary" onclick="exportCSV()">↓ Exportar CSV</button>
+            <label class="btn btn-secondary" style="cursor:pointer">↑ Importar JSON<input type="file" accept=".json" style="display:none" onchange="importJSON(event)"></label>
+          </div>
+          <div class="divider"></div>
+          <button class="btn btn-danger btn-sm" onclick="clearAllData()">⚠ Borrar todos los datos</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body" style="font-size:13px;color:var(--c-text2);line-height:1.8">
+          <strong style="color:var(--c-text)">YC · Productividad Contable</strong><br>
+          Diseñada para <strong style="color:var(--c-gold)">Yulieth Castrillón</strong>, Contadora Pública · Bogotá<br>
+          <span id="ajustesFirebaseStatus" style="font-size:11.5px;color:var(--c-text3)">Cargando estado de sincronización…</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+</div><!-- /app -->
+
+<div id="printArea" style="display:none"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- MODAL: Editar sesión -->
+<div class="overlay" id="modalSess" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h2 class="modal-title">Editar sesión</h2>
+    <input type="hidden" id="editSessId">
+    <div class="overlap-alert" id="editOverlapAlert" role="alert"></div>
+    <div class="fg-row-3">
+      <div><label class="field-label">Empresa</label><select class="field-input" id="editSessEmpresa"></select></div>
+      <div><label class="field-label">Tipo</label><select class="field-input" id="editSessTipo"><option value="productive">Productiva</option><option value="break">Descanso</option><option value="transit">Traslado</option></select></div>
+      <div><label class="field-label">Fecha</label><input type="date" class="field-input" id="editSessFecha"></div>
+    </div>
+    <div class="fg-row-2">
+      <div>
+        <label class="field-label">Hora inicio</label>
+        <div class="time-field-wrap"><input type="time" class="field-input" id="editSessInicio" oninput="editCalcDur()"><button class="time-now-btn" onclick="setNow('editSessInicio','editDurPreview',null)">Ahora</button></div>
+      </div>
+      <div>
+        <label class="field-label">Hora fin</label>
+        <div class="time-field-wrap"><input type="time" class="field-input" id="editSessFin" oninput="editCalcDur()"><button class="time-now-btn" onclick="setNow('editSessFin','editDurPreview',null)">Ahora</button></div>
+        <div class="field-dur-preview" id="editDurPreview"></div>
+      </div>
+    </div>
+    <div class="fg"><label class="field-label">Nota</label><textarea class="field-input" id="editSessNota" rows="2"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalSess')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEditSess()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Agregar sesión rápida -->
+<div class="overlay" id="modalQuick" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h2 class="modal-title">Agregar sesión</h2>
+    <div class="overlap-alert" id="quickOverlapAlert" role="alert"></div>
+    <div class="fg-row-3">
+      <div><label class="field-label">Empresa</label><select class="field-input" id="qEmpresa"></select></div>
+      <div><label class="field-label">Tipo</label><select class="field-input" id="qTipo"><option value="productive">Productiva</option><option value="break">Descanso</option><option value="transit">Traslado</option></select></div>
+      <div><label class="field-label">Fecha</label><input type="date" class="field-input" id="qFecha"></div>
+    </div>
+    <div class="fg-row-2">
+      <div>
+        <label class="field-label">Hora inicio</label>
+        <div class="time-field-wrap"><input type="time" class="field-input" id="qInicio" oninput="quickCalcDur()"><button class="time-now-btn" onclick="setNow('qInicio','quickDurPreview',null)">Ahora</button></div>
+      </div>
+      <div>
+        <label class="field-label">Hora fin</label>
+        <div class="time-field-wrap"><input type="time" class="field-input" id="qFin" oninput="quickCalcDur()"><button class="time-now-btn" onclick="setNow('qFin','quickDurPreview',null)">Ahora</button></div>
+        <div class="field-dur-preview" id="quickDurPreview"></div>
+      </div>
+    </div>
+    <div class="fg"><label class="field-label">Nota / Actividad</label><textarea class="field-input" id="qNota" rows="2"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalQuick')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveQuickSess()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Editar tarea -->
+<div class="overlay" id="modalTask" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h2 class="modal-title">Editar tarea</h2>
+    <input type="hidden" id="editTaskId">
+    <div class="fg"><label class="field-label">Descripción</label><input type="text" class="field-input" id="editTaskDesc" autocomplete="off"></div>
+    <div class="fg-row-2">
+      <div><label class="field-label">Empresa</label><select class="field-input" id="editTaskEmpresa"><option value="">Sin empresa</option></select></div>
+      <div><label class="field-label">Estado</label>
+        <select class="field-input" id="editTaskEstado">
+          <option value="pending">Pendiente</option><option value="inprogress">En progreso</option>
+          <option value="blocked">Bloqueada</option><option value="waiting">En espera</option>
+          <option value="review">En revisión</option><option value="done">Completada</option>
+          <option value="cancelled">Cancelada</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg-row-2">
+      <div><label class="field-label">Fecha objetivo</label><input type="date" class="field-input" id="editTaskFecha"></div>
+      <div><label class="field-label">Etiqueta</label><input type="text" class="field-input" id="editTaskEtiqueta" autocomplete="off"></div>
+    </div>
+    <div class="fg"><label class="field-label">Nota</label><textarea class="field-input" id="editTaskNota" rows="2"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalTask')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEditTask()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Editar empresa -->
+<div class="overlay" id="modalCo" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h2 class="modal-title">Editar empresa</h2>
+    <input type="hidden" id="editCoId">
+    <div class="fg-row-2">
+      <div><label class="field-label">Nombre</label><input type="text" class="field-input" id="editCoNombre" autocomplete="off"></div>
+      <div><label class="field-label">Color</label><input type="color" class="field-input" id="editCoColor" style="padding:5px;height:42px"></div>
+    </div>
+    <div class="fg"><label class="field-label">Descripción</label><input type="text" class="field-input" id="editCoDesc" autocomplete="off"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalCo')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEditCompany()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Firebase ──────────────────────────────────────────────────────────────────
+const FIREBASE_CONFIG = {
+  apiKey: "REPLACE_API_KEY",
+  authDomain: "REPLACE_AUTH_DOMAIN",
+  projectId: "REPLACE_PROJECT_ID",
+  storageBucket: "REPLACE_STORAGE_BUCKET",
+  messagingSenderId: "REPLACE_MESSAGING_SENDER_ID",
+  appId: "REPLACE_APP_ID"
+};
+let db = null, USE_FB = false;
+try {
+  if (!FIREBASE_CONFIG.apiKey.startsWith('REPLACE')) {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.firestore();
+    USE_FB = true;
+  }
+} catch(e) { console.warn('Firebase:', e); }
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+const CREDS = { user: 'yuli', pass: '3010' };
+function checkSession() {
+  return localStorage.getItem('yc_session') === '1' || sessionStorage.getItem('yc_session') === '1';
+}
+function doLogin() {
+  const u = (el('loginUser').value || '').trim().toLowerCase();
+  const p = (el('loginPass').value || '').trim();
+  if (u === CREDS.user && p === CREDS.pass) {
+    const remember = el('loginRemember') && el('loginRemember').checked;
+    if (remember) localStorage.setItem('yc_session', '1');
+    else sessionStorage.setItem('yc_session', '1');
+    startApp();
+  } else {
+    el('loginError').textContent = 'Usuario o contraseña incorrectos.';
+  }
+}
+function doLogout() {
+  localStorage.removeItem('yc_session');
+  sessionStorage.removeItem('yc_session');
+  location.reload();
+}
+
+// ── Firebase Sync ─────────────────────────────────────────────────────────────
+const Sync = {
+  _t: null,
+  schedule() {
+    if (!USE_FB) { setSyncStatus('local'); return; }
+    setSyncStatus('saving');
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this._push(), 2500);
+  },
+  async _push() {
+    try {
+      setSyncStatus('saving');
+      await db.collection('yuli').doc('productivity').set(STATE);
+      setSyncStatus('ok');
+    } catch(e) { console.error('Firestore save:', e); setSyncStatus('error'); }
+  },
+  async pull() {
+    if (!USE_FB) { setSyncStatus('local'); return null; }
+    try {
+      const snap = await db.collection('yuli').doc('productivity').get();
+      return snap.exists ? snap.data() : null;
+    } catch(e) { console.error('Firestore pull:', e); setSyncStatus('error'); return null; }
+  }
+};
+function setSyncStatus(s) {
+  const textMap = { ok:'● Sincronizado', saving:'◌ Guardando…', error:'✕ Error sync', local:'○ Local' };
+  const clsMap  = { ok:'sync-synced', saving:'sync-syncing', error:'sync-error', local:'sync-local' };
+  const e = el('syncStatus'); if (!e) return;
+  e.textContent = textMap[s] || textMap.local;
+  e.className = 'sync-status ' + (clsMap[s] || clsMap.local);
+  const ae = el('ajustesFirebaseStatus');
+  if (ae) ae.textContent = USE_FB ? 'Firebase: ' + (textMap[s]||'') : 'Modo local (sin Firebase configurado)';
+}
+
+// ── Colombia Time ─────────────────────────────────────────────────────────────
+const todayStr = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date());
+function getCoHHMM(d) {
+  return (d || new Date()).toLocaleTimeString('en-GB', { timeZone: 'America/Bogota', hour: '2-digit', minute: '2-digit', hour12: false }).slice(0, 5);
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+const SK = 'yc_v6';
+const SEED_COS = [
+  { id:'co1', name:'Podenza',   color:'#2e5c8a', desc:'' },
+  { id:'co2', name:'IAC',       color:'#1a6b5e', desc:'' },
+  { id:'co3', name:'Crispetas', color:'#8a5e0a', desc:'' },
+  { id:'co4', name:'Wlabel',    color:'#5e3a98', desc:'' },
+  { id:'co5', name:'Dinafik',   color:'#8b2020', desc:'' },
+  { id:'co6', name:'Afl',       color:'#1a4a8a', desc:'' },
+];
+let STATE = { companies:[], tasks:[], days:{}, settings:{ dailyGoal:8, breakAlert:90 }, activeSession:null };
+
+function loadState() {
+  try { const r = localStorage.getItem(SK); if (r) STATE = JSON.parse(r); } catch(e) {}
+  if (!STATE.companies || !STATE.companies.length) STATE.companies = JSON.parse(JSON.stringify(SEED_COS));
+  if (!STATE.tasks)    STATE.tasks    = [];
+  if (!STATE.days)     STATE.days     = {};
+  if (!STATE.settings) STATE.settings = { dailyGoal:8, breakAlert:90 };
+  if (!STATE.activeSession) STATE.activeSession = null;
+}
+function save() { localStorage.setItem(SK, JSON.stringify(STATE)); Sync.schedule(); }
+function getDay(ds) {
+  if (!STATE.days[ds]) STATE.days[ds] = { sessions:[], entries:[] };
+  return STATE.days[ds];
+}
+
+// ── App State ─────────────────────────────────────────────────────────────────
+let VIEW_DATE = '';
+let _timerTick = null, _clockTick = null, _breakMenuOpen = false, _warnDismissed = false;
+
+// ── Timer ─────────────────────────────────────────────────────────────────────
+function startWork(coId) {
+  _stopActive(true);
+  STATE.activeSession = { mode:'productive', companyId:coId, breakType:'', startIso:new Date().toISOString(), startDisplay:getCoHHMM() };
+  save(); _updateTimerUI(); _renderBanner();
+}
+function startBreak(type) {
+  _stopActive(true);
+  STATE.activeSession = { mode:'break', companyId:'', breakType:type, startIso:new Date().toISOString(), startDisplay:getCoHHMM() };
+  _breakMenuOpen = false;
+  save(); _updateTimerUI(); _renderBanner();
+}
+function startTransit() {
+  _stopActive(true);
+  STATE.activeSession = { mode:'transit', companyId:'', breakType:'', startIso:new Date().toISOString(), startDisplay:getCoHHMM() };
+  save(); _updateTimerUI(); _renderBanner();
+}
+function _stopActive(silent) {
+  if (!STATE.activeSession) return;
+  const s = STATE.activeSession;
+  const endIso = new Date().toISOString();
+  const mins = Math.round((new Date(endIso) - new Date(s.startIso)) / 60000);
+  if (mins >= 1) {
+    const coDs = new Intl.DateTimeFormat('en-CA', { timeZone:'America/Bogota' }).format(new Date(s.startIso));
+    getDay(coDs).sessions.push({
+      mode:s.mode, companyId:s.companyId||'', breakType:s.breakType||'',
+      startIso:s.startIso, endIso, startDisplay:s.startDisplay, endDisplay:getCoHHMM(),
+      mins, nota:s.nota||'', manual:false
+    });
+  }
+  STATE.activeSession = null;
+  save();
+  if (!silent) { _updateTimerUI(); _renderBanner(); if (VIEW_DATE === todayStr()) renderDashboard(); }
+}
+function toggleTimer() {
+  if (STATE.activeSession && STATE.activeSession.mode === 'productive') {
+    _stopActive(false);
+  } else {
+    const coId = (el('timerSel') && el('timerSel').value) || '';
+    if (!coId) { showToast('Selecciona una empresa primero'); return; }
+    startWork(coId);
+  }
+}
+function toggleBreakMenu() {
+  _breakMenuOpen = !_breakMenuOpen;
+  const chips = el('breakChips');
+  if (chips) chips.classList.toggle('open', _breakMenuOpen);
+}
+function selectBreak(btn, type) {
+  document.querySelectorAll('.bchip').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  if (el('otherBreakWrap')) el('otherBreakWrap').style.display = 'none';
+  startBreak(type);
+}
+function toggleOtherBreak(btn) {
+  document.querySelectorAll('.bchip').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const w = el('otherBreakWrap');
+  if (!w) return;
+  const shown = w.style.display === 'flex';
+  w.style.display = shown ? 'none' : 'flex';
+  if (!shown && el('otherBreakText')) el('otherBreakText').focus();
+}
+function confirmOtherBreak() {
+  const txt = ((el('otherBreakText') || {}).value || '').trim();
+  if (!txt) return;
+  startBreak('Otro: ' + txt);
+  el('otherBreakText').value = '';
+  if (el('otherBreakWrap')) el('otherBreakWrap').style.display = 'none';
+}
+function toggleTransit() {
+  if (STATE.activeSession && STATE.activeSession.mode === 'transit') _stopActive(false);
+  else startTransit();
+}
+function _updateTimerUI() {
+  clearInterval(_timerTick);
+  const s = STATE.activeSession;
+  const pulse      = el('timerPulse');
+  const stateLabel = el('timerStateLabel');
+  const digits     = el('timerDigits');
+  const coName     = el('timerCoName');
+  const mainBtn    = el('timerMainBtn');
+  const breakBtn   = el('timerBreakBtn');
+  const transitBtn = el('timerTransitBtn');
+  [pulse, stateLabel, digits].forEach(e => { if(e) { e.classList.remove('productive','on-break','transit'); } });
+  if (!s) {
+    if (digits)     digits.textContent = '00:00:00';
+    if (coName)     coName.textContent = '—';
+    if (stateLabel) stateLabel.textContent = 'Inactivo';
+    if (mainBtn)  { mainBtn.textContent = '▶ Iniciar'; mainBtn.classList.remove('stop'); }
+    if (breakBtn)   breakBtn.classList.remove('active');
+    if (transitBtn) { transitBtn.classList.remove('active'); transitBtn.textContent = '🚗 Traslado / Movilización'; }
+    return;
+  }
+  const modeClass = s.mode === 'productive' ? 'productive' : s.mode === 'transit' ? 'transit' : 'on-break';
+  if (pulse)      pulse.classList.add(modeClass);
+  if (stateLabel) { stateLabel.classList.add(modeClass); stateLabel.textContent = s.mode === 'productive' ? '● Trabajando' : s.mode === 'transit' ? '🚗 En traslado' : '☕ Descansando'; }
+  if (digits)     digits.classList.add(modeClass);
+  const co = STATE.companies.find(c => c.id === s.companyId);
+  if (coName) coName.textContent = co ? co.name : (s.mode === 'break' ? (s.breakType || 'Descanso') : s.mode === 'transit' ? 'En traslado' : '—');
+  if (mainBtn) { mainBtn.textContent = s.mode === 'productive' ? '⏹ Detener' : '▶ Iniciar'; mainBtn.classList.toggle('stop', s.mode === 'productive'); }
+  if (breakBtn) breakBtn.classList.toggle('active', s.mode === 'break');
+  if (transitBtn) { transitBtn.classList.toggle('active', s.mode === 'transit'); transitBtn.textContent = s.mode === 'transit' ? '⏹ Detener traslado' : '🚗 Traslado / Movilización'; }
+  function tick() {
+    const sec = Math.floor((Date.now() - new Date(s.startIso).getTime()) / 1000);
+    const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+    const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+    const sc = String(sec % 60).padStart(2, '0');
+    if (digits) digits.textContent = `${h}:${m}:${sc}`;
+    if (!_warnDismissed && s.mode === 'productive') {
+      const alertMins = parseInt(STATE.settings.breakAlert) || 90;
+      if (alertMins > 0 && sec >= alertMins * 60) {
+        const wb = el('warnBanner'), wt = el('warnTime');
+        if (wb && wt) { wt.textContent = fmtMins(Math.floor(sec / 60)); wb.classList.add('visible'); }
+      }
+    }
+  }
+  tick();
+  _timerTick = setInterval(tick, 1000);
+}
+function _renderBanner() {
+  const ab = el('activeBanner'), abt = el('activeBannerText'), wb = el('warnBanner');
+  const s = STATE.activeSession;
+  if (!ab) return;
+  ab.className = 'banner';
+  if (!s) return;
+  _warnDismissed = false;
+  if (wb) wb.classList.remove('visible');
+  const co = STATE.companies.find(c => c.id === s.companyId);
+  const modeClass = s.mode === 'productive' ? 'productive' : s.mode === 'transit' ? 'transit' : 'on-break';
+  ab.classList.add(modeClass, 'visible');
+  const label = s.mode === 'productive' ? `Trabajando · ${co ? co.name : '?'}` : s.mode === 'transit' ? '🚗 En traslado' : `☕ ${s.breakType || 'Descansando'}`;
+  if (abt) abt.textContent = label;
+}
+function dismissWarn() { _warnDismissed = true; const wb = el('warnBanner'); if(wb) wb.classList.remove('visible'); }
+
+// ── Clock ─────────────────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const t = now.toLocaleTimeString('es-CO', { timeZone:'America/Bogota', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+  const d = now.toLocaleDateString('es-CO', { timeZone:'America/Bogota', weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  if (el('sidebarClock')) el('sidebarClock').textContent = t;
+  if (el('sidebarDate')) el('sidebarDate').textContent = d.charAt(0).toUpperCase() + d.slice(1);
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+  const pg = el('page-' + page); if (pg) pg.classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(n => {
+    if ((n.getAttribute('onclick') || '').includes("'" + page + "'")) n.classList.add('active');
+  });
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'analitica') renderAnalytics();
+  if (page === 'tareas')    { renderTasks(); _populateAllSelects(); }
+  if (page === 'empresas')  renderCompanyList();
+  if (page === 'registro')  { renderHistory(); initManual(); }
+  if (page === 'ajustes')   loadSettings();
+}
+function openModal(id)  { const m = el(id); if (m) m.classList.add('open'); }
+function closeModal(id) { const m = el(id); if (m) m.classList.remove('open'); }
+
+// ── Date Nav ──────────────────────────────────────────────────────────────────
+function shiftDate(d) {
+  const dt = new Date(VIEW_DATE + 'T12:00:00');
+  dt.setDate(dt.getDate() + d);
+  VIEW_DATE = dt.toISOString().slice(0, 10);
+  renderDashboard();
+}
+function goToday() { VIEW_DATE = todayStr(); renderDashboard(); }
+function openDatePicker() {
+  const dp = el('datePickerHidden'); if (!dp) return;
+  dp.value = VIEW_DATE;
+  try { dp.showPicker(); } catch(e) { dp.click(); }
+}
+function pickDate(v) { if (v) { VIEW_DATE = v; renderDashboard(); } }
+function _updateDateNav() {
+  const isToday = VIEW_DATE === todayStr();
+  const label = new Date(VIEW_DATE + 'T12:00:00').toLocaleDateString('es-CO', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  if (el('dateNavMain')) el('dateNavMain').textContent = label.charAt(0).toUpperCase() + label.slice(1);
+  if (el('dateNavSub')) el('dateNavSub').textContent = isToday ? 'Hoy' : '';
+  if (el('btnGoToday')) el('btnGoToday').style.display = isToday ? 'none' : '';
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+function setDashPeriod(p, btn) {
+  document.querySelectorAll('#page-dashboard .ttab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+function renderDashboard() {
+  _updateDateNav();
+  const day = getDay(VIEW_DATE);
+  const sessions = day.sessions || [];
+  const allSess = [...sessions];
+  if (VIEW_DATE === todayStr() && STATE.activeSession) {
+    const s = STATE.activeSession;
+    allSess.push({ ...s, endDisplay:getCoHHMM(), mins:Math.round((Date.now()-new Date(s.startIso).getTime())/60000), _live:true });
+  }
+  let prod = 0, brk = 0, transit = 0;
+  const coMins = {};
+  allSess.forEach(s => {
+    if (s.mode === 'productive') { prod += s.mins; coMins[s.companyId] = (coMins[s.companyId]||0) + s.mins; }
+    else if (s.mode === 'break') brk += s.mins;
+    else if (s.mode === 'transit') transit += s.mins;
+  });
+  const clients = Object.keys(coMins).filter(k => k).length;
+  const total = prod + brk + transit;
+  const rate = total > 0 ? Math.round(prod / total * 100) : 0;
+  const goal = (parseInt(STATE.settings.dailyGoal) || 8) * 60;
+  const goalPct = Math.min(100, Math.round(prod / goal * 100));
+  const todayTasks = STATE.tasks.filter(t => t.fecha === VIEW_DATE);
+  const doneTasks = todayTasks.filter(t => t.estado === 'done' || t.done).length;
+  setText('stProd', fmtMins(prod));
+  setText('stProdPct', total > 0 ? Math.round(prod/total*100) + '% del tiempo total' : '');
+  setStyle('stProdBar', 'width', goalPct + '%');
+  setText('stClientes', clients);
+  setText('stBreak', fmtMins(brk));
+  setText('stBreakPct', total > 0 ? Math.round(brk/total*100) + '% del tiempo' : '');
+  setText('stTransit', fmtMins(transit));
+  setText('stRate', rate + '%');
+  setText('stTasks', doneTasks + '/' + todayTasks.length);
+  setText('goalPct', goalPct + '%');
+  setText('goalMainTxt', `${fmtMins(prod)} productivos de ${fmtMins(goal)} meta`);
+  setStyle('goalFill', 'width', goalPct + '%');
+  setText('goalSubTxt', prod >= goal ? '✓ Meta diaria alcanzada' : `Faltan ${fmtMins(goal-prod)} para la meta`);
+  setText('goalHrsLabel', (STATE.settings.dailyGoal || 8) + 'h');
+  _renderDashSessions(allSess);
+  _renderDashTasks();
+  _renderCoBars(coMins);
+  _renderBestHours(allSess);
+}
+function _renderDashSessions(sessions) {
+  const e2 = el('dashSessions'); if (!e2) return;
+  if (!sessions.length) { e2.innerHTML = '<div class="empty">Sin sesiones hoy.</div>'; return; }
+  e2.innerHTML = sessions.map((s, i) => {
+    const co = STATE.companies.find(c => c.id === s.companyId);
+    const label = s.mode==='productive' ? (co?co.name:'?') : s.mode==='transit' ? 'Traslado' : (s.breakType||'Descanso');
+    const color = s.mode==='productive' ? (co?co.color:'var(--c-teal)') : s.mode==='transit' ? 'var(--c-transit)' : 'var(--c-amber)';
+    const liveTag = s._live ? ' <span style="font-size:9px;color:var(--c-teal)">● vivo</span>' : '';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--c-border)">
+      <span class="dot" style="background:${color}"></span>
+      <span style="flex:1;font-size:12.5px">${label}${liveTag}</span>
+      <span style="font-size:11.5px;color:var(--c-text3)">${s.startDisplay}–${s.endDisplay}</span>
+      <span style="font-size:11.5px;font-weight:500;min-width:40px;text-align:right">${fmtMins(s.mins)}</span>
+      ${!s._live ? `<button class="icon-btn" onclick="openEditSess('${VIEW_DATE}',${i})">✎</button>` : ''}
+    </div>`;
+  }).join('');
+}
+function _renderDashTasks() {
+  const e2 = el('dashTasks'); if (!e2) return;
+  const tasks = STATE.tasks.filter(t => !t.fecha || t.fecha === VIEW_DATE).slice(0, 8);
+  if (!tasks.length) { e2.innerHTML = '<div class="empty" style="padding:12px 0">Sin tareas.</div>'; return; }
+  e2.innerHTML = tasks.map(t => {
+    const done = t.estado==='done' || t.done;
+    const ri = STATE.tasks.indexOf(t);
+    return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--c-border)">
+      <input type="checkbox" ${done?'checked':''} onchange="quickToggleTask(${ri})">
+      <span style="flex:1;font-size:12.5px;${done?'text-decoration:line-through;color:var(--c-text3)':''}">${t.desc||t.titulo||''}</span>
+    </div>`;
+  }).join('');
+}
+function dashAddTask() {
+  const inp = el('dashTaskInput'); if (!inp || !inp.value.trim()) return;
+  STATE.tasks.push({ id:'t'+Date.now(), desc:inp.value.trim(), titulo:inp.value.trim(), fecha:VIEW_DATE, estado:'pending', empresa:'', etiqueta:'', nota:'', done:false });
+  inp.value = ''; save(); _renderDashTasks();
+}
+function quickToggleTask(i) {
+  const t = STATE.tasks[i]; if (!t) return;
+  t.done = !t.done; t.estado = t.done ? 'done' : 'pending';
+  save(); _renderDashTasks(); renderDashboard();
+}
+function movePendingToday() {
+  const today = todayStr();
+  STATE.tasks.forEach(t => { if (!t.done && t.estado !== 'done' && t.fecha && t.fecha < today) t.fecha = today; });
+  save(); _renderDashTasks();
+}
+function _renderCoBars(coMins) {
+  const e2 = el('coBreakdown'); if (!e2) return;
+  const maxM = Math.max(...Object.values(coMins), 1);
+  const rows = STATE.companies.filter(co => coMins[co.id]).map(co => {
+    const m = coMins[co.id] || 0;
+    return `<div class="metric-co-row">
+      <div class="metric-co-header"><span class="metric-co-name"><span class="dot" style="background:${co.color}"></span>${co.name}</span><span class="metric-co-total">${fmtMins(m)}</span></div>
+      <div class="metric-co-bar"><div class="metric-co-prod" style="width:${Math.round(m/maxM*100)}%;background:${co.color}"></div></div>
+    </div>`;
+  });
+  e2.innerHTML = rows.length ? rows.join('') : '<div class="empty">Sin datos.</div>';
+}
+function _renderBestHours(sessions) {
+  const e2 = el('bestHours'); if (!e2) return;
+  const hourMap = {};
+  sessions.filter(s => s.mode==='productive').forEach(s => {
+    const h = parseInt((s.startDisplay||'0:0').split(':')[0]);
+    hourMap[h] = (hourMap[h]||0) + s.mins;
+  });
+  if (!Object.keys(hourMap).length) { e2.innerHTML = '<div class="empty">Sin datos de horas.</div>'; return; }
+  const maxM = Math.max(...Object.values(hourMap));
+  const cols = Array.from({ length:13 }, (_, i) => i + 7).map(h => {
+    const m = hourMap[h] || 0;
+    return `<div class="hour-col"><div class="hour-bar" style="height:${maxM>0?Math.round(m/maxM*100):0}%"></div><span class="hour-lbl">${h}</span></div>`;
+  });
+  e2.innerHTML = `<div class="hour-grid">${cols.join('')}</div>`;
+}
+
+// ── Quick Entry ───────────────────────────────────────────────────────────────
+function setQeNow(id) { const e = el(id); if (e) e.value = getCoHHMM(); qeCalcDur(); }
+function qeCalcDur() {
+  const i = (el('qeInicio')||{}).value, f = (el('qeFin')||{}).value;
+  const badge = el('qeDurBadge'), err = el('qeErr');
+  if (!i || !f) { if(badge) badge.textContent=''; return; }
+  const [ih,im]=i.split(':').map(Number), [fh,fm]=f.split(':').map(Number);
+  const mins = (fh*60+fm)-(ih*60+im);
+  if (mins <= 0) { if(err) err.textContent='El fin debe ser después del inicio'; if(badge) badge.textContent=''; return; }
+  if (err) err.textContent = '';
+  if (badge) badge.textContent = fmtMins(mins);
+}
+function quickEntry() {
+  const coId = (el('qeEmpresa')||{}).value||'', tipo = (el('qeTipo')||{}).value||'productive';
+  const ini  = (el('qeInicio')||{}).value, fin = (el('qeFin')||{}).value;
+  const nota = ((el('qeNota')||{}).value||'').trim(), err = el('qeErr');
+  if (!ini||!fin) { if(err) err.textContent='Indica hora inicio y fin'; return; }
+  const [ih,im]=ini.split(':').map(Number), [fh,fm]=fin.split(':').map(Number);
+  const mins = (fh*60+fm)-(ih*60+im);
+  if (mins<=0) { if(err) err.textContent='El fin debe ser después del inicio'; return; }
+  if(err) err.textContent='';
+  getDay(VIEW_DATE).sessions.push({ mode:tipo, companyId:coId, breakType:'', startIso:VIEW_DATE+'T'+ini+':00', endIso:VIEW_DATE+'T'+fin+':00', startDisplay:ini, endDisplay:fin, mins, nota, manual:true });
+  save();
+  if(el('qeInicio'))el('qeInicio').value=''; if(el('qeFin'))el('qeFin').value=''; if(el('qeNota'))el('qeNota').value=''; if(el('qeDurBadge'))el('qeDurBadge').textContent='';
+  showToast('Entrada registrada'); renderDashboard();
+}
+
+// ── Modal Quick Session ───────────────────────────────────────────────────────
+function openModalQuick() {
+  _populateSel('qEmpresa');
+  if(el('qFecha'))el('qFecha').value=VIEW_DATE;
+  ['qInicio','qFin','qNota'].forEach(id=>{if(el(id))el(id).value='';});
+  if(el('quickDurPreview'))el('quickDurPreview').textContent='';
+  if(el('quickOverlapAlert'))el('quickOverlapAlert').textContent='';
+  openModal('modalQuick');
+}
+function quickCalcDur() { _calcDurPreview('qInicio','qFin','quickDurPreview'); }
+function saveQuickSess() {
+  const coId=(el('qEmpresa')||{}).value||'', tipo=(el('qTipo')||{}).value||'productive';
+  const ini=(el('qInicio')||{}).value, fin=(el('qFin')||{}).value;
+  const nota=((el('qNota')||{}).value||'').trim(), ds=(el('qFecha')||{}).value||VIEW_DATE;
+  if(!ini||!fin){if(el('quickOverlapAlert'))el('quickOverlapAlert').textContent='Completa inicio y fin';return;}
+  const [ih,im]=ini.split(':').map(Number),[fh,fm]=fin.split(':').map(Number);
+  const mins=(fh*60+fm)-(ih*60+im);
+  if(mins<=0){if(el('quickOverlapAlert'))el('quickOverlapAlert').textContent='Fin debe ser después de inicio';return;}
+  getDay(ds).sessions.push({mode:tipo,companyId:coId,breakType:'',startIso:ds+'T'+ini+':00',endIso:ds+'T'+fin+':00',startDisplay:ini,endDisplay:fin,mins,nota,manual:true});
+  save(); closeModal('modalQuick'); showToast('Sesión guardada'); renderDashboard();
+}
+
+// ── Edit Session ──────────────────────────────────────────────────────────────
+function openEditSess(ds, idx) {
+  const s = STATE.days[ds] && STATE.days[ds].sessions ? STATE.days[ds].sessions[idx] : null;
+  if (!s) return;
+  _populateSel('editSessEmpresa');
+  if(el('editSessId'))el('editSessId').value=ds+'|'+idx;
+  if(el('editSessFecha'))el('editSessFecha').value=ds;
+  if(el('editSessTipo'))el('editSessTipo').value=s.mode;
+  if(el('editSessInicio'))el('editSessInicio').value=s.startDisplay;
+  if(el('editSessFin'))el('editSessFin').value=s.endDisplay;
+  if(el('editSessNota'))el('editSessNota').value=s.nota||'';
+  if(el('editSessEmpresa'))el('editSessEmpresa').value=s.companyId||'';
+  if(el('editDurPreview'))el('editDurPreview').textContent='';
+  if(el('editOverlapAlert'))el('editOverlapAlert').textContent='';
+  openModal('modalSess');
+}
+function editCalcDur() { _calcDurPreview('editSessInicio','editSessFin','editDurPreview'); }
+function saveEditSess() {
+  const parts=((el('editSessId')||{}).value||'').split('|');
+  const ds=parts[0], idx=parseInt(parts[1]);
+  const day=STATE.days[ds]; if(!day||!day.sessions[idx])return;
+  const ini=(el('editSessInicio')||{}).value, fin=(el('editSessFin')||{}).value;
+  if(!ini||!fin)return;
+  const [ih,im]=ini.split(':').map(Number),[fh,fm]=fin.split(':').map(Number);
+  const mins=(fh*60+fm)-(ih*60+im);
+  if(mins<=0){if(el('editOverlapAlert'))el('editOverlapAlert').textContent='Fin debe ser después de inicio';return;}
+  day.sessions[idx]={...day.sessions[idx],mode:(el('editSessTipo')||{}).value||day.sessions[idx].mode,companyId:(el('editSessEmpresa')||{}).value||'',startDisplay:ini,endDisplay:fin,mins,nota:(el('editSessNota')||{}).value||''};
+  save(); closeModal('modalSess'); showToast('Sesión actualizada'); renderDashboard();
+}
+
+// ── Registro / History ────────────────────────────────────────────────────────
+let _regTab = 'history';
+function setRegTab(tab, btn) {
+  _regTab = tab;
+  document.querySelectorAll('#page-registro .ttab').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  if(el('regHistory'))el('regHistory').style.display=tab==='history'?'':'none';
+  if(el('regManual'))el('regManual').style.display=tab==='manual'?'':'none';
+  if(tab==='history')renderHistory(); else initManual();
+}
+function renderHistory() {
+  const e2=el('regHistory'); if(!e2)return;
+  const dates=Object.keys(STATE.days).sort().reverse().slice(0,30);
+  if(!dates.length){e2.innerHTML='<div class="empty">Sin historial.</div>';return;}
+  e2.innerHTML=dates.map(ds=>{
+    const day=STATE.days[ds], sess=day.sessions||[];
+    let prod=0,brk=0,trans=0;
+    sess.forEach(s=>{if(s.mode==='productive')prod+=s.mins;else if(s.mode==='break')brk+=s.mins;else if(s.mode==='transit')trans+=s.mins;});
+    const dateLabel=new Date(ds+'T12:00:00').toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    return `<div class="day-group" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-md);cursor:pointer" onclick="this.nextElementSibling.classList.toggle('open')">
+        <span style="font-size:13px;font-weight:500;text-transform:capitalize">${dateLabel}</span>
+        <div style="display:flex;gap:12px;font-size:11.5px;color:var(--c-text3)">
+          <span style="color:var(--c-teal)">${fmtMins(prod)}</span>
+          <span>${fmtMins(brk)} descanso</span>
+          ${trans>0?`<span style="color:var(--c-transit)">${fmtMins(trans)} traslado</span>`:''}
+        </div>
+      </div>
+      <div class="day-group-body">${sess.map((s,i)=>{
+        const co=STATE.companies.find(c=>c.id===s.companyId);
+        const label=s.mode==='productive'?(co?co.name:'?'):s.mode==='transit'?'Traslado':(s.breakType||'Descanso');
+        const color=s.mode==='productive'?(co?co.color:'var(--c-teal)'):s.mode==='transit'?'var(--c-transit)':'var(--c-amber)';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--c-border)">
+          <span class="dot" style="background:${color}"></span>
+          <span style="flex:1;font-size:12.5px">${label}${s.nota?` <span style="color:var(--c-text3);font-style:italic">— ${s.nota}</span>`:''}</span>
+          <span style="font-size:11.5px;color:var(--c-text3)">${s.startDisplay}–${s.endDisplay}</span>
+          <span style="font-size:11.5px;font-weight:500">${fmtMins(s.mins)}</span>
+          <button class="icon-btn" onclick="openEditSess('${ds}',${i})">✎</button>
+          <button class="icon-btn" style="color:var(--c-red)" onclick="deleteSess('${ds}',${i})">✕</button>
+        </div>`;
+      }).join('')}</div></div>`;
+  }).join('');
+}
+function deleteSess(ds,idx){
+  if(!confirm('¿Eliminar esta sesión?'))return;
+  STATE.days[ds].sessions.splice(idx,1); save(); renderHistory(); if(VIEW_DATE===ds)renderDashboard();
+}
+function initManual(){
+  _populateSel('mEmpresa');
+  if(el('mFecha'))el('mFecha').value=VIEW_DATE;
+  ['mInicio','mFin','mNota'].forEach(id=>{if(el(id))el(id).value='';});
+  if(el('mDurPreview'))el('mDurPreview').textContent='';
+  if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='';
+}
+function manualCalcDur(){_calcDurPreview('mInicio','mFin','mDurPreview');}
+function setNow(inputId,previewId,fillId){
+  const t=getCoHHMM();
+  if(el(inputId))el(inputId).value=t;
+  if(fillId&&el(fillId))el(fillId).value=t;
+  _calcDurPreview('mInicio','mFin','mDurPreview');
+}
+function addQuickTime(mins){
+  const fin=(el('mFin')||{}).value||(el('mInicio')||{}).value; if(!fin)return;
+  const [h,m]=fin.split(':').map(Number);
+  const total=h*60+m+mins;
+  if(el('mFin'))el('mFin').value=String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0');
+  manualCalcDur();
+}
+function saveManual(){
+  const coId=(el('mEmpresa')||{}).value||'', tipo=(el('mTipo')||{}).value||'productive';
+  const ds=(el('mFecha')||{}).value||VIEW_DATE;
+  const ini=(el('mInicio')||{}).value, fin=(el('mFin')||{}).value;
+  const nota=((el('mNota')||{}).value||'').trim();
+  if(!ini||!fin){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Indica inicio y fin';return;}
+  const [ih,im]=ini.split(':').map(Number),[fh,fm]=fin.split(':').map(Number);
+  const mins=(fh*60+fm)-(ih*60+im);
+  if(mins<=0){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Fin debe ser después de inicio';return;}
+  getDay(ds).sessions.push({mode:tipo,companyId:coId,breakType:'',startIso:ds+'T'+ini+':00',endIso:ds+'T'+fin+':00',startDisplay:ini,endDisplay:fin,mins,nota,manual:true});
+  save(); if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent=''; showToast('Sesión guardada');
+  if(VIEW_DATE===ds)renderDashboard();
+}
+
+// ── Tasks ─────────────────────────────────────────────────────────────────────
+function saveTask(){
+  const desc=((el('tDesc')||{}).value||'').trim(); if(!desc)return;
+  STATE.tasks.push({id:'t'+Date.now(),desc,titulo:desc,empresa:(el('tEmpresa')||{}).value||'',estado:(el('tEstado')||{}).value||'pending',fecha:(el('tFecha')||{}).value||'',etiqueta:(el('tEtiqueta')||{}).value||'',nota:(el('tNota')||{}).value||'',done:false});
+  ['tDesc','tNota','tFecha','tEtiqueta'].forEach(id=>{if(el(id))el(id).value='';});
+  save(); renderTasks();
+}
+function renderTasks(){
+  const e2=el('taskList'); if(!e2)return;
+  const filterE=(el('tfEmpresa')||{}).value||'', filterS=(el('tfEstado')||{}).value||'';
+  let tasks=STATE.tasks.filter(t=>{
+    if(filterE&&t.empresa!==filterE)return false;
+    if(filterS&&(t.estado||'pending')!==filterS)return false;
+    return true;
+  });
+  if(!tasks.length){e2.innerHTML='<div class="empty">Sin tareas.</div>';return;}
+  const sColors={pending:'var(--c-gold)',inprogress:'var(--c-teal)',done:'var(--c-green)',blocked:'var(--c-red)',waiting:'var(--c-text3)',review:'var(--c-purple)',cancelled:'var(--c-text4)'};
+  const sLabels={pending:'Pendiente',inprogress:'En progreso',done:'Completada',blocked:'Bloqueada',waiting:'En espera',review:'En revisión',cancelled:'Cancelada'};
+  e2.innerHTML=tasks.map(t=>{
+    const done=t.estado==='done'||t.done;
+    const co=STATE.companies.find(c=>c.id===t.empresa);
+    const ri=STATE.tasks.indexOf(t);
+    return `<div class="task-item">
+      <input type="checkbox" class="task-cb" ${done?'checked':''} onchange="toggleTaskDone(${ri})">
+      <div class="task-body">
+        <div class="task-desc ${done?'done':''}">${t.desc||t.titulo||''}</div>
+        <div class="task-meta">
+          <span class="task-tag" style="color:${sColors[t.estado||'pending']||'var(--c-text3)'}">${sLabels[t.estado||'pending']||t.estado}</span>
+          ${co?`<span class="task-tag">${co.name}</span>`:''}
+          ${t.fecha?`<span class="task-tag">${t.fecha}</span>`:''}
+          ${t.etiqueta?`<span class="task-tag">${t.etiqueta}</span>`:''}
+        </div>
+      </div>
+      <div class="task-actions">
+        <button class="icon-btn" onclick="openEditTask(${ri})">✎</button>
+        <button class="icon-btn" style="color:var(--c-red)" onclick="deleteTask(${ri})">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function toggleTaskDone(i){const t=STATE.tasks[i];if(!t)return;t.done=!t.done;t.estado=t.done?'done':'pending';save();renderTasks();}
+function deleteTask(i){if(!confirm('¿Eliminar tarea?'))return;STATE.tasks.splice(i,1);save();renderTasks();}
+function openEditTask(i){
+  const t=STATE.tasks[i];if(!t)return;
+  if(el('editTaskId'))el('editTaskId').value=i;
+  if(el('editTaskDesc'))el('editTaskDesc').value=t.desc||t.titulo||'';
+  _populateSel('editTaskEmpresa');
+  if(el('editTaskEmpresa'))el('editTaskEmpresa').value=t.empresa||'';
+  if(el('editTaskEstado'))el('editTaskEstado').value=t.estado||'pending';
+  if(el('editTaskFecha'))el('editTaskFecha').value=t.fecha||'';
+  if(el('editTaskEtiqueta'))el('editTaskEtiqueta').value=t.etiqueta||'';
+  if(el('editTaskNota'))el('editTaskNota').value=t.nota||'';
+  openModal('modalTask');
+}
+function saveEditTask(){
+  const i=parseInt((el('editTaskId')||{}).value);const t=STATE.tasks[i];if(!t)return;
+  const desc=((el('editTaskDesc')||{}).value||'').trim();if(!desc)return;
+  STATE.tasks[i]={...t,desc,titulo:desc,empresa:(el('editTaskEmpresa')||{}).value||'',estado:(el('editTaskEstado')||{}).value||'pending',fecha:(el('editTaskFecha')||{}).value||'',etiqueta:(el('editTaskEtiqueta')||{}).value||'',nota:(el('editTaskNota')||{}).value||''};
+  save();closeModal('modalTask');renderTasks();showToast('Tarea guardada');
+}
+function _populateAllSelects(){
+  const tfE=el('tfEmpresa');
+  if(tfE)tfE.innerHTML='<option value="">Todas las empresas</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
+  const tE=el('tEmpresa');
+  if(tE)tE.innerHTML='<option value="">Sin empresa</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
+}
+
+// ── Companies ─────────────────────────────────────────────────────────────────
+function saveCompany(){
+  const name=((el('cNombre')||{}).value||'').trim();if(!name)return;
+  STATE.companies.push({id:'co'+Date.now(),name,color:(el('cColor')||{}).value||'#9a7c2e',desc:(el('cDesc')||{}).value||''});
+  if(el('cNombre'))el('cNombre').value='';if(el('cDesc'))el('cDesc').value='';if(el('cColor'))el('cColor').value='#9a7c2e';
+  save();renderCompanyList();_renderTimerCompanies();
+}
+function renderCompanyList(){
+  const e2=el('companyList');if(!e2)return;
+  e2.innerHTML=STATE.companies.map((co,i)=>`
+    <div class="co-card">
+      <div class="co-swatch" style="background:${co.color}"></div>
+      <div style="flex:1"><div class="co-name-txt">${co.name}</div>${co.desc?`<div class="co-desc-txt">${co.desc}</div>`:''}</div>
+      <button class="icon-btn" onclick="openEditCompany(${i})">✎</button>
+      <button class="icon-btn" style="color:var(--c-red)" onclick="deleteCompany(${i})">✕</button>
+    </div>`).join('');
+}
+function openEditCompany(i){
+  const co=STATE.companies[i];if(!co)return;
+  if(el('editCoId'))el('editCoId').value=i;
+  if(el('editCoNombre'))el('editCoNombre').value=co.name;
+  if(el('editCoColor'))el('editCoColor').value=co.color;
+  if(el('editCoDesc'))el('editCoDesc').value=co.desc||'';
+  openModal('modalCo');
+}
+function saveEditCompany(){
+  const i=parseInt((el('editCoId')||{}).value);const co=STATE.companies[i];if(!co)return;
+  const name=((el('editCoNombre')||{}).value||'').trim();if(!name)return;
+  STATE.companies[i]={...co,name,color:(el('editCoColor')||{}).value||co.color,desc:(el('editCoDesc')||{}).value||''};
+  save();closeModal('modalCo');renderCompanyList();_renderTimerCompanies();showToast('Empresa guardada');
+}
+function deleteCompany(i){
+  if(!confirm('¿Eliminar empresa?'))return;
+  STATE.companies.splice(i,1);save();renderCompanyList();_renderTimerCompanies();
+}
+
+// ── Analytics ─────────────────────────────────────────────────────────────────
+function renderAnalytics(){_renderWeekChart();_renderCoAnalytics();_renderTaskAnalytics();_renderHourAnalytics();}
+function _getLast7(){
+  const days=[];
+  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(new Intl.DateTimeFormat('en-CA',{timeZone:'America/Bogota'}).format(d));}
+  return days;
+}
+function _renderWeekChart(){
+  const e2=el('weekChart');if(!e2)return;
+  const today=todayStr(), maxH=8*60;
+  e2.innerHTML=_getLast7().map(ds=>{
+    const sess=(STATE.days[ds]&&STATE.days[ds].sessions)||[];
+    let prod=0,brk=0,trans=0;
+    sess.forEach(s=>{if(s.mode==='productive')prod+=s.mins;else if(s.mode==='break')brk+=s.mins;else if(s.mode==='transit')trans+=s.mins;});
+    const label=new Date(ds+'T12:00:00').toLocaleDateString('es-CO',{weekday:'short',day:'numeric'});
+    const pp=Math.min(100,prod/maxH*100),pb=Math.min(100,brk/maxH*100),pt=Math.min(100,trans/maxH*100);
+    return `<div class="metric-day-col ${ds===today?'today':''}">
+      <div class="metric-day-bar-wrap">
+        <div class="metric-day-prod" style="height:${pp}%" title="${fmtMins(prod)}"></div>
+        <div style="width:80%;height:${pt}%;background:var(--c-transit);opacity:.7;min-height:${trans?2:0}px"></div>
+        <div class="metric-day-brk" style="height:${pb}%" title="${fmtMins(brk)}"></div>
+      </div>
+      <div class="metric-day-lbl">${label}</div>
+      <div class="metric-day-val">${prod||brk||trans?fmtMins(prod):''}</div>
+    </div>`;
+  }).join('');
+}
+function _renderCoAnalytics(){
+  const e2=el('coAnalytics');if(!e2)return;
+  const coMins={};
+  _getLast7().forEach(ds=>{((STATE.days[ds]&&STATE.days[ds].sessions)||[]).forEach(s=>{if(s.mode==='productive')coMins[s.companyId]=(coMins[s.companyId]||0)+s.mins;});});
+  const maxM=Math.max(...Object.values(coMins),1);
+  const rows=STATE.companies.filter(co=>coMins[co.id]).map(co=>{
+    const m=coMins[co.id]||0;
+    return `<div class="metric-co-row">
+      <div class="metric-co-header"><span class="metric-co-name"><span class="dot" style="background:${co.color}"></span>${co.name}</span><span class="metric-co-total">${fmtMins(m)}</span></div>
+      <div class="metric-co-bar"><div class="metric-co-prod" style="width:${Math.round(m/maxM*100)}%;background:${co.color}"></div></div>
+    </div>`;
+  });
+  e2.innerHTML=rows.length?rows.join(''):'<div class="empty">Sin datos de la semana.</div>';
+}
+function _renderTaskAnalytics(){
+  const e2=el('taskAnalytics');if(!e2)return;
+  const total=STATE.tasks.length,done=STATE.tasks.filter(t=>t.estado==='done'||t.done).length,pending=STATE.tasks.filter(t=>t.estado==='pending').length;
+  e2.innerHTML=`<div class="task-summary-grid">
+    <div class="task-summary-item"><div class="task-summary-num">${total}</div><div class="task-summary-lbl">Total</div></div>
+    <div class="task-summary-item"><div class="task-summary-num" style="color:var(--c-teal)">${done}</div><div class="task-summary-lbl">Completadas</div></div>
+    <div class="task-summary-item"><div class="task-summary-num" style="color:var(--c-gold)">${pending}</div><div class="task-summary-lbl">Pendientes</div></div>
+    <div class="task-summary-item"><div class="task-summary-num">${total>0?Math.round(done/total*100):0}%</div><div class="task-summary-lbl">Completitud</div></div>
+  </div>`;
+}
+function _renderHourAnalytics(){
+  const e2=el('hourAnalytics');if(!e2)return;
+  const hourMap={};
+  Object.values(STATE.days).forEach(day=>{(day.sessions||[]).filter(s=>s.mode==='productive').forEach(s=>{const h=parseInt((s.startDisplay||'0').split(':')[0]);hourMap[h]=(hourMap[h]||0)+s.mins;});});
+  const maxM=Math.max(...Object.values(hourMap),1);
+  e2.innerHTML=`<div class="hour-grid">${Array.from({length:13},(_,i)=>i+7).map(h=>{const m=hourMap[h]||0;return`<div class="hour-col"><div class="hour-bar" style="height:${Math.round(m/maxM*100)}%"></div><span class="hour-lbl">${h}</span></div>`;}).join('')}</div>`;
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+function loadSettings(){
+  if(el('settGoal'))el('settGoal').value=STATE.settings.dailyGoal||8;
+  if(el('settBreak'))el('settBreak').value=STATE.settings.breakAlert||90;
+  setSyncStatus(USE_FB?'ok':'local');
+}
+function saveSetting(key,val){STATE.settings[key]=parseFloat(val)||0;save();showToast('Ajuste guardado');}
+
+// ── Export / Import ───────────────────────────────────────────────────────────
+function doSave(){save();showToast('Guardado');}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(STATE,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='yc_'+todayStr()+'.json';a.click();
+}
+function exportCSV(){
+  const rows=[['Fecha','Tipo','Empresa','Inicio','Fin','Minutos','Nota']];
+  Object.entries(STATE.days).sort().forEach(([ds,day])=>{
+    (day.sessions||[]).forEach(s=>{const co=STATE.companies.find(c=>c.id===s.companyId);rows.push([ds,s.mode,co?co.name:s.companyId||'',s.startDisplay,s.endDisplay,s.mins,s.nota||'']);});
+  });
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='yc_'+todayStr()+'.csv';a.click();
+}
+function importJSON(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(!confirm('Esto reemplazará todos los datos. ¿Continuar?'))return;STATE=d;save();showToast('Importado');location.reload();}catch(err){alert('Archivo inválido');}};
+  r.readAsText(f);
+}
+function printDayPDF(){
+  const day=getDay(VIEW_DATE),sess=day.sessions||[];
+  let prod=0,brk=0,trans=0;
+  const coMins={};
+  sess.forEach(s=>{if(s.mode==='productive'){prod+=s.mins;coMins[s.companyId]=(coMins[s.companyId]||0)+s.mins;}else if(s.mode==='break')brk+=s.mins;else if(s.mode==='transit')trans+=s.mins;});
+  const pa=el('printArea');if(!pa)return;
+  pa.innerHTML=`<h1>YC Productividad · ${VIEW_DATE}</h1><p>Productivo: ${fmtMins(prod)} · Descanso: ${fmtMins(brk)} · Traslado: ${fmtMins(trans)}</p><hr><table style="width:100%;border-collapse:collapse;font-size:12px"><tr><th>Inicio</th><th>Fin</th><th>Tipo</th><th>Empresa</th><th>Min</th><th>Nota</th></tr>${sess.map(s=>{const co=STATE.companies.find(c=>c.id===s.companyId);return`<tr><td>${s.startDisplay}</td><td>${s.endDisplay}</td><td>${s.mode}</td><td>${co?co.name:''}</td><td>${s.mins}</td><td>${s.nota||''}</td></tr>`;}).join('')}</table>`;
+  pa.style.display='block';window.print();setTimeout(()=>{pa.style.display='none';},1000);
+}
+function clearAllData(){
+  if(!confirm('¿Borrar TODOS los datos? Acción irreversible.'))return;
+  STATE={companies:JSON.parse(JSON.stringify(SEED_COS)),tasks:[],days:{},settings:{dailyGoal:8,breakAlert:90},activeSession:null};
+  save();showToast('Datos eliminados');location.reload();
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+function el(id){return document.getElementById(id);}
+function setText(id,val){const e=el(id);if(e)e.textContent=val;}
+function setStyle(id,prop,val){const e=el(id);if(e)e.style[prop]=val;}
+function fmtMins(m){const h=Math.floor(m/60),mn=m%60;return h>0?`${h}h ${mn}m`:`${mn}m`;}
+function showToast(msg){
+  const t=el('toast');if(!t)return;
+  t.textContent=msg;t.style.display='block';
+  clearTimeout(t._tid);t._tid=setTimeout(()=>{t.style.display='none';},2500);
+}
+function _calcDurPreview(startId,finId,previewId){
+  const i=(el(startId)||{}).value,f=(el(finId)||{}).value,pv=el(previewId);
+  if(!pv)return;
+  if(!i||!f){pv.textContent='';return;}
+  const [ih,im]=i.split(':').map(Number),[fh,fm]=f.split(':').map(Number);
+  const mins=(fh*60+fm)-(ih*60+im);
+  pv.textContent=mins>0?fmtMins(mins):'Fin debe ser después';
+}
+function _populateSel(id){
+  const s=el(id);if(!s)return;
+  s.innerHTML='<option value="">Sin empresa</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
+}
+function _renderTimerCompanies(){
+  const s=el('timerSel');if(!s)return;
+  s.innerHTML='<option value="">— Empresa —</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
+}
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
+async function startApp(){
+  if(el('loginOverlay'))el('loginOverlay').style.display='none';
+  if(el('app'))el('app').style.display='flex';
+  loadState();
+  if(USE_FB){
+    setSyncStatus('saving');
+    const remote=await Sync.pull();
+    if(remote){
+      STATE=remote;
+      if(!STATE.companies||!STATE.companies.length)STATE.companies=JSON.parse(JSON.stringify(SEED_COS));
+      if(!STATE.tasks)STATE.tasks=[];
+      if(!STATE.days)STATE.days={};
+      if(!STATE.settings)STATE.settings={dailyGoal:8,breakAlert:90};
+      localStorage.setItem(SK,JSON.stringify(STATE));
+    }
+    setSyncStatus('ok');
+  } else {
+    setSyncStatus('local');
+  }
+  VIEW_DATE=todayStr();
+  _renderTimerCompanies();
+  _populateAllSelects();
+  navigate('dashboard');
+  _updateTimerUI();
+  _renderBanner();
+  updateClock();
+  _clockTick=setInterval(updateClock,1000);
+}
+
+(function(){
+  if(checkSession())startApp();
+  else{
+    if(el('loginOverlay'))el('loginOverlay').style.display='flex';
+    if(el('app'))el('app').style.display='none';
+  }
+})();
+</script>
+</body>
+</html>
