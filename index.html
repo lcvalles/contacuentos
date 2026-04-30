@@ -736,12 +736,7 @@ tr:hover .td-actions{opacity:1}
   <section id="page-dashboard" class="page active" aria-label="Dashboard">
     <div class="topbar">
       <h1 class="topbar-title">Dashboard</h1>
-      <div class="topbar-tabs" role="tablist">
-        <button class="ttab active" role="tab" aria-selected="true" onclick="setDashPeriod('day',this)">Día</button>
-        <button class="ttab" role="tab" onclick="setDashPeriod('week',this)">Semana</button>
-        <button class="ttab" role="tab" onclick="setDashPeriod('month',this)">Mes</button>
-      </div>
-      <div style="display:flex;gap:6px;align-items:center;margin-left:12px">
+      <div style="display:flex;gap:6px;align-items:center;margin-left:auto">
         <button class="btn btn-secondary btn-sm" onclick="openModalQuick()">+ Sesión</button>
         <button class="btn btn-save btn-sm" id="btnSave" onclick="doSave()">💾 Guardar</button>
         <button class="btn btn-dl btn-sm" onclick="exportCSV()">↓ CSV</button>
@@ -1676,10 +1671,6 @@ function _updateDateNav() {
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
-function setDashPeriod(p, btn) {
-  document.querySelectorAll('#page-dashboard .ttab').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-}
 function renderDashboard() {
   _updateDateNav();
   const day = getDay(VIEW_DATE);
