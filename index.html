@@ -507,7 +507,7 @@ tr:hover .td-actions{opacity:1}
 .metric-co-detail span{display:flex;align-items:center;gap:4px}
 .metric-co-pct{font-size:10.5px;color:var(--c-text3);margin-left:8px;font-weight:500}
 
-.hour-grid{display:flex;gap:3px;align-items:flex-end;height:64px}
+.hour-grid{display:flex;gap:3px;align-items:flex-end}
 .hour-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
 .hour-bar{width:100%;border-radius:2px 2px 0 0;min-height:1px;background:var(--c-gold);opacity:.65;transition:height .3s}
 .hour-lbl{font-size:8px;color:var(--c-text4)}
@@ -1845,13 +1845,20 @@ function _renderBestHours(sessions) {
     const h = parseInt((s.startDisplay||'0:0').split(':')[0]);
     hourMap[h] = (hourMap[h]||0) + s.mins;
   });
-  if (!Object.keys(hourMap).length) { e2.innerHTML = '<div class="empty">Sin datos de horas.</div>'; return; }
-  const maxM = Math.max(...Object.values(hourMap));
+  if (!Object.keys(hourMap).length) { e2.innerHTML = '<div class="empty">Sin sesiones productivas hoy.</div>'; return; }
+  const maxM = Math.max(...Object.values(hourMap), 1);
+  const BAR_MAX = 52;
+  const peak = Object.entries(hourMap).sort((a,b)=>b[1]-a[1])[0];
   const cols = Array.from({ length:13 }, (_, i) => i + 7).map(h => {
     const m = hourMap[h] || 0;
-    return `<div class="hour-col"><div class="hour-bar" style="height:${maxM>0?Math.round(m/maxM*100):0}%"></div><span class="hour-lbl">${h}</span></div>`;
+    const barH = m > 0 ? Math.max(4, Math.round(m/maxM*BAR_MAX)) : 2;
+    const isPeak = peak && +peak[0] === h;
+    const barColor = isPeak ? 'var(--c-teal)' : 'var(--c-gold)';
+    const op = m > 0 ? '.85' : '.15';
+    return `<div class="hour-col"><div class="hour-bar" style="height:${barH}px;background:${barColor};opacity:${op}"></div><span class="hour-lbl">${h}</span></div>`;
   });
-  e2.innerHTML = `<div class="hour-grid">${cols.join('')}</div>`;
+  const ph = peak ? `<div style="font-size:11px;color:var(--c-text3);margin-bottom:8px">Pico: <strong style="color:var(--c-teal)">${peak[0]}:00–${+peak[0]+1}:00</strong> (${fmtMins(+peak[1])})</div>` : '';
+  e2.innerHTML = ph + `<div class="hour-grid">${cols.join('')}</div>`;
 }
 
 // ── Quick Entry ───────────────────────────────────────────────────────────────
@@ -2316,11 +2323,13 @@ function renderAnalytics() {
     });});
     const maxH2=Math.max(...Object.values(hMap),1);
     const peak=Object.entries(hMap).sort((a,b)=>b[1]-a[1])[0];
+    const ANA_BAR_MAX=52;
     hourEl.innerHTML=`${peak?`<div style="font-size:11px;color:var(--c-text3);margin-bottom:8px">Pico: <strong style="color:var(--c-teal)">${peak[0]}:00–${+peak[0]+1}:00</strong> (${fmtMins(peak[1])})</div>`:''}
       <div class="hour-grid">${Array.from({length:16},(_,i)=>i+6).map(h=>{
         const m=hMap[h]||0, isPeak=peak&&+peak[0]===h;
+        const barH=m?Math.max(4,Math.round(m/maxH2*ANA_BAR_MAX)):2;
         return`<div class="hour-col">
-          <div class="hour-bar" style="height:${m?Math.max(4,Math.round(m/maxH2*100)):2}%;background:${isPeak?'var(--c-teal)':'var(--c-gold)'};opacity:${m?.9:.15}"></div>
+          <div class="hour-bar" style="height:${barH}px;background:${isPeak?'var(--c-teal)':'var(--c-gold)'};opacity:${m?.9:.15}"></div>
           <span class="hour-lbl">${h}</span>
         </div>`;
       }).join('')}</div>`;
@@ -2342,8 +2351,9 @@ function renderAnalytics() {
     wdEl.innerHTML=`<div style="font-size:11px;color:var(--c-text3);margin-bottom:8px">Promedio histórico productivo</div>
       <div class="hour-grid">${[1,2,3,4,5,6,0].map(d=>{
         const a=avg[d]||0;
+        const barH=a?Math.max(4,Math.round(a/maxAvg*ANA_BAR_MAX)):2;
         return`<div class="hour-col">
-          <div class="hour-bar" style="height:${a?Math.max(4,Math.round(a/maxAvg*100)):2}%;background:var(--c-teal);opacity:${a?.85:.15}"></div>
+          <div class="hour-bar" style="height:${barH}px;background:var(--c-teal);opacity:${a?.85:.15}"></div>
           <span class="hour-lbl" style="font-size:8px">${names[d]}</span>
         </div>`;
       }).join('')}</div>`;
