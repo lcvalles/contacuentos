@@ -551,16 +551,15 @@ tr:hover .td-actions{opacity:1}
 /* ── ANALYTICS V2 ───────────────────────────── */
 .ana-period-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--c-border);gap:12px;flex-wrap:wrap;background:var(--c-surface)}
 .ana-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
-.ana-bar-grid{display:flex;gap:3px;align-items:flex-end;height:180px;overflow-x:auto;padding-bottom:2px}
-.ana-bar-col{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-width:16px}
-.ana-bar-wrap{width:100%;height:130px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;flex-shrink:0}
-.ana-bar-goal{position:absolute;left:0;right:0;height:1px;background:var(--c-gold);opacity:.6;pointer-events:none;z-index:1}
-.ana-bar-prod{width:82%;border-radius:3px 3px 0 0;background:var(--c-teal);opacity:.9;min-height:2px;transition:height .35s}
-.ana-bar-brk{width:82%;background:var(--c-break);opacity:.8;min-height:1px}
-.ana-bar-trans{width:82%;background:var(--c-transit);opacity:.8;min-height:1px}
-.ana-bar-lbl{font-size:8px;color:var(--c-text3);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;letter-spacing:.3px}
-.ana-bar-val{font-size:8px;font-weight:600;color:var(--c-text2)}
+.ana-bar-grid{display:flex;gap:5px;align-items:stretch;overflow-x:auto;padding:0 2px 4px}
+.ana-bar-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:30px;max-width:64px}
+.ana-bar-wrap{width:100%;height:120px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}
+.ana-bar-goal{position:absolute;left:4%;right:4%;height:0;border-top:2px dashed var(--c-gold-lt);opacity:.7;pointer-events:none;z-index:2}
+.ana-bar-fill{width:78%;border-radius:5px 5px 0 0;min-height:3px;transition:height .35s ease}
+.ana-bar-lbl{font-size:8.5px;color:var(--c-text3);text-align:center;white-space:nowrap;letter-spacing:.2px;text-transform:capitalize;overflow:hidden;max-width:100%;text-overflow:ellipsis}
+.ana-bar-val{font-size:9.5px;font-weight:700;text-align:center;min-height:14px;line-height:1.4}
 .ana-bar-col.today .ana-bar-lbl{color:var(--c-gold);font-weight:700}
+.ana-bar-pills{display:flex;gap:2px;justify-content:center;flex-wrap:wrap;min-height:14px}
 .insight-row{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--c-border)}
 .insight-row:last-child{border-bottom:none}
 .brk-row{margin-bottom:9px}
@@ -592,9 +591,7 @@ tr:hover .td-actions{opacity:1}
   .ana-kpi-row .stat-card{border:1px solid #ccc!important;padding:10px!important}
   .grid-2{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important}
   /* Barras visibles en print */
-  .ana-bar-prod{background:#0b7a6a!important}
-  .ana-bar-brk{background:#c85030!important}
-  .ana-bar-trans{background:#2e5c8a!important}
+  .ana-bar-fill{print-color-adjust:exact!important}
   .metric-co-bar div,.brk-bar-fill,.hour-bar{print-color-adjust:exact}
 }
 
@@ -1057,16 +1054,18 @@ tr:hover .td-actions{opacity:1}
       <div class="ana-kpi-row" id="anaKpiRow"></div>
       <!-- Gráfica de barras -->
       <div class="card" style="margin-bottom:14px">
-        <div class="card-header">
-          <span class="card-title">Productividad diaria</span>
-          <div class="chart-legend" style="margin:0">
-            <span><span class="legend-dot" style="background:var(--c-teal)"></span>Productivo</span>
-            <span><span class="legend-dot" style="background:var(--c-transit)"></span>Traslado</span>
-            <span><span class="legend-dot" style="background:var(--c-amber)"></span>Descanso</span>
-            <span><span class="legend-dot" style="background:var(--c-gold);opacity:.5"></span>Meta</span>
+        <div class="card-header" style="align-items:flex-start">
+          <div>
+            <span class="card-title">Horas productivas por día</span>
+            <div style="font-size:10.5px;color:var(--c-text3);margin-top:3px">¿Cuántas horas productivas tuviste cada día vs tu meta?</div>
+          </div>
+          <div style="display:flex;gap:10px;font-size:10.5px;color:var(--c-text3);align-items:center;flex-shrink:0;margin-left:auto">
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:var(--c-teal);display:inline-block"></span>Meta cumplida</span>
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:var(--c-gold);display:inline-block"></span>En progreso</span>
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:18px;height:2px;background:var(--c-gold-lt);display:inline-block;opacity:.7;border-top:2px dashed var(--c-gold-lt)"></span>Meta</span>
           </div>
         </div>
-        <div class="card-body" style="overflow-x:auto"><div id="anaChart" class="ana-bar-grid"></div></div>
+        <div class="card-body" style="overflow-x:auto;padding-top:4px"><div id="anaChart" class="ana-bar-grid"></div></div>
       </div>
       <!-- Por empresa + No productivo -->
       <div class="grid-2" style="margin-bottom:14px">
@@ -2238,24 +2237,31 @@ function renderAnalytics() {
   // ── Bar Chart ──
   const chartEl=el('anaChart');
   if(chartEl){
-    const maxH=Math.max(goalMins,...dates.map(ds=>dayData[ds].prod+dayData[ds].brk+dayData[ds].trans),1);
+    const maxProd=Math.max(...dates.map(ds=>dayData[ds].prod),1);
+    const maxH=Math.max(goalMins*1.25, maxProd, 1);
     const isMonth=_anaView==='month', isRange=_anaView==='range';
     const lblFmt=(isMonth||isRange)?{day:'numeric',month:'short'}:{weekday:'short',day:'numeric'};
-    chartEl.style.gridTemplateColumns='';
+    const gp=Math.min(97,Math.round(goalMins/maxH*100));
     chartEl.innerHTML=dates.map(ds=>{
-      const d=dayData[ds], total=d.prod+d.brk+d.trans;
-      const pp=Math.min(100,d.prod/maxH*100), pb=Math.min(100,d.brk/maxH*100), pt=Math.min(100,d.trans/maxH*100);
-      const gp=Math.min(100,goalMins/maxH*100);
+      const d=dayData[ds];
+      const pp=d.prod>0?Math.max(3,Math.round(d.prod/maxH*100)):0;
+      const metGoal=d.prod>=goalMins, nearGoal=d.prod>=goalMins*.7;
+      const barColor=d.prod===0?'var(--c-border)':metGoal?'var(--c-teal)':nearGoal?'var(--c-gold)':'#b0ccc8';
+      const valColor=metGoal?'var(--c-teal)':nearGoal?'var(--c-gold)':'var(--c-text3)';
       const lbl=new Date(ds+'T12:00:00').toLocaleDateString('es-CO',lblFmt);
-      return `<div class="ana-bar-col${ds===today?' today':''}${!total?' empty':''}">
+      const ah=Math.floor(d.prod/60), am=d.prod%60;
+      const valLbl=d.prod>0?(ah>0?`${ah}h${am>0?`<br><span style="font-size:8px;font-weight:500">${am}m</span>`:''}`:`${am}m`):'';
+      const brkPill=d.brk>0?`<span style="font-size:7px;padding:1px 4px;border-radius:3px;background:var(--c-break-bg);color:var(--c-break);white-space:nowrap">${fmtMins(d.brk)}</span>`:'';
+      const trPill=d.trans>0?`<span style="font-size:7px;padding:1px 4px;border-radius:3px;background:var(--c-transit-bg);color:var(--c-transit);white-space:nowrap">${fmtMins(d.trans)}</span>`:'';
+      const hasNP=d.brk>0||d.trans>0;
+      return `<div class="ana-bar-col${ds===today?' today':''}">
+        <div class="ana-bar-val" style="color:${valColor}">${valLbl}</div>
         <div class="ana-bar-wrap">
           <div class="ana-bar-goal" style="bottom:${gp}%"></div>
-          <div class="ana-bar-prod" style="height:${pp}%" title="Productivo: ${fmtMins(d.prod)}"></div>
-          <div class="ana-bar-trans" style="height:${pt}%;width:80%;min-height:${d.trans?2:0}px" title="Traslado: ${fmtMins(d.trans)}"></div>
-          <div class="ana-bar-brk" style="height:${pb}%;width:80%;min-height:${d.brk?2:0}px" title="Descanso: ${fmtMins(d.brk)}"></div>
+          <div class="ana-bar-fill" style="height:${pp}%;background:${barColor}" title="${fmtMins(d.prod)} productivo${d.brk?' · '+fmtMins(d.brk)+' descanso':''}${d.trans?' · '+fmtMins(d.trans)+' traslado':''}"></div>
         </div>
         <div class="ana-bar-lbl">${lbl}</div>
-        ${total?`<div class="ana-bar-val">${fmtMins(d.prod)}</div>`:''}
+        ${hasNP?`<div class="ana-bar-pills">${brkPill}${trPill}</div>`:'<div class="ana-bar-pills"></div>'}
       </div>`;
     }).join('');
   }
