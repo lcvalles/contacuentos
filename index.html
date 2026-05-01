@@ -716,6 +716,10 @@ tr:hover .td-actions{opacity:1}
       <input type="text" class="tf-input" id="otherBreakText" placeholder="¿Qué actividad?" style="font-size:11px;padding:5px 8px">
       <button onclick="confirmOtherBreak()" class="btn btn-primary btn-xs">OK</button>
     </div>
+    <div style="margin-bottom:5px">
+      <label style="font-size:9.5px;color:var(--c-text3);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">Destino del traslado</label>
+      <select class="tf-input" id="transitCoSel" style="font-size:11.5px"></select>
+    </div>
     <button class="timer-btn-transit" id="timerTransitBtn" onclick="toggleTransit()">🚗 Traslado / Movilización</button>
 
     <div class="timer-fields">
@@ -1024,6 +1028,7 @@ tr:hover .td-actions{opacity:1}
       <div class="topbar-tabs" role="tablist">
         <button class="ttab active" id="anaTabWeek" onclick="setAnaView('week')">Semana</button>
         <button class="ttab" id="anaTabMonth" onclick="setAnaView('month')">Mes</button>
+        <button class="ttab" id="anaTabRange" onclick="setAnaView('range')">Rango</button>
       </div>
       <div style="display:flex;gap:6px;margin-left:auto;padding-right:4px">
         <button class="btn btn-secondary btn-xs" onclick="exportAnaCSV()" title="Exportar CSV">↓ CSV</button>
@@ -1031,10 +1036,17 @@ tr:hover .td-actions{opacity:1}
       </div>
     </div>
     <div class="ana-period-nav">
-      <div style="display:flex;align-items:center;gap:8px">
+      <div id="anaPeriodNavRow" style="display:flex;align-items:center;gap:8px">
         <button class="date-nav-arrow" onclick="shiftAnaPeriod(-1)">‹</button>
         <span id="anaPeriodLabel" style="font-size:14px;font-weight:600;min-width:170px;text-align:center;color:var(--c-text)"></span>
         <button class="date-nav-arrow" onclick="shiftAnaPeriod(1)">›</button>
+      </div>
+      <div id="anaRangeRow" style="display:none;align-items:center;gap:6px;flex-wrap:wrap">
+        <label style="font-size:12px;color:var(--c-text3)">Desde</label>
+        <input type="date" class="field-input" id="anaRangeFrom" style="height:30px;font-size:12px;width:auto;padding:0 8px">
+        <label style="font-size:12px;color:var(--c-text3)">Hasta</label>
+        <input type="date" class="field-input" id="anaRangeTo" style="height:30px;font-size:12px;width:auto;padding:0 8px">
+        <button class="btn btn-primary btn-xs" onclick="applyAnaRange()">Aplicar</button>
       </div>
       <select class="field-input" id="anaCoFilter" onchange="renderAnalytics()" style="width:auto;min-width:150px;font-size:12px;height:30px;padding:0 10px">
         <option value="">Todas las empresas</option>
@@ -1066,6 +1078,13 @@ tr:hover .td-actions{opacity:1}
           <div class="card-header"><span class="card-title">Tiempo no productivo</span></div>
           <div class="card-body" id="anaBreakTable"></div>
         </div>
+      </div>
+      <!-- Actividades por empresa (visible solo con filtro activo) -->
+      <div class="card" id="anaActCard" style="margin-bottom:14px;display:none">
+        <div class="card-header">
+          <span class="card-title">Actividades · <span id="anaActCoName" style="color:var(--c-teal)"></span></span>
+        </div>
+        <div class="card-body" style="padding:0" id="anaActTable"></div>
       </div>
       <!-- Horas pico + Por día semana -->
       <div class="grid-2" style="margin-bottom:14px">
@@ -1217,6 +1236,10 @@ tr:hover .td-actions{opacity:1}
   <div class="bchip-other-wrap" id="mOtherBreakWrap" style="margin-bottom:8px">
     <input type="text" class="tf-input" id="mOtherBreakText" placeholder="¿Qué actividad?">
     <button onclick="confirmMobileOtherBreak()" class="btn btn-primary btn-xs">OK</button>
+  </div>
+  <div style="margin-bottom:6px">
+    <label class="field-label" style="font-size:9px">Destino del traslado</label>
+    <select class="field-input" id="mTransitCoSel" style="width:100%;font-size:12px;height:34px"></select>
   </div>
   <button class="timer-btn-transit" onclick="toggleTransit()" id="mTransitBtn">🚗 Traslado / Movilización</button>
 </div>
@@ -1473,7 +1496,7 @@ function getDay(ds) {
 // ── App State ─────────────────────────────────────────────────────────────────
 let VIEW_DATE = '';
 let _timerTick = null, _clockTick = null, _breakMenuOpen = false, _warnDismissed = false;
-let _anaView = 'week', _anaRef = '';
+let _anaView = 'week', _anaRef = '', _anaRangeFrom = '', _anaRangeTo = '';
 
 // ── Timer ─────────────────────────────────────────────────────────────────────
 function startWork(coId) {
@@ -1489,7 +1512,8 @@ function startBreak(type) {
 }
 function startTransit() {
   _stopActive(true);
-  STATE.activeSession = { mode:'transit', companyId:'', breakType:'', startIso:new Date().toISOString(), startDisplay:getCoHHMM() };
+  const destId = (el('transitCoSel')||{}).value || (el('mTransitCoSel')||{}).value || '';
+  STATE.activeSession = { mode:'transit', companyId: destId, breakType:'', startIso:new Date().toISOString(), startDisplay:getCoHHMM() };
   save(); _updateTimerUI(); _renderBanner();
 }
 function _stopActive(silent) {
@@ -1596,7 +1620,7 @@ function _updateTimerUI() {
   if (stateLabel) { stateLabel.classList.add(modeClass); stateLabel.textContent = s.mode === 'productive' ? '● Trabajando' : s.mode === 'transit' ? '🚗 En traslado' : '☕ Descansando'; }
   if (digits)     digits.classList.add(modeClass);
   const co = STATE.companies.find(c => c.id === s.companyId);
-  if (coName) coName.textContent = co ? co.name : (s.mode === 'break' ? (s.breakType || 'Descanso') : s.mode === 'transit' ? 'En traslado' : '—');
+  if (coName) coName.textContent = s.mode === 'transit' ? (co ? `→ ${co.name}` : 'En traslado') : (co ? co.name : (s.mode === 'break' ? (s.breakType || 'Descanso') : '—'));
   if (mainBtn) { mainBtn.textContent = s.mode === 'productive' ? '⏹ Detener' : '▶ Iniciar'; mainBtn.classList.toggle('stop', s.mode === 'productive'); }
   if (breakBtn) breakBtn.classList.toggle('active', s.mode === 'break');
   if (transitBtn) { transitBtn.classList.toggle('active', s.mode === 'transit'); transitBtn.textContent = s.mode === 'transit' ? '⏹ Detener traslado' : '🚗 Traslado / Movilización'; }
@@ -1634,7 +1658,7 @@ function _renderBanner() {
   const co = STATE.companies.find(c => c.id === s.companyId);
   const modeClass = s.mode === 'productive' ? 'productive' : s.mode === 'transit' ? 'transit' : 'on-break';
   ab.classList.add(modeClass, 'visible');
-  const label = s.mode === 'productive' ? `Trabajando · ${co ? co.name : '?'}` : s.mode === 'transit' ? '🚗 En traslado' : `☕ ${s.breakType || 'Descansando'}`;
+  const label = s.mode === 'productive' ? `Trabajando · ${co ? co.name : '?'}` : s.mode === 'transit' ? `🚗 En traslado${co ? ' → ' + co.name : ''}` : `☕ ${s.breakType || 'Descansando'}`;
   if (abt) abt.textContent = label;
 }
 function dismissWarn() { _warnDismissed = true; const wb = el('warnBanner'); if(wb) wb.classList.remove('visible'); }
@@ -1750,7 +1774,7 @@ function _renderDashSessions(sessions) {
     const isBreak   = s.mode === 'break';
     const isProd    = s.mode === 'productive';
     if (isProd) prodTotal += s.mins;
-    const label = isProd ? (co?co.name:'Sin empresa') : isTransit ? '🚗 Traslado' : (s.breakType||'Descanso');
+    const label = isProd ? (co?co.name:'Sin empresa') : isTransit ? `🚗 Traslado${co?' → '+co.name:''}` : (s.breakType||'Descanso');
     const color = isProd ? (co?co.color:'var(--c-teal)') : isTransit ? 'var(--c-transit)' : 'var(--c-break)';
     const liveTag = s._live ? ' <span style="font-size:9px;color:var(--c-teal)">● vivo</span>' : '';
     const npTag = (isTransit||isBreak) ? `<span style="font-size:9px;color:var(--c-text4);margin-left:4px">· no productivo</span>` : '';
@@ -1940,7 +1964,7 @@ function renderHistory() {
       </div>
       <div class="day-group-body">${sess.map((s,i)=>{
         const co=STATE.companies.find(c=>c.id===s.companyId);
-        const label=s.mode==='productive'?(co?co.name:'?'):s.mode==='transit'?'Traslado':(s.breakType||'Descanso');
+        const label=s.mode==='productive'?(co?co.name:'?'):s.mode==='transit'?`🚗 Traslado${co?' → '+co.name:''}`:(s.breakType||'Descanso');
         const color=s.mode==='productive'?(co?co.color:'var(--c-teal)'):s.mode==='transit'?'var(--c-transit)':'var(--c-amber)';
         return `<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--c-border)">
           <span class="dot" style="background:${color}"></span>
@@ -2098,9 +2122,18 @@ function deleteCompany(i){
 // ── Analytics V2 ──────────────────────────────────────────────────────────────
 function setAnaView(v) {
   _anaView = v;
-  ['Week','Month'].forEach(t => {
+  ['Week','Month','Range'].forEach(t => {
     const b = el('anaTab'+t); if(b) b.classList.toggle('active', t.toLowerCase()===v);
   });
+  const navRow = el('anaPeriodNavRow'), rangeRow = el('anaRangeRow');
+  if (navRow) navRow.style.display = v === 'range' ? 'none' : '';
+  if (rangeRow) rangeRow.style.display = v === 'range' ? 'flex' : 'none';
+  if (v !== 'range') renderAnalytics();
+}
+function applyAnaRange() {
+  const from = (el('anaRangeFrom')||{}).value, to = (el('anaRangeTo')||{}).value;
+  if (!from || !to || from > to) { showToast('Selecciona un rango de fechas válido'); return; }
+  _anaRangeFrom = from; _anaRangeTo = to;
   renderAnalytics();
 }
 function shiftAnaPeriod(dir) {
@@ -2111,6 +2144,12 @@ function shiftAnaPeriod(dir) {
   renderAnalytics();
 }
 function _getAnaDates() {
+  if (_anaView === 'range') {
+    if (!_anaRangeFrom || !_anaRangeTo) return [];
+    const dates = [], d = new Date(_anaRangeFrom+'T12:00:00'), end = new Date(_anaRangeTo+'T12:00:00');
+    while (d <= end && dates.length < 366) { dates.push(new Intl.DateTimeFormat('en-CA').format(d)); d.setDate(d.getDate()+1); }
+    return dates;
+  }
   const ref = _anaRef || todayStr();
   if (_anaView === 'week') {
     const d = new Date(ref+'T12:00:00'), day = d.getDay()||7;
@@ -2123,6 +2162,11 @@ function _getAnaDates() {
   }
 }
 function _getAnaLabel() {
+  if (_anaView === 'range') {
+    if (!_anaRangeFrom || !_anaRangeTo) return 'Selecciona un rango';
+    const fmt = dt => new Date(dt+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'});
+    return fmt(_anaRangeFrom) + ' – ' + fmt(_anaRangeTo);
+  }
   const ref = _anaRef || todayStr();
   const d = new Date(ref+'T12:00:00');
   if (_anaView === 'week') {
@@ -2138,9 +2182,17 @@ function renderAnalytics() {
   const cf=el('anaCoFilter');
   if(cf){const prev=cf.value;cf.innerHTML='<option value="">Todas las empresas</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');cf.value=prev;}
   if(el('anaPeriodLabel')) el('anaPeriodLabel').textContent=_getAnaLabel();
-  ['Week','Month'].forEach(t=>{const b=el('anaTab'+t);if(b)b.classList.toggle('active',t.toLowerCase()===_anaView);});
+  ['Week','Month','Range'].forEach(t=>{const b=el('anaTab'+t);if(b)b.classList.toggle('active',t.toLowerCase()===_anaView);});
+  const _navRow=el('anaPeriodNavRow'),_rangeRow=el('anaRangeRow');
+  if(_navRow)_navRow.style.display=_anaView==='range'?'none':'';
+  if(_rangeRow)_rangeRow.style.display=_anaView==='range'?'flex':'none';
 
   const dates=_getAnaDates();
+  if(_anaView==='range'&&!dates.length){
+    ['anaKpiRow','anaChart','anaCoTable','anaBreakTable','anaHourChart','anaWdayChart','anaInsights','anaActTable'].forEach(id=>{const e=el(id);if(e)e.innerHTML='<div class="empty">Selecciona un rango y presiona Aplicar.</div>';});
+    if(el('anaPeriodLabel'))el('anaPeriodLabel').textContent='';
+    return;
+  }
   const coFilter=(el('anaCoFilter')||{}).value||'';
   const today=todayStr(), goalMins=(STATE.settings.dailyGoal||8)*60;
 
@@ -2187,8 +2239,8 @@ function renderAnalytics() {
   const chartEl=el('anaChart');
   if(chartEl){
     const maxH=Math.max(goalMins,...dates.map(ds=>dayData[ds].prod+dayData[ds].brk+dayData[ds].trans),1);
-    const isMonth=_anaView==='month';
-    const lblFmt=isMonth?{day:'numeric'}:{weekday:'short',day:'numeric'};
+    const isMonth=_anaView==='month', isRange=_anaView==='range';
+    const lblFmt=(isMonth||isRange)?{day:'numeric',month:'short'}:{weekday:'short',day:'numeric'};
     chartEl.style.gridTemplateColumns='';
     chartEl.innerHTML=dates.map(ds=>{
       const d=dayData[ds], total=d.prod+d.brk+d.trans;
@@ -2316,6 +2368,46 @@ function renderAnalytics() {
     insEl.innerHTML=items.length
       ?`<div style="display:flex;flex-direction:column">${items.map(i=>`<div class="insight-row"><span style="font-size:18px;line-height:1.3;flex-shrink:0">${i.i}</span><span style="font-size:13px;line-height:1.6;color:var(--c-text2)">${i.t}</span></div>`).join('')}</div>`
       :'<div class="empty">Agrega sesiones para ver insights.</div>';
+  }
+
+  // ── Actividades por empresa ──
+  const actCard=el('anaActCard'), actTable=el('anaActTable');
+  if(actCard&&actTable){
+    if(coFilter){
+      actCard.style.display='';
+      const actCo=STATE.companies.find(c=>c.id===coFilter);
+      if(el('anaActCoName'))el('anaActCoName').textContent=actCo?actCo.name:coFilter;
+      const actSess=[];
+      dates.forEach(ds=>{((STATE.days[ds]&&STATE.days[ds].sessions)||[]).filter(s=>s.mode==='productive'&&s.companyId===coFilter).forEach(s=>actSess.push({...s,_date:ds}));});
+      actSess.sort((a,b)=>a.startIso<b.startIso?-1:1);
+      if(!actSess.length){
+        actTable.innerHTML='<div class="empty" style="padding:16px">No hay actividades para esta empresa en el período.</div>';
+      } else {
+        const totalActMins=actSess.reduce((a,s)=>a+s.mins,0);
+        actTable.innerHTML=`<div style="padding:10px 16px;font-size:11px;color:var(--c-text3);border-bottom:1px solid var(--c-border)">${actSess.length} sesión${actSess.length!==1?'es':''} · Total productivo: <strong style="color:var(--c-teal)">${fmtMins(totalActMins)}</strong></div>
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead><tr style="border-bottom:1px solid var(--c-border);background:var(--c-surface2)">
+              <th style="text-align:left;padding:7px 12px;font-weight:600;font-size:11px;color:var(--c-text3)">Fecha</th>
+              <th style="text-align:left;padding:7px 12px;font-weight:600;font-size:11px;color:var(--c-text3)">Actividad</th>
+              <th style="text-align:left;padding:7px 12px;font-weight:600;font-size:11px;color:var(--c-text3)">Horario</th>
+              <th style="text-align:right;padding:7px 12px;font-weight:600;font-size:11px;color:var(--c-text3)">Duración</th>
+            </tr></thead>
+            <tbody>${actSess.map(s=>{
+              const dateLbl=new Date(s._date+'T12:00:00').toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short'});
+              const ah=Math.floor(s.mins/60), am=s.mins%60;
+              const adur=ah>0?`${ah}h ${am}m`:`${am}m`;
+              return`<tr style="border-bottom:1px solid var(--c-border)">
+                <td style="padding:7px 12px;color:var(--c-text3);white-space:nowrap">${dateLbl}</td>
+                <td style="padding:7px 12px;color:var(--c-text2)">${s.activity||'—'}</td>
+                <td style="padding:7px 12px;color:var(--c-text3);white-space:nowrap">${s.startDisplay||'—'}–${s.endDisplay||'—'}</td>
+                <td style="padding:7px 12px;text-align:right;font-weight:600;color:var(--c-teal)">${adur}</td>
+              </tr>`;
+            }).join('')}</tbody>
+          </table>`;
+      }
+    } else {
+      actCard.style.display='none';
+    }
   }
 }
 
@@ -2481,6 +2573,9 @@ function _renderTimerCompanies(){
   const opts='<option value="">— Empresa —</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
   if(el('timerSel'))  el('timerSel').innerHTML=opts;
   if(el('mTimerSel')) el('mTimerSel').innerHTML=opts;
+  const tOpts='<option value="">Sin destino</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
+  if(el('transitCoSel'))  el('transitCoSel').innerHTML=tOpts;
+  if(el('mTransitCoSel')) el('mTransitCoSel').innerHTML=tOpts;
 }
 
 // ── User pill ─────────────────────────────────────────────────────────────────
