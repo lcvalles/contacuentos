@@ -1743,19 +1743,37 @@ function renderDashboard() {
 function _renderDashSessions(sessions) {
   const e2 = el('dashSessions'); if (!e2) return;
   if (!sessions.length) { e2.innerHTML = '<div class="empty">Sin sesiones hoy.</div>'; return; }
-  e2.innerHTML = sessions.map((s, i) => {
+  let prodTotal = 0;
+  const rows = sessions.map((s, i) => {
     const co = STATE.companies.find(c => c.id === s.companyId);
-    const label = s.mode==='productive' ? (co?co.name:'?') : s.mode==='transit' ? 'Traslado' : (s.breakType||'Descanso');
-    const color = s.mode==='productive' ? (co?co.color:'var(--c-teal)') : s.mode==='transit' ? 'var(--c-transit)' : 'var(--c-amber)';
+    const isTransit = s.mode === 'transit';
+    const isBreak   = s.mode === 'break';
+    const isProd    = s.mode === 'productive';
+    if (isProd) prodTotal += s.mins;
+    const label = isProd ? (co?co.name:'Sin empresa') : isTransit ? '🚗 Traslado' : (s.breakType||'Descanso');
+    const color = isProd ? (co?co.color:'var(--c-teal)') : isTransit ? 'var(--c-transit)' : 'var(--c-break)';
     const liveTag = s._live ? ' <span style="font-size:9px;color:var(--c-teal)">● vivo</span>' : '';
-    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--c-border)">
-      <span class="dot" style="background:${color}"></span>
-      <span style="flex:1;font-size:12.5px">${label}${liveTag}</span>
-      <span style="font-size:11.5px;color:var(--c-text3)">${s.startDisplay}–${s.endDisplay}</span>
-      <span style="font-size:11.5px;font-weight:500;min-width:40px;text-align:right">${fmtMins(s.mins)}</span>
+    const npTag = (isTransit||isBreak) ? `<span style="font-size:9px;color:var(--c-text4);margin-left:4px">· no productivo</span>` : '';
+    const h = Math.floor(s.mins/60), m = s.mins%60;
+    const hrsLabel = h>0 ? `${h}h ${m}m` : `${m}m`;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--c-border);${(isTransit||isBreak)?'opacity:.8':''}">
+      <span class="dot" style="background:${color};flex-shrink:0"></span>
+      <span style="flex:1;font-size:12.5px">${label}${liveTag}${npTag}</span>
+      <span style="font-size:11px;color:var(--c-text3)">${s.startDisplay}–${s.endDisplay}</span>
+      <div style="text-align:right;min-width:52px">
+        <div style="font-size:12.5px;font-weight:600;color:${isProd?'var(--c-text)':'var(--c-text3)'}">${hrsLabel}</div>
+        <div style="font-size:10px;color:var(--c-text4)">${s.mins} min</div>
+      </div>
       ${!s._live ? `<button class="icon-btn" onclick="openEditSess('${VIEW_DATE}',${i})">✎</button>` : ''}
     </div>`;
-  }).join('');
+  });
+  // Pie con total productivo del día
+  const h=Math.floor(prodTotal/60), m=prodTotal%60;
+  const footer = `<div style="display:flex;justify-content:space-between;padding:8px 16px;background:var(--c-surface3);font-size:11.5px;color:var(--c-text3)">
+    <span>Total productivo del día</span>
+    <span style="font-weight:700;color:var(--c-teal)">${h>0?`${h}h ${m}m`:m+'m'} <span style="font-weight:400;color:var(--c-text4)">(${prodTotal} min)</span></span>
+  </div>`;
+  e2.innerHTML = rows.join('') + footer;
 }
 function _renderDashTasks() {
   const e2 = el('dashTasks'); if (!e2) return;
