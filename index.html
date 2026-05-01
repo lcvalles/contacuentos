@@ -714,6 +714,10 @@ tr:hover .td-actions{opacity:1}
       <button onclick="confirmOtherBreak()" class="btn btn-primary btn-xs">OK</button>
     </div>
     <button class="timer-btn-transit" id="timerTransitBtn" onclick="toggleTransit()">🚗 Traslado / Movilización</button>
+    <div style="margin-bottom:8px">
+      <label style="font-size:9.5px;color:var(--c-text3);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">Destino del traslado</label>
+      <select class="tf-input" id="transitCoSel" style="font-size:11.5px"></select>
+    </div>
 
     <div class="timer-fields">
       <div class="tf-group">
@@ -723,10 +727,6 @@ tr:hover .td-actions{opacity:1}
       <div class="tf-group">
         <label for="timerSel">Empresa</label>
         <select class="tf-input" id="timerSel"></select>
-      </div>
-      <div class="tf-group">
-        <label>Destino del traslado</label>
-        <select class="tf-input" id="transitCoSel" style="font-size:11.5px"></select>
       </div>
     </div>
     <div class="timer-saved" id="timerSavedLabel" style="font-size:9px;color:var(--c-text4);text-align:center;margin-top:8px">—</div>
@@ -1215,13 +1215,9 @@ tr:hover .td-actions{opacity:1}
     <div style="font-size:12px;color:var(--c-text3);margin-top:4px" id="mSheetLabel">Inactivo</div>
   </div>
 
-  <div style="margin-bottom:8px">
+  <div style="margin-bottom:12px">
     <label class="field-label" style="font-size:9px">Empresa</label>
     <select class="field-input" id="mTimerSel" style="width:100%"></select>
-  </div>
-  <div style="margin-bottom:12px">
-    <label class="field-label" style="font-size:9px">Destino del traslado</label>
-    <select class="field-input" id="mTransitCoSel" style="width:100%;font-size:12px;height:34px"></select>
   </div>
 
   <button class="timer-btn-main" id="mTimerMainBtn" onclick="toggleTimer()" style="margin-bottom:8px">▶ Iniciar</button>
@@ -1241,6 +1237,10 @@ tr:hover .td-actions{opacity:1}
     <button onclick="confirmMobileOtherBreak()" class="btn btn-primary btn-xs">OK</button>
   </div>
   <button class="timer-btn-transit" onclick="toggleTransit()" id="mTransitBtn">🚗 Traslado / Movilización</button>
+  <div style="margin-bottom:6px;margin-top:6px">
+    <label class="field-label" style="font-size:9px">Destino del traslado</label>
+    <select class="field-input" id="mTransitCoSel" style="width:100%;font-size:12px;height:34px"></select>
+  </div>
 </div>
 
 <!-- MODAL: Editar sesión -->
