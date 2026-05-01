@@ -1510,8 +1510,9 @@ function startBreak(type) {
   save(); _updateTimerUI(); _renderBanner();
 }
 function startTransit() {
-  _stopActive(true);
   const destId = (el('transitCoSel')||{}).value || (el('mTransitCoSel')||{}).value || '';
+  if (!destId) { showToast('Selecciona el destino del traslado'); return; }
+  _stopActive(true);
   STATE.activeSession = { mode:'transit', companyId: destId, breakType:'', startIso:new Date().toISOString(), startDisplay:getCoHHMM() };
   save(); _updateTimerUI(); _renderBanner();
 }
@@ -1619,7 +1620,8 @@ function _updateTimerUI() {
   if (stateLabel) { stateLabel.classList.add(modeClass); stateLabel.textContent = s.mode === 'productive' ? '● Trabajando' : s.mode === 'transit' ? '🚗 En traslado' : '☕ Descansando'; }
   if (digits)     digits.classList.add(modeClass);
   const co = STATE.companies.find(c => c.id === s.companyId);
-  if (coName) coName.textContent = s.mode === 'transit' ? (co ? `→ ${co.name}` : 'En traslado') : (co ? co.name : (s.mode === 'break' ? (s.breakType || 'Descanso') : '—'));
+  const transitDest = s.mode==='transit' ? (s.companyId==='personal' ? '→ Personal' : co ? `→ ${co.name}` : 'En traslado') : null;
+  if (coName) coName.textContent = transitDest || (co ? co.name : (s.mode === 'break' ? (s.breakType || 'Descanso') : '—'));
   if (mainBtn) { mainBtn.textContent = s.mode === 'productive' ? '⏹ Detener' : '▶ Iniciar'; mainBtn.classList.toggle('stop', s.mode === 'productive'); }
   if (breakBtn) breakBtn.classList.toggle('active', s.mode === 'break');
   if (transitBtn) { transitBtn.classList.toggle('active', s.mode === 'transit'); transitBtn.textContent = s.mode === 'transit' ? '⏹ Detener traslado' : '🚗 Traslado / Movilización'; }
@@ -1657,7 +1659,8 @@ function _renderBanner() {
   const co = STATE.companies.find(c => c.id === s.companyId);
   const modeClass = s.mode === 'productive' ? 'productive' : s.mode === 'transit' ? 'transit' : 'on-break';
   ab.classList.add(modeClass, 'visible');
-  const label = s.mode === 'productive' ? `Trabajando · ${co ? co.name : '?'}` : s.mode === 'transit' ? `🚗 En traslado${co ? ' → ' + co.name : ''}` : `☕ ${s.breakType || 'Descansando'}`;
+  const transitName = s.companyId==='personal' ? 'Personal' : (co ? co.name : '');
+  const label = s.mode === 'productive' ? `Trabajando · ${co ? co.name : '?'}` : s.mode === 'transit' ? `🚗 En traslado${transitName ? ' → ' + transitName : ''}` : `☕ ${s.breakType || 'Descansando'}`;
   if (abt) abt.textContent = label;
 }
 function dismissWarn() { _warnDismissed = true; const wb = el('warnBanner'); if(wb) wb.classList.remove('visible'); }
@@ -1773,7 +1776,8 @@ function _renderDashSessions(sessions) {
     const isBreak   = s.mode === 'break';
     const isProd    = s.mode === 'productive';
     if (isProd) prodTotal += s.mins;
-    const label = isProd ? (co?co.name:'Sin empresa') : isTransit ? `🚗 Traslado${co?' → '+co.name:''}` : (s.breakType||'Descanso');
+    const transitLabel = isTransit ? (s.companyId==='personal'?'🚗 Traslado → Personal': co?`🚗 Traslado → ${co.name}`:'🚗 Traslado') : '';
+    const label = isProd ? (co?co.name:'Sin empresa') : isTransit ? transitLabel : (s.breakType||'Descanso');
     const color = isProd ? (co?co.color:'var(--c-teal)') : isTransit ? 'var(--c-transit)' : 'var(--c-break)';
     const liveTag = s._live ? ' <span style="font-size:9px;color:var(--c-teal)">● vivo</span>' : '';
     const npTag = (isTransit||isBreak) ? `<span style="font-size:9px;color:var(--c-text4);margin-left:4px">· no productivo</span>` : '';
@@ -1970,7 +1974,7 @@ function renderHistory() {
       </div>
       <div class="day-group-body">${sess.map((s,i)=>{
         const co=STATE.companies.find(c=>c.id===s.companyId);
-        const label=s.mode==='productive'?(co?co.name:'?'):s.mode==='transit'?`🚗 Traslado${co?' → '+co.name:''}`:(s.breakType||'Descanso');
+        const label=s.mode==='productive'?(co?co.name:'?'):s.mode==='transit'?(s.companyId==='personal'?'🚗 Traslado → Personal':co?`🚗 Traslado → ${co.name}`:'🚗 Traslado'):(s.breakType||'Descanso');
         const color=s.mode==='productive'?(co?co.color:'var(--c-teal)'):s.mode==='transit'?'var(--c-transit)':'var(--c-amber)';
         return `<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--c-border)">
           <span class="dot" style="background:${color}"></span>
@@ -2589,7 +2593,7 @@ function _renderTimerCompanies(){
   const opts='<option value="">— Empresa —</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
   if(el('timerSel'))  el('timerSel').innerHTML=opts;
   if(el('mTimerSel')) el('mTimerSel').innerHTML=opts;
-  const tOpts='<option value="">Sin destino</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
+  const tOpts='<option value="">— ¿A dónde vas? —</option><option value="personal">🏠 Personal</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
   if(el('transitCoSel'))  el('transitCoSel').innerHTML=tOpts;
   if(el('mTransitCoSel')) el('mTransitCoSel').innerHTML=tOpts;
 }
