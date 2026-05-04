@@ -1784,9 +1784,12 @@ function _renderDashSessions(sessions) {
     const h = Math.floor(s.mins/60), m = s.mins%60;
     const hrsLabel = h>0 ? `${h}h ${m}m` : `${m}m`;
     return `<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--c-border);${(isTransit||isBreak)?'opacity:.8':''}">
-      <span class="dot" style="background:${color};flex-shrink:0"></span>
-      <span style="flex:1;font-size:12.5px">${label}${liveTag}${npTag}</span>
-      <span style="font-size:11px;color:var(--c-text3)">${s.startDisplay}–${s.endDisplay}</span>
+      <span class="dot" style="background:${color};flex-shrink:0;align-self:flex-start;margin-top:3px"></span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;font-weight:500">${label}${liveTag}${npTag}</div>
+        ${s.nota&&isProd?`<div style="font-size:11px;color:var(--c-text3);margin-top:2px;line-height:1.4">${s.nota}</div>`:''}
+      </div>
+      <span style="font-size:11px;color:var(--c-text3);white-space:nowrap">${s.startDisplay}–${s.endDisplay}</span>
       <div style="text-align:right;min-width:52px">
         <div style="font-size:12.5px;font-weight:600;color:${isProd?'var(--c-text)':'var(--c-text3)'}">${hrsLabel}</div>
         <div style="font-size:10px;color:var(--c-text4)">${s.mins} min</div>
@@ -1976,11 +1979,14 @@ function renderHistory() {
         const co=STATE.companies.find(c=>c.id===s.companyId);
         const label=s.mode==='productive'?(co?co.name:'?'):s.mode==='transit'?(s.companyId==='personal'?'🚗 Traslado → Personal':co?`🚗 Traslado → ${co.name}`:'🚗 Traslado'):(s.breakType||'Descanso');
         const color=s.mode==='productive'?(co?co.color:'var(--c-teal)'):s.mode==='transit'?'var(--c-transit)':'var(--c-amber)';
-        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--c-border)">
-          <span class="dot" style="background:${color}"></span>
-          <span style="flex:1;font-size:12.5px">${label}${s.nota?` <span style="color:var(--c-text3);font-style:italic">— ${s.nota}</span>`:''}</span>
-          <span style="font-size:11.5px;color:var(--c-text3)">${s.startDisplay}–${s.endDisplay}</span>
-          <span style="font-size:11.5px;font-weight:500">${fmtMins(s.mins)}</span>
+        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--c-border)">
+          <span class="dot" style="background:${color};flex-shrink:0;align-self:flex-start;margin-top:3px"></span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12.5px;font-weight:500">${label}</div>
+            ${s.nota?`<div style="font-size:11px;color:var(--c-text3);margin-top:2px;line-height:1.4">${s.nota}</div>`:''}
+          </div>
+          <span style="font-size:11px;color:var(--c-text3);white-space:nowrap">${s.startDisplay}–${s.endDisplay}</span>
+          <span style="font-size:12px;font-weight:600;white-space:nowrap">${fmtMins(s.mins)}</span>
           <button class="icon-btn" onclick="openEditSess('${ds}',${i})">✎</button>
           <button class="icon-btn" style="color:var(--c-red)" onclick="deleteSess('${ds}',${i})">✕</button>
         </div>`;
