@@ -1791,7 +1791,7 @@ function _renderDashSessions(sessions) {
         <div style="font-size:12.5px;font-weight:600;color:${isProd?'var(--c-text)':'var(--c-text3)'}">${hrsLabel}</div>
         <div style="font-size:10px;color:var(--c-text4)">${s.mins} min</div>
       </div>
-      ${!s._live ? `<button class="icon-btn" onclick="openEditSess('${VIEW_DATE}',${i})">✎</button>` : ''}
+      ${!s._live ? `<button class="icon-btn" onclick="openEditSess('${VIEW_DATE}',${i})" title="Editar">✎</button><button class="icon-btn" style="color:var(--c-red)" onclick="deleteSess('${VIEW_DATE}',${i})" title="Eliminar">✕</button>` : ''}
     </div>`;
   });
   // Pie con total productivo del día
@@ -2021,6 +2021,8 @@ function saveManual(){
   const [ih,im]=ini.split(':').map(Number),[fh,fm]=fin.split(':').map(Number);
   const mins=(fh*60+fm)-(ih*60+im);
   if(mins<=0){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Fin debe ser después de inicio';return;}
+  if(tipo==='productive'&&!coId){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Selecciona la empresa';return;}
+  if(tipo==='productive'&&!nota){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Escribe la actividad realizada';return;}
   getDay(ds).sessions.push({mode:tipo,companyId:coId,breakType:'',startIso:ds+'T'+ini+':00',endIso:ds+'T'+fin+':00',startDisplay:ini,endDisplay:fin,mins,nota,manual:true});
   save(); if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent=''; showToast('Sesión guardada');
   if(VIEW_DATE===ds)renderDashboard();
