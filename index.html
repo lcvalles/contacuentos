@@ -1428,7 +1428,7 @@ const Sync = {
     if (!USE_FB) { setSyncStatus('local'); return; }
     setSyncStatus('saving');
     clearTimeout(this._t);
-    this._t = setTimeout(() => this._push(), 2500);
+    this._t = setTimeout(() => this._push(), 1500);
   },
   async _push() {
     try {
@@ -1486,7 +1486,7 @@ function loadState() {
   if (!STATE.settings) STATE.settings = { dailyGoal:8, breakAlert:90 };
   if (!STATE.activeSession) STATE.activeSession = null;
 }
-function save() { localStorage.setItem(SK(), JSON.stringify(STATE)); Sync.schedule(); }
+function save() { STATE._savedAt = Date.now(); localStorage.setItem(SK(), JSON.stringify(STATE)); Sync.schedule(); }
 function getDay(ds) {
   if (!STATE.days[ds]) STATE.days[ds] = { sessions:[], entries:[] };
   return STATE.days[ds];
@@ -2690,14 +2690,20 @@ async function startApp(){
   loadState();
   if(USE_FB){
     setSyncStatus('saving');
+    const localSavedAt = STATE._savedAt || 0;
     const remote=await Sync.pull();
     if(remote){
-      STATE=remote;
-      if(!STATE.companies||!STATE.companies.length)STATE.companies=JSON.parse(JSON.stringify(SEED_COS));
-      if(!STATE.tasks)STATE.tasks=[];
-      if(!STATE.days)STATE.days={};
-      if(!STATE.settings)STATE.settings={dailyGoal:8,breakAlert:90};
-      localStorage.setItem(SK(),JSON.stringify(STATE));
+      const remoteSavedAt = remote._savedAt || 0;
+      if(remoteSavedAt >= localSavedAt){
+        STATE=remote;
+        if(!STATE.companies||!STATE.companies.length)STATE.companies=JSON.parse(JSON.stringify(SEED_COS));
+        if(!STATE.tasks)STATE.tasks=[];
+        if(!STATE.days)STATE.days={};
+        if(!STATE.settings)STATE.settings={dailyGoal:8,breakAlert:90};
+        localStorage.setItem(SK(),JSON.stringify(STATE));
+      } else {
+        await Sync._push();
+      }
     }
     setSyncStatus('ok');
   } else {
