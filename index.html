@@ -1523,13 +1523,15 @@ function _stopActive(silent) {
   const mins = Math.round((new Date(endIso) - new Date(s.startIso)) / 60000);
   if (mins >= 1) {
     const coDs = new Intl.DateTimeFormat('en-CA', { timeZone:'America/Bogota' }).format(new Date(s.startIso));
+    const activity = ((el('timerActivity')||{}).value||'').trim() || s.nota || '';
     getDay(coDs).sessions.push({
       mode:s.mode, companyId:s.companyId||'', breakType:s.breakType||'',
       startIso:s.startIso, endIso, startDisplay:s.startDisplay, endDisplay:getCoHHMM(),
-      mins, nota:s.nota||'', manual:false
+      mins, nota: activity, manual:false
     });
   }
   STATE.activeSession = null;
+  if(el('timerActivity')) el('timerActivity').value = '';
   save();
   if (!silent) { _updateTimerUI(); _renderBanner(); if (VIEW_DATE === todayStr()) renderDashboard(); }
 }
@@ -1787,7 +1789,7 @@ function _renderDashSessions(sessions) {
       <span class="dot" style="background:${color};flex-shrink:0;align-self:flex-start;margin-top:3px"></span>
       <div style="flex:1;min-width:0">
         <div style="font-size:12.5px;font-weight:500">${label}${liveTag}${npTag}</div>
-        ${s.nota&&isProd?`<div style="font-size:11px;color:var(--c-text3);margin-top:2px;line-height:1.4">${s.nota}</div>`:''}
+        ${(s.nota||s.activity)&&isProd?`<div style="font-size:11px;color:var(--c-text3);margin-top:2px;line-height:1.4">${s.nota||s.activity}</div>`:''}
       </div>
       <span style="font-size:11px;color:var(--c-text3);white-space:nowrap">${s.startDisplay}–${s.endDisplay}</span>
       <div style="text-align:right;min-width:52px">
@@ -1983,7 +1985,7 @@ function renderHistory() {
           <span class="dot" style="background:${color};flex-shrink:0;align-self:flex-start;margin-top:3px"></span>
           <div style="flex:1;min-width:0">
             <div style="font-size:12.5px;font-weight:500">${label}</div>
-            ${s.nota?`<div style="font-size:11px;color:var(--c-text3);margin-top:2px;line-height:1.4">${s.nota}</div>`:''}
+            ${(s.nota||s.activity)?`<div style="font-size:11px;color:var(--c-text3);margin-top:2px;line-height:1.4">${s.nota||s.activity}</div>`:''}
           </div>
           <span style="font-size:11px;color:var(--c-text3);white-space:nowrap">${s.startDisplay}–${s.endDisplay}</span>
           <span style="font-size:12px;font-weight:600;white-space:nowrap">${fmtMins(s.mins)}</span>
@@ -2426,7 +2428,7 @@ function renderAnalytics() {
               const adur=ah>0?`${ah}h ${am}m`:`${am}m`;
               return`<tr style="border-bottom:1px solid var(--c-border)">
                 <td style="padding:7px 12px;color:var(--c-text3);white-space:nowrap">${dateLbl}</td>
-                <td style="padding:7px 12px;color:var(--c-text2)">${s.activity||'—'}</td>
+                <td style="padding:7px 12px;color:var(--c-text2)">${s.nota||s.activity||'—'}</td>
                 <td style="padding:7px 12px;color:var(--c-text3);white-space:nowrap">${s.startDisplay||'—'}–${s.endDisplay||'—'}</td>
                 <td style="padding:7px 12px;text-align:right;font-weight:600;color:var(--c-teal)">${adur}</td>
               </tr>`;
