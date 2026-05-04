@@ -1772,31 +1772,75 @@ function _renderDashSessions(sessions) {
   const e2 = el('dashSessions'); if (!e2) return;
   if (!sessions.length) { e2.innerHTML = '<div class="empty">Sin sesiones hoy.</div>'; return; }
   let prodTotal = 0;
-  const rows = sessions.map((s, i) => {
-    const co = STATE.companies.find(c => c.id === s.companyId);
-    const isTransit = s.mode === 'transit';
-    const isBreak   = s.mode === 'break';
-    const isProd    = s.mode === 'productive';
-    if (isProd) prodTotal += s.mins;
-    const transitLabel = isTransit ? (s.companyId==='personal'?'🚗 Traslado → Personal': co?`🚗 Traslado → ${co.name}`:'🚗 Traslado') : '';
-    const label = isProd ? (co?co.name:'Sin empresa') : isTransit ? transitLabel : (s.breakType||'Descanso');
-    const color = isProd ? (co?co.color:'var(--c-teal)') : isTransit ? 'var(--c-transit)' : 'var(--c-break)';
-    const liveTag = s._live ? ' <span style="font-size:9px;color:var(--c-teal)">● vivo</span>' : '';
-    const npTag = (isTransit||isBreak) ? `<span style="font-size:9px;color:var(--c-text4);margin-left:4px">· no productivo</span>` : '';
-    const h = Math.floor(s.mins/60), m = s.mins%60;
-    const hrsLabel = h>0 ? `${h}h ${m}m` : `${m}m`;
-    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--c-border);${(isTransit||isBreak)?'opacity:.8':''}">
-      <span class="dot" style="background:${color};flex-shrink:0;align-self:flex-start;margin-top:3px"></span>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:12.5px;font-weight:500">${label}${liveTag}${npTag}</div>
-        ${(s.nota||s.activity)&&isProd?`<div style="font-size:11px;color:var(--c-text3);margin-top:2px;line-height:1.4">${s.nota||s.activity}</div>`:''}
+
+  // Agrupar sesiones productivas por empresa; mantener descansos/traslados sueltos en orden
+  const groups = []; // [{type:'company',coId,co,sessions:[...]}, {type:'other',s,i}]
+  const coOrder = [];
+  const coMap = {};
+  sessions.forEach((s, i) => {
+    if (s.mode === 'productive') {
+      prodTotal += s.mins;
+      const key = s.companyId || '__none__';
+      if (!coMap[key]) { coMap[key] = []; coOrder.push(key); }
+      coMap[key].push({s, i});
+    } else {
+      groups.push({type:'other', s, i});
+    }
+  });
+  coOrder.forEach(key => groups.push({type:'company', coId: key === '__none__' ? '' : key, sessions: coMap[key]}));
+  groups.sort((a, b) => {
+    const ai = a.type === 'other' ? a.i : Math.min(...a.sessions.map(x=>x.i));
+    const bi = b.type === 'other' ? b.i : Math.min(...b.sessions.map(x=>x.i));
+    return ai - bi;
+  });
+
+  const rows = groups.map(g => {
+    if (g.type === 'other') {
+      const {s, i} = g;
+      const co = STATE.companies.find(c => c.id === s.companyId);
+      const isTransit = s.mode === 'transit';
+      const transitLabel = isTransit ? (s.companyId==='personal'?'🚗 Traslado → Personal': co?`🚗 Traslado → ${co.name}`:'🚗 Traslado') : '';
+      const label = isTransit ? transitLabel : (s.breakType||'Descanso');
+      const color = isTransit ? 'var(--c-transit)' : 'var(--c-break)';
+      const hh = Math.floor(s.mins/60), mm = s.mins%60;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--c-border);opacity:.75">
+        <span class="dot" style="background:${color};flex-shrink:0"></span>
+        <span style="flex:1;font-size:12px;color:var(--c-text3)">${label} <span style="font-size:9px;margin-left:3px">· no productivo</span></span>
+        <span style="font-size:10.5px;color:var(--c-text4)">${s.startDisplay}–${s.endDisplay}</span>
+        <span style="font-size:11.5px;color:var(--c-text3);min-width:36px;text-align:right">${hh>0?`${hh}h ${mm}m`:`${mm}m`}</span>
+        ${!s._live?`<button class="icon-btn" onclick="openEditSess('${VIEW_DATE}',${i})">✎</button><button class="icon-btn" style="color:var(--c-red)" onclick="deleteSess('${VIEW_DATE}',${i})">✕</button>`:''}
+      </div>`;
+    }
+    // Grupo por empresa
+    const co = STATE.companies.find(c => c.id === g.coId);
+    const coTotal = g.sessions.reduce((a,x)=>a+x.s.mins, 0);
+    const hasLive = g.sessions.some(x=>x.s._live);
+    const ch = Math.floor(coTotal/60), cm = coTotal%60;
+    const coColor = co ? co.color : 'var(--c-teal)';
+    const coName = co ? co.name : 'Sin empresa';
+    const uid = 'cog_'+(g.coId||'none')+'_'+Math.random().toString(36).slice(2,6);
+    const subRows = g.sessions.map(({s, i}) => {
+      const sh = Math.floor(s.mins/60), sm2 = s.mins%60;
+      const act = s.nota || s.activity || '';
+      const liveTag = s._live ? '<span style="font-size:9px;color:var(--c-teal);margin-left:5px">● vivo</span>' : '';
+      return `<div style="display:flex;align-items:center;gap:8px;padding:5px 16px 5px 38px;border-bottom:1px solid var(--c-border);background:var(--c-surface2)">
+        <div style="flex:1;min-width:0">
+          <span style="font-size:11.5px;color:var(--c-text2)">${act||'—'}${liveTag}</span>
+        </div>
+        <span style="font-size:10.5px;color:var(--c-text4);white-space:nowrap">${s.startDisplay}–${s.endDisplay}</span>
+        <span style="font-size:11px;font-weight:600;color:var(--c-text3);min-width:36px;text-align:right">${sh>0?`${sh}h ${sm2}m`:`${sm2}m`}</span>
+        ${!s._live?`<button class="icon-btn" onclick="openEditSess('${VIEW_DATE}',${i})">✎</button><button class="icon-btn" style="color:var(--c-red)" onclick="deleteSess('${VIEW_DATE}',${i})">✕</button>`:''}
+      </div>`;
+    }).join('');
+    return `<div>
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--c-border);cursor:pointer;user-select:none" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'':'none';this.querySelector('.caret').textContent=this.nextElementSibling.style.display==='none'?'›':'⌄'">
+        <span class="dot" style="background:${coColor};flex-shrink:0"></span>
+        <span style="flex:1;font-size:13px;font-weight:600;color:var(--c-text)">${coName}${hasLive?'<span style="font-size:9px;color:var(--c-teal);margin-left:6px">● vivo</span>':''}</span>
+        <span style="font-size:11px;color:var(--c-text3)">${g.sessions.length} sesión${g.sessions.length!==1?'es':''}</span>
+        <span style="font-size:12.5px;font-weight:700;color:var(--c-teal);min-width:52px;text-align:right">${ch>0?`${ch}h ${cm}m`:`${cm}m`}</span>
+        <span class="caret" style="font-size:14px;color:var(--c-text3);width:16px;text-align:center">⌄</span>
       </div>
-      <span style="font-size:11px;color:var(--c-text3);white-space:nowrap">${s.startDisplay}–${s.endDisplay}</span>
-      <div style="text-align:right;min-width:52px">
-        <div style="font-size:12.5px;font-weight:600;color:${isProd?'var(--c-text)':'var(--c-text3)'}">${hrsLabel}</div>
-        <div style="font-size:10px;color:var(--c-text4)">${s.mins} min</div>
-      </div>
-      ${!s._live ? `<button class="icon-btn" onclick="openEditSess('${VIEW_DATE}',${i})" title="Editar">✎</button><button class="icon-btn" style="color:var(--c-red)" onclick="deleteSess('${VIEW_DATE}',${i})" title="Eliminar">✕</button>` : ''}
+      <div>${subRows}</div>
     </div>`;
   });
   // Pie con total productivo del día
