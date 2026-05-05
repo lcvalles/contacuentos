@@ -2215,7 +2215,7 @@ function setAnaView(v) {
     const b = el('anaTab'+t); if(b) b.classList.toggle('active', t.toLowerCase()===v);
   });
   const navRow = el('anaPeriodNavRow'), rangeRow = el('anaRangeRow');
-  if (navRow) navRow.style.display = v === 'range' ? 'none' : '';
+  if (navRow) navRow.style.display = v === 'range' ? 'none' : 'flex';
   if (rangeRow) rangeRow.style.display = v === 'range' ? 'flex' : 'none';
   if (v !== 'range') renderAnalytics();
 }
@@ -2276,7 +2276,7 @@ function renderAnalytics() {
   if(el('anaPeriodLabel')) el('anaPeriodLabel').textContent=_getAnaLabel();
   ['Day','Week','Month','Range'].forEach(t=>{const b=el('anaTab'+t);if(b)b.classList.toggle('active',t.toLowerCase()===_anaView);});
   const _navRow=el('anaPeriodNavRow'),_rangeRow=el('anaRangeRow');
-  if(_navRow)_navRow.style.display=_anaView==='range'?'none':'';
+  if(_navRow)_navRow.style.display=_anaView==='range'?'none':'flex';
   if(_rangeRow)_rangeRow.style.display=_anaView==='range'?'flex':'none';
 
   const dates=_getAnaDates();
