@@ -2245,7 +2245,7 @@ function _getAnaDates() {
   if (_anaView === 'week') {
     const d = new Date(ref+'T12:00:00'), day = d.getDay()||7;
     const mon = new Date(d); mon.setDate(d.getDate()-day+1);
-    return Array.from({length:7},(_,i)=>{const nd=new Date(mon);nd.setDate(mon.getDate()+i);return new Intl.DateTimeFormat('en-CA').format(nd);});
+    return Array.from({length:5},(_,i)=>{const nd=new Date(mon);nd.setDate(mon.getDate()+i);return new Intl.DateTimeFormat('en-CA').format(nd);});
   } else {
     const d=new Date(ref+'T12:00:00'), y=d.getFullYear(), m=d.getMonth(), days=[], cur=new Date(y,m,1);
     while(cur.getMonth()===m){days.push(new Intl.DateTimeFormat('en-CA').format(cur));cur.setDate(cur.getDate()+1);}
@@ -2264,7 +2264,7 @@ function _getAnaLabel() {
   if (_anaView === 'week') {
     const dates=_getAnaDates();
     const fmt=dt=>new Date(dt+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'});
-    return fmt(dates[0])+' – '+fmt(dates[6]);
+    return fmt(dates[0])+' – '+fmt(dates[4]);
   }
   return d.toLocaleDateString('es-CO',{month:'long',year:'numeric'}).replace(/^\w/,c=>c.toUpperCase());
 }
