@@ -1023,6 +1023,7 @@ tr:hover .td-actions{opacity:1}
     <div class="topbar">
       <h1 class="topbar-title">Reportes</h1>
       <div class="topbar-tabs" role="tablist">
+        <button class="ttab" id="anaTabDay" onclick="setAnaView('day')">Día</button>
         <button class="ttab active" id="anaTabWeek" onclick="setAnaView('week')">Semana</button>
         <button class="ttab" id="anaTabMonth" onclick="setAnaView('month')">Mes</button>
         <button class="ttab" id="anaTabRange" onclick="setAnaView('range')">Rango</button>
@@ -1033,19 +1034,21 @@ tr:hover .td-actions{opacity:1}
       </div>
     </div>
     <div class="ana-period-nav">
-      <div id="anaPeriodNavRow" style="display:flex;align-items:center;gap:8px">
-        <button class="date-nav-arrow" onclick="shiftAnaPeriod(-1)">‹</button>
-        <span id="anaPeriodLabel" style="font-size:14px;font-weight:600;min-width:170px;text-align:center;color:var(--c-text)"></span>
-        <button class="date-nav-arrow" onclick="shiftAnaPeriod(1)">›</button>
+      <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+        <div id="anaPeriodNavRow" style="display:flex;flex-direction:row;align-items:center;gap:8px">
+          <button class="date-nav-arrow" onclick="shiftAnaPeriod(-1)">‹</button>
+          <span id="anaPeriodLabel" style="font-size:14px;font-weight:600;min-width:150px;text-align:center;color:var(--c-text);white-space:nowrap"></span>
+          <button class="date-nav-arrow" onclick="shiftAnaPeriod(1)">›</button>
+        </div>
+        <div id="anaRangeRow" style="display:none;align-items:center;gap:6px;flex-wrap:wrap">
+          <label style="font-size:12px;color:var(--c-text3)">Desde</label>
+          <input type="date" class="field-input" id="anaRangeFrom" style="height:30px;font-size:12px;width:auto;padding:0 8px">
+          <label style="font-size:12px;color:var(--c-text3)">Hasta</label>
+          <input type="date" class="field-input" id="anaRangeTo" style="height:30px;font-size:12px;width:auto;padding:0 8px">
+          <button class="btn btn-primary btn-xs" onclick="applyAnaRange()">Aplicar</button>
+        </div>
       </div>
-      <div id="anaRangeRow" style="display:none;align-items:center;gap:6px;flex-wrap:wrap">
-        <label style="font-size:12px;color:var(--c-text3)">Desde</label>
-        <input type="date" class="field-input" id="anaRangeFrom" style="height:30px;font-size:12px;width:auto;padding:0 8px">
-        <label style="font-size:12px;color:var(--c-text3)">Hasta</label>
-        <input type="date" class="field-input" id="anaRangeTo" style="height:30px;font-size:12px;width:auto;padding:0 8px">
-        <button class="btn btn-primary btn-xs" onclick="applyAnaRange()">Aplicar</button>
-      </div>
-      <select class="field-input" id="anaCoFilter" onchange="renderAnalytics()" style="width:auto;min-width:150px;font-size:12px;height:30px;padding:0 10px">
+      <select class="field-input" id="anaCoFilter" onchange="renderAnalytics()" style="width:auto;min-width:150px;font-size:12px;height:30px;padding:0 10px;flex-shrink:0">
         <option value="">Todas las empresas</option>
       </select>
     </div>
@@ -2208,7 +2211,7 @@ function deleteCompany(i){
 // ── Analytics V2 ──────────────────────────────────────────────────────────────
 function setAnaView(v) {
   _anaView = v;
-  ['Week','Month','Range'].forEach(t => {
+  ['Day','Week','Month','Range'].forEach(t => {
     const b = el('anaTab'+t); if(b) b.classList.toggle('active', t.toLowerCase()===v);
   });
   const navRow = el('anaPeriodNavRow'), rangeRow = el('anaRangeRow');
@@ -2224,7 +2227,8 @@ function applyAnaRange() {
 }
 function shiftAnaPeriod(dir) {
   const d = new Date((_anaRef||todayStr()) + 'T12:00:00');
-  if (_anaView === 'week') d.setDate(d.getDate() + dir*7);
+  if (_anaView === 'day') d.setDate(d.getDate() + dir);
+  else if (_anaView === 'week') d.setDate(d.getDate() + dir*7);
   else d.setMonth(d.getMonth() + dir);
   _anaRef = new Intl.DateTimeFormat('en-CA',{timeZone:'America/Bogota'}).format(d);
   renderAnalytics();
@@ -2237,6 +2241,7 @@ function _getAnaDates() {
     return dates;
   }
   const ref = _anaRef || todayStr();
+  if (_anaView === 'day') return [ref];
   if (_anaView === 'week') {
     const d = new Date(ref+'T12:00:00'), day = d.getDay()||7;
     const mon = new Date(d); mon.setDate(d.getDate()-day+1);
@@ -2255,6 +2260,7 @@ function _getAnaLabel() {
   }
   const ref = _anaRef || todayStr();
   const d = new Date(ref+'T12:00:00');
+  if (_anaView === 'day') return d.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'}).replace(/^\w/,c=>c.toUpperCase());
   if (_anaView === 'week') {
     const dates=_getAnaDates();
     const fmt=dt=>new Date(dt+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'});
@@ -2268,7 +2274,7 @@ function renderAnalytics() {
   const cf=el('anaCoFilter');
   if(cf){const prev=cf.value;cf.innerHTML='<option value="">Todas las empresas</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');cf.value=prev;}
   if(el('anaPeriodLabel')) el('anaPeriodLabel').textContent=_getAnaLabel();
-  ['Week','Month','Range'].forEach(t=>{const b=el('anaTab'+t);if(b)b.classList.toggle('active',t.toLowerCase()===_anaView);});
+  ['Day','Week','Month','Range'].forEach(t=>{const b=el('anaTab'+t);if(b)b.classList.toggle('active',t.toLowerCase()===_anaView);});
   const _navRow=el('anaPeriodNavRow'),_rangeRow=el('anaRangeRow');
   if(_navRow)_navRow.style.display=_anaView==='range'?'none':'';
   if(_rangeRow)_rangeRow.style.display=_anaView==='range'?'flex':'none';
@@ -2326,8 +2332,8 @@ function renderAnalytics() {
   if(chartEl){
     const maxProd=Math.max(...dates.map(ds=>dayData[ds].prod),1);
     const maxH=Math.max(goalMins*1.25, maxProd, 1);
-    const isMonth=_anaView==='month', isRange=_anaView==='range';
-    const lblFmt=(isMonth||isRange)?{day:'numeric',month:'short'}:{weekday:'short',day:'numeric'};
+    const isDay=_anaView==='day', isMonth=_anaView==='month', isRange=_anaView==='range';
+    const lblFmt=(isMonth||isRange)?{day:'numeric',month:'short'}:isDay?{weekday:'short'}:{weekday:'short',day:'numeric'};
     const gp=Math.min(97,Math.round(goalMins/maxH*100));
     chartEl.innerHTML=dates.map(ds=>{
       const d=dayData[ds];
