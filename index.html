@@ -571,7 +571,7 @@ tr:hover .td-actions{opacity:1}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{background:#fff!important;color:#1a1a1a!important;font-size:11px}
   /* Ocultar todo lo que no es el reporte */
-  #sidebar,#mobileNav,#mobileTimerSheet,#activeBanner,#warnBanner,
+  #sidebar,#mobileNav,#mobileTimerSheet,#activeBanner,
   .ana-period-nav button,.ana-period-nav select,
   .topbar .btn,.topbar-user,#topbarUser{display:none!important}
   /* Resetear el layout flex para que el contenido fluya normalmente */
@@ -745,11 +745,6 @@ tr:hover .td-actions{opacity:1}
     <div class="banner-dot"></div>
     <span id="activeBannerText"></span>
     <button class="banner-stop" onclick="toggleTimer()">Detener</button>
-  </div>
-  <div class="banner warn" id="warnBanner" role="alert">
-    ⚠ El temporizador lleva <strong id="warnTime"></strong> corriendo. ¿Olvidaste detenerlo?
-    <button class="banner-stop" onclick="toggleTimer()">Detener</button>
-    <button class="banner-dismiss" onclick="dismissWarn()">Ignorar</button>
   </div>
 
   <!-- ═══ DASHBOARD ═══ -->
@@ -1134,13 +1129,9 @@ tr:hover .td-actions{opacity:1}
     </div>
     <div class="page-content">
       <div class="card" style="margin-bottom:14px">
-        <div class="card-header"><span class="card-title">Objetivos y alertas</span></div>
+        <div class="card-header"><span class="card-title">Objetivos</span></div>
         <div class="card-body">
-          <div class="fg-row-2">
-            <div><label class="field-label" for="settGoal">Horas facturables / día</label><input type="number" class="field-input" id="settGoal" min="1" max="16" onchange="saveSetting('dailyGoal',this.value)"></div>
-            <div><label class="field-label" for="settBreak">Alerta de sesión abierta (min)</label><input type="number" class="field-input" id="settBreak" min="0" max="300" onchange="saveSetting('breakAlert',this.value)"></div>
-          </div>
-          <p class="field-hint">Con 0 minutos la alerta de sesión abierta se desactiva.</p>
+          <div><label class="field-label" for="settGoal">Horas facturables / día</label><input type="number" class="field-input" id="settGoal" min="1" max="16" onchange="saveSetting('dailyGoal',this.value)" style="max-width:120px"></div>
         </div>
       </div>
       <div class="card" style="margin-bottom:14px">
@@ -1497,7 +1488,7 @@ function getDay(ds) {
 
 // ── App State ─────────────────────────────────────────────────────────────────
 let VIEW_DATE = '';
-let _timerTick = null, _clockTick = null, _breakMenuOpen = false, _warnDismissed = false;
+let _timerTick = null, _clockTick = null, _breakMenuOpen = false;
 let _anaView = 'week', _anaRef = '', _anaRangeFrom = '', _anaRangeTo = '';
 
 // ── Timer ─────────────────────────────────────────────────────────────────────
@@ -1642,25 +1633,17 @@ function _updateTimerUI() {
     const sc = String(sec % 60).padStart(2, '0');
     if (digits) digits.textContent = `${h}:${m}:${sc}`;
     if(el('mSheetDigits')) el('mSheetDigits').textContent=`${h}:${m}:${sc}`;
-    if (!_warnDismissed && s.mode === 'productive') {
-      const alertMins = parseInt(STATE.settings.breakAlert) || 90;
-      if (alertMins > 0 && sec >= alertMins * 60) {
-        const wb = el('warnBanner'), wt = el('warnTime');
-        if (wb && wt) { wt.textContent = fmtMins(Math.floor(sec / 60)); wb.classList.add('visible'); }
-      }
-    }
   }
   tick();
   _timerTick = setInterval(tick, 1000);
 }
 function _renderBanner() {
-  const ab = el('activeBanner'), abt = el('activeBannerText'), wb = el('warnBanner');
+  const ab = el('activeBanner'), abt = el('activeBannerText');
   const s = STATE.activeSession;
   if (!ab) return;
   ab.className = 'banner';
   if (!s) return;
-  _warnDismissed = false;
-  if (wb) wb.classList.remove('visible');
+
   const co = STATE.companies.find(c => c.id === s.companyId);
   const modeClass = s.mode === 'productive' ? 'productive' : s.mode === 'transit' ? 'transit' : 'on-break';
   ab.classList.add(modeClass, 'visible');
@@ -1668,7 +1651,6 @@ function _renderBanner() {
   const label = s.mode === 'productive' ? `Trabajando · ${co ? co.name : '?'}` : s.mode === 'transit' ? `🚗 En traslado${transitName ? ' → ' + transitName : ''}` : `☕ ${s.breakType || 'Descansando'}`;
   if (abt) abt.textContent = label;
 }
-function dismissWarn() { _warnDismissed = true; const wb = el('warnBanner'); if(wb) wb.classList.remove('visible'); }
 
 // ── Clock ─────────────────────────────────────────────────────────────────────
 function updateClock() {
@@ -2272,7 +2254,8 @@ function renderAnalytics() {
   if (!_anaRef) _anaRef = todayStr();
   // Populate company filter
   const cf=el('anaCoFilter');
-  if(cf){const prev=cf.value;cf.innerHTML='<option value="">Todas las empresas</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');cf.value=prev;}
+  const coFilter=(cf&&cf.value)||'';
+  if(cf){cf.innerHTML='<option value="">Todas las empresas</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');cf.value=coFilter;}
   if(el('anaPeriodLabel')) el('anaPeriodLabel').textContent=_getAnaLabel();
   ['Day','Week','Month','Range'].forEach(t=>{const b=el('anaTab'+t);if(b)b.classList.toggle('active',t.toLowerCase()===_anaView);});
   const _navRow=el('anaPeriodNavRow'),_rangeRow=el('anaRangeRow');
@@ -2285,7 +2268,6 @@ function renderAnalytics() {
     if(el('anaPeriodLabel'))el('anaPeriodLabel').textContent='';
     return;
   }
-  const coFilter=(el('anaCoFilter')||{}).value||'';
   const today=todayStr(), goalMins=(STATE.settings.dailyGoal||8)*60;
 
   // Aggregate by day
@@ -2558,7 +2540,6 @@ function deleteUser(username) {
 // ── Settings ──────────────────────────────────────────────────────────────────
 function loadSettings(){
   if(el('settGoal'))el('settGoal').value=STATE.settings.dailyGoal||8;
-  if(el('settBreak'))el('settBreak').value=STATE.settings.breakAlert||90;
   setSyncStatus(USE_FB?'ok':'local');
   renderUsers();
 }
