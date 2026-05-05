@@ -1055,6 +1055,13 @@ tr:hover .td-actions{opacity:1}
     <div class="page-content">
       <!-- KPIs -->
       <div class="ana-kpi-row" id="anaKpiRow"></div>
+      <!-- Actividades por empresa (visible solo con filtro activo) -->
+      <div class="card" id="anaActCard" style="margin-bottom:14px;display:none">
+        <div class="card-header">
+          <span class="card-title">Actividades · <span id="anaActCoName" style="color:var(--c-teal)"></span></span>
+        </div>
+        <div class="card-body" style="padding:0" id="anaActTable"></div>
+      </div>
       <!-- Gráfica de barras -->
       <div class="card" style="margin-bottom:14px">
         <div class="card-header" style="align-items:flex-start">
@@ -1080,13 +1087,6 @@ tr:hover .td-actions{opacity:1}
           <div class="card-header"><span class="card-title">Tiempo no productivo</span></div>
           <div class="card-body" id="anaBreakTable"></div>
         </div>
-      </div>
-      <!-- Actividades por empresa (visible solo con filtro activo) -->
-      <div class="card" id="anaActCard" style="margin-bottom:14px;display:none">
-        <div class="card-header">
-          <span class="card-title">Actividades · <span id="anaActCoName" style="color:var(--c-teal)"></span></span>
-        </div>
-        <div class="card-body" style="padding:0" id="anaActTable"></div>
       </div>
       <!-- Horas pico + Por día semana -->
       <div class="grid-2" style="margin-bottom:14px">
@@ -2476,7 +2476,7 @@ function renderAnalytics() {
   const actCard=el('anaActCard'), actTable=el('anaActTable');
   if(actCard&&actTable){
     if(coFilter){
-      actCard.style.display='';
+      actCard.style.display='block';
       const actCo=STATE.companies.find(c=>c.id===coFilter);
       if(el('anaActCoName'))el('anaActCoName').textContent=actCo?actCo.name:coFilter;
       const actSess=[];
