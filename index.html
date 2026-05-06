@@ -727,7 +727,8 @@ tr:hover .td-actions{opacity:1}
     <div class="timer-fields">
       <div class="tf-group">
         <label for="timerActivity">¿Qué estás haciendo?</label>
-        <input type="text" class="tf-input" id="timerActivity" placeholder="Actividad actual…" autocomplete="off">
+        <select class="tf-input" id="timerActivity" onchange="onActChange(this,'timerCustomAct')"><option value="">— Seleccionar actividad —</option></select>
+        <input type="text" class="tf-input" id="timerCustomAct" placeholder="Describe la actividad…" autocomplete="off" style="display:none;margin-top:4px">
       </div>
       <div class="tf-group">
         <label for="timerSel">Empresa</label>
@@ -962,9 +963,14 @@ tr:hover .td-actions{opacity:1}
               <button class="btn btn-secondary btn-xs" onclick="addQuickTime(90)">+ 1.5 h</button>
               <button class="btn btn-secondary btn-xs" onclick="addQuickTime(120)">+ 2 horas</button>
             </div>
+            <div class="fg" style="margin-bottom:10px">
+              <label class="field-label" for="mActSel">Actividad</label>
+              <select class="field-input" id="mActSel" onchange="onActChange(this,'mActCustom')"><option value="">— Seleccionar actividad —</option></select>
+              <input type="text" class="field-input" id="mActCustom" placeholder="Describe la actividad…" autocomplete="off" style="display:none;margin-top:4px">
+            </div>
             <div class="fg">
-              <label class="field-label" for="mNota">Nota / Actividad</label>
-              <textarea class="field-input" id="mNota" rows="2" placeholder="Describe la actividad realizada…"></textarea>
+              <label class="field-label" for="mNota">Notas adicionales (opcional)</label>
+              <textarea class="field-input" id="mNota" rows="2" placeholder="Observaciones adicionales…"></textarea>
             </div>
             <button class="btn btn-primary" onclick="saveManual()">Guardar sesión</button>
           </div>
@@ -1091,6 +1097,11 @@ tr:hover .td-actions{opacity:1}
           <div class="card-body" id="anaBreakTable"></div>
         </div>
       </div>
+      <!-- Tiempo por actividad -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header"><span class="card-title">Tiempo por actividad</span></div>
+        <div class="card-body" id="anaActTimeTable"></div>
+      </div>
       <!-- Facturabilidad -->
       <div class="card" style="margin-bottom:14px">
         <div class="card-header"><span class="card-title">Facturabilidad</span></div>
@@ -1145,6 +1156,16 @@ tr:hover .td-actions{opacity:1}
         <div class="card-header"><span class="card-title">Objetivos</span></div>
         <div class="card-body">
           <div><label class="field-label" for="settGoal">Horas facturables / día</label><input type="number" class="field-input" id="settGoal" min="1" max="16" onchange="saveSetting('dailyGoal',this.value)" style="max-width:120px"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header"><span class="card-title">Actividades</span></div>
+        <div class="card-body">
+          <div class="fg-row-2" style="margin-bottom:12px">
+            <div><label class="field-label" for="newActName">Nueva actividad</label><input type="text" class="field-input" id="newActName" placeholder="Nombre de la actividad" autocomplete="off"></div>
+            <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="saveActivity()">+ Agregar</button></div>
+          </div>
+          <div id="activityList"></div>
         </div>
       </div>
       <div class="card" style="margin-bottom:14px">
@@ -1224,7 +1245,8 @@ tr:hover .td-actions{opacity:1}
 
   <div style="margin-bottom:8px">
     <label class="field-label" style="font-size:9px">¿Qué estás haciendo?</label>
-    <input type="text" class="field-input" id="mTimerActivity" placeholder="Actividad actual…" style="width:100%" autocomplete="off">
+    <select class="field-input" id="mTimerActivity" style="width:100%" onchange="onActChange(this,'mTimerCustomAct')"><option value="">— Seleccionar actividad —</option></select>
+    <input type="text" class="field-input" id="mTimerCustomAct" placeholder="Describe la actividad…" style="width:100%;display:none;margin-top:4px" autocomplete="off">
   </div>
   <div style="margin-bottom:8px">
     <label class="field-label" style="font-size:9px">Empresa</label>
@@ -1479,6 +1501,14 @@ function getCoHHMM(d) {
 
 // ── State ─────────────────────────────────────────────────────────────────────
 function SK() { return 'yc_data_' + (CURRENT_USER ? CURRENT_USER.username : 'yuli'); }
+const SEED_ACTIVITIES = [
+  'Comisiones','Contabilización','Contabilización y Cierre','Correcciones',
+  'Cuentas personales','Declaración de Renta','Declaraciones de ICA',
+  'Declaraciones y EEFF','Informes','Ingreso de Facturas','Medios magnéticos',
+  'Reunión No Programada','Reunión Programada','Responder correos','RUB',
+  'SS Liquidación Afiliados','SS Revisión',
+].map((name,i)=>({id:'sact'+i,name,uses:0}));
+
 const SEED_COS = [
   { id:'co1', name:'Podenza',   color:'#2e5c8a', desc:'' },
   { id:'co2', name:'IAC',       color:'#1a6b5e', desc:'' },
@@ -1495,6 +1525,7 @@ function loadState() {
   if (!STATE.tasks)    STATE.tasks    = [];
   if (!STATE.days)     STATE.days     = {};
   if (!STATE.settings) STATE.settings = { dailyGoal:8, breakAlert:90 };
+  if (!STATE.activities||!STATE.activities.length) STATE.activities=JSON.parse(JSON.stringify(SEED_ACTIVITIES));
   if (!STATE.activeSession) STATE.activeSession = null;
 }
 function save() { STATE._savedAt = Date.now(); localStorage.setItem(SK(), JSON.stringify(STATE)); Sync.schedule(); }
@@ -1534,7 +1565,10 @@ function _stopActive(silent) {
   const mins = Math.round((new Date(endIso) - new Date(s.startIso)) / 60000);
   if (mins >= 1) {
     const coDs = new Intl.DateTimeFormat('en-CA', { timeZone:'America/Bogota' }).format(new Date(s.startIso));
-    const activity = ((el('timerActivity')||{}).value||((el('mTimerActivity')||{}).value)||'').trim() || s.nota || '';
+    const _actSel = el('timerActivity')||el('mTimerActivity');
+    const _actCustom = el('timerCustomAct')||el('mTimerCustomAct');
+    const activity = (_actSel&&_actSel.value==='__custom__' ? ((_actCustom||{}).value||'').trim() : (_actSel&&_actSel.value)||'') || s.nota || '';
+    if(activity&&s.mode==='productive'){const _a=STATE.activities&&STATE.activities.find(a=>a.name===activity);if(_a)_a.uses=(_a.uses||0)+1;}
     const billable = s.mode === 'productive';
     getDay(coDs).sessions.push({
       mode:s.mode, companyId:s.companyId||'', breakType:s.breakType||'',
@@ -1543,7 +1577,7 @@ function _stopActive(silent) {
     });
   }
   STATE.activeSession = null;
-  ['timerActivity','mTimerActivity'].forEach(id=>{if(el(id))el(id).value='';});
+  ['timerActivity','mTimerActivity','timerCustomAct','mTimerCustomAct'].forEach(id=>{if(el(id)){el(id).value='';if(el(id).tagName==='INPUT')el(id).style.display='none';}});
   save();
   if (!silent) { _updateTimerUI(); _renderBanner(); if (VIEW_DATE === todayStr()) renderDashboard(); }
 }
@@ -1696,7 +1730,7 @@ function navigate(page) {
   if (page === 'tareas')    { renderTasks(); _populateAllSelects(); }
   if (page === 'empresas')  renderCompanyList();
   if (page === 'registro')  { renderHistory(); initManual(); }
-  if (page === 'ajustes')   loadSettings();
+  if (page === 'ajustes')   { loadSettings(); renderActivityList(); }
 }
 function openModal(id)  { const m = el(id); if (m) m.classList.add('open'); }
 function closeModal(id) { const m = el(id); if (m) m.classList.remove('open'); }
@@ -2116,7 +2150,9 @@ function saveManual(){
   const coId=(el('mEmpresa')||{}).value||'', tipo=(el('mTipo')||{}).value||'productive';
   const ds=(el('mFecha')||{}).value||VIEW_DATE;
   const ini=(el('mInicio')||{}).value, fin=(el('mFin')||{}).value;
-  const nota=((el('mNota')||{}).value||'').trim();
+  const _mActSel=el('mActSel'), _mActCustom=el('mActCustom');
+  const actNota=_mActSel?(_mActSel.value==='__custom__'?((_mActCustom||{}).value||'').trim():_mActSel.value):'';
+  const nota=(actNota||((el('mNota')||{}).value||'')).trim();
   if(!ini||!fin){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Indica inicio y fin';return;}
   const [ih,im]=ini.split(':').map(Number),[fh,fm]=fin.split(':').map(Number);
   const mins=(fh*60+fm)-(ih*60+im);
@@ -2124,6 +2160,7 @@ function saveManual(){
   if(tipo==='productive'&&!coId){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Selecciona la empresa';return;}
   if(tipo==='productive'&&!nota){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Escribe la actividad realizada';return;}
   const billable=tipo==='productive';
+  if(nota&&tipo==='productive'){const _a2=STATE.activities&&STATE.activities.find(a=>a.name===nota);if(_a2)_a2.uses=(_a2.uses||0)+1;}
   getDay(ds).sessions.push({mode:tipo,companyId:coId,breakType:'',startIso:ds+'T'+ini+':00',endIso:ds+'T'+fin+':00',startDisplay:ini,endDisplay:fin,mins,nota,billable,manual:true});
   save(); if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent=''; showToast('Sesión guardada');
   if(VIEW_DATE===ds)renderDashboard();
@@ -2306,7 +2343,7 @@ function renderAnalytics() {
 
   const dates=_getAnaDates();
   if(_anaView==='range'&&!dates.length){
-    ['anaKpiRow','anaChart','anaCoTable','anaBreakTable','anaBillTable','anaHourChart','anaWdayChart','anaInsights','anaActTable'].forEach(id=>{const e=el(id);if(e)e.innerHTML='<div class="empty">Selecciona un rango y presiona Aplicar.</div>';});
+    ['anaKpiRow','anaChart','anaCoTable','anaBreakTable','anaActTimeTable','anaBillTable','anaHourChart','anaWdayChart','anaInsights','anaActTable'].forEach(id=>{const e=el(id);if(e)e.innerHTML='<div class="empty">Selecciona un rango y presiona Aplicar.</div>';});
     if(el('anaPeriodLabel'))el('anaPeriodLabel').textContent='';
     return;
   }
@@ -2422,6 +2459,29 @@ function renderAnalytics() {
           <div class="brk-bar-bg"><div class="brk-bar-fill" style="width:${Math.round(m/maxT*100)}%"></div></div>
         </div>`).join('')}`
       :'<div class="empty">Sin descansos en este período.</div>';
+  }
+
+  // ── Tiempo por actividad ──
+  const actTimeEl=el('anaActTimeTable');
+  if(actTimeEl){
+    const actData={};
+    dates.forEach(ds=>{((STATE.days[ds]&&STATE.days[ds].sessions)||[]).forEach(s=>{
+      if(s.mode==='productive'&&(!coFilter||s.companyId===coFilter)){
+        const act=s.nota||s.activity||'Sin actividad';
+        actData[act]=(actData[act]||0)+s.mins;
+      }
+    });});
+    const sortedAct=Object.entries(actData).sort((a,b)=>b[1]-a[1]);
+    const maxA=Math.max(...sortedAct.map(e=>e[1]),1);
+    actTimeEl.innerHTML=sortedAct.length
+      ?sortedAct.map(([act,mins])=>{
+        const pct=totProd>0?Math.round(mins/totProd*100):0;
+        return `<div class="brk-row">
+          <div class="brk-row-head"><span>${act}</span><span style="color:var(--c-text3)">${fmtMins(mins)} · ${pct}%</span></div>
+          <div class="brk-bar-bg"><div class="brk-bar-fill" style="width:${Math.round(mins/maxA*100)}%;background:var(--c-teal)"></div></div>
+        </div>`;
+      }).join('')
+      :'<div class="empty">Sin actividades en este período.</div>';
   }
 
   // ── Facturabilidad ──
@@ -2743,6 +2803,47 @@ function _populateSel(id){
   const s=el(id);if(!s)return;
   s.innerHTML='<option value="">Sin empresa</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
 }
+function onActChange(sel,customId){
+  const c=el(customId);if(!c)return;
+  c.style.display=sel.value==='__custom__'?'':'none';
+  if(sel.value!=='__custom__')c.value='';
+}
+function _sortedActivities(){
+  if(!STATE.activities)return[];
+  return [...STATE.activities].sort((a,b)=>{
+    if((b.uses||0)!==(a.uses||0))return(b.uses||0)-(a.uses||0);
+    return a.name.localeCompare(b.name,'es');
+  });
+}
+function _renderActivityOptions(){
+  const sorted=_sortedActivities();
+  const opts='<option value="">— Seleccionar actividad —</option>'+sorted.map(a=>`<option value="${a.name}">${a.name}</option>`).join('')+'<option value="__custom__">Personalizado...</option>';
+  ['timerActivity','mTimerActivity','mActSel'].forEach(id=>{if(el(id))el(id).innerHTML=opts;});
+}
+function renderActivityList(){
+  const e2=el('activityList');if(!e2)return;
+  const sorted=_sortedActivities();
+  if(!sorted.length){e2.innerHTML='<div class="empty">Sin actividades.</div>';return;}
+  e2.innerHTML=sorted.map(act=>{
+    const i=STATE.activities.indexOf(act);
+    return `<div class="co-card">
+      <div style="flex:1"><div class="co-name-txt">${act.name}</div>${act.uses?`<div class="co-desc-txt">${act.uses} uso${act.uses!==1?'s':''}</div>`:''}</div>
+      <button class="icon-btn" style="color:var(--c-red)" onclick="deleteActivity(${i})">✕</button>
+    </div>`;
+  }).join('');
+}
+function saveActivity(){
+  const name=((el('newActName')||{}).value||'').trim();if(!name){showToast('Escribe el nombre');return;}
+  if(STATE.activities&&STATE.activities.find(a=>a.name.toLowerCase()===name.toLowerCase())){showToast('Ya existe esa actividad');return;}
+  if(!STATE.activities)STATE.activities=[];
+  STATE.activities.push({id:'act'+Date.now(),name,uses:0});
+  if(el('newActName'))el('newActName').value='';
+  save();renderActivityList();_renderActivityOptions();showToast('Actividad agregada');
+}
+function deleteActivity(i){
+  if(!confirm('¿Eliminar actividad?'))return;
+  STATE.activities.splice(i,1);save();renderActivityList();_renderActivityOptions();
+}
 function _renderTimerCompanies(){
   const opts='<option value="">— Empresa —</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
   if(el('timerSel'))  el('timerSel').innerHTML=opts;
@@ -2793,6 +2894,7 @@ async function startApp(){
   VIEW_DATE=todayStr();
   _anaRef=todayStr();
   _renderTimerCompanies();
+  _renderActivityOptions();
   _populateAllSelects();
   _renderUserPill();
   navigate('dashboard');
