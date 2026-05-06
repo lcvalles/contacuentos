@@ -2090,13 +2090,15 @@ function openEditSess(ds, idx) {
   const _editActSel=el('editSessActSel');
   if(_editActSel){
     const _nota=s.nota||s.activity||'';
-    const _match=STATE.activities&&STATE.activities.find(a=>a.name===_nota);
+    // Match exact, or find activity whose name ends with the stored value (emoji prefix stripped)
+    const _match=STATE.activities&&STATE.activities.find(a=>
+      a.name===_nota || a.name.replace(/^.+?\s/,'')===_nota || a.name===_EMOJI_MIGRATION[_nota]
+    );
     if(_nota&&!_match){
-      // custom value not in list — add as custom option
       _editActSel.value='__custom__';
       if(el('editSessCustomAct')){el('editSessCustomAct').value=_nota;el('editSessCustomAct').style.display='';}
     } else {
-      _editActSel.value=_nota;
+      _editActSel.value=_match?_match.name:_nota;
       if(el('editSessCustomAct'))el('editSessCustomAct').style.display='none';
     }
   }
@@ -2867,7 +2869,7 @@ function _sortedActivities(){
 function _renderActivityOptions(){
   const sorted=_sortedActivities();
   const opts='<option value="">— Seleccionar actividad —</option>'+sorted.map(a=>`<option value="${a.name}">${a.name}</option>`).join('')+'<option value="__custom__">Personalizado...</option>';
-  ['timerActivity','mTimerActivity','mActSel'].forEach(id=>{if(el(id))el(id).innerHTML=opts;});
+  ['timerActivity','mTimerActivity','mActSel','editSessActSel'].forEach(id=>{if(el(id))el(id).innerHTML=opts;});
 }
 function renderActivityList(){
   const e2=el('activityList');if(!e2)return;
