@@ -2204,7 +2204,6 @@ function saveManual(){
   const mins=(fh*60+fm)-(ih*60+im);
   if(mins<=0){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Fin debe ser después de inicio';return;}
   if(tipo==='productive'&&!coId){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Selecciona la empresa';return;}
-  if(tipo==='productive'&&!nota){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Escribe la actividad realizada';return;}
   const billable=tipo==='productive';
   if(nota&&tipo==='productive'){const _a2=STATE.activities&&STATE.activities.find(a=>a.name===nota);if(_a2)_a2.uses=(_a2.uses||0)+1;}
   getDay(ds).sessions.push({mode:tipo,companyId:coId,breakType:'',startIso:ds+'T'+ini+':00',endIso:ds+'T'+fin+':00',startDisplay:ini,endDisplay:fin,mins,nota,billable,manual:true});
