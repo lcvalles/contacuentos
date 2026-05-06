@@ -1980,7 +1980,7 @@ function _getCoherenceIssues(sessions) {
 }
 function _renderDashTasks() {
   const e2 = el('dashTasks'); if (!e2) return;
-  const tasks = STATE.tasks.filter(t => !t.fecha || t.fecha === VIEW_DATE).slice(0, 8);
+  const tasks = STATE.tasks.filter(t => !t.fecha || t.fecha === VIEW_DATE);
   if (!tasks.length) { e2.innerHTML = '<div class="empty" style="padding:12px 0">Sin tareas.</div>'; return; }
   e2.innerHTML = tasks.map(t => {
     const done = t.estado==='done' || t.done;
