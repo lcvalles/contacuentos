@@ -1524,12 +1524,23 @@ function getCoHHMM(d) {
 // ── State ─────────────────────────────────────────────────────────────────────
 function SK() { return 'yc_data_' + (CURRENT_USER ? CURRENT_USER.username : 'yuli'); }
 const SEED_ACTIVITIES = [
-  'Comisiones','Contabilización','Contabilización y Cierre','Correcciones',
-  'Cuentas personales','Declaración de Renta','Declaraciones de ICA',
-  'Declaraciones y EEFF','Informes','Ingreso de Facturas','Medios magnéticos',
-  'Reunión No Programada','Reunión Programada','Responder correos','RUB',
-  'SS Liquidación Afiliados','SS Revisión',
+  '💰 Comisiones','📊 Contabilización','🔒 Contabilización y Cierre','✏️ Correcciones',
+  '👤 Cuentas personales','📋 Declaración de Renta','🏙️ Declaraciones de ICA',
+  '📑 Declaraciones y EEFF','📄 Informes','🧾 Ingreso de Facturas','💾 Medios magnéticos',
+  '⚡ Reunión No Programada','📅 Reunión Programada','📧 Responder correos','📝 RUB',
+  '👥 SS Liquidación Afiliados','🔍 SS Revisión',
 ].map((name,i)=>({id:'sact'+i,name,uses:0}));
+const _EMOJI_MIGRATION = {
+  'Comisiones':'💰 Comisiones','Contabilización':'📊 Contabilización',
+  'Contabilización y Cierre':'🔒 Contabilización y Cierre','Correcciones':'✏️ Correcciones',
+  'Cuentas personales':'👤 Cuentas personales','Declaración de Renta':'📋 Declaración de Renta',
+  'Declaraciones de ICA':'🏙️ Declaraciones de ICA','Declaraciones y EEFF':'📑 Declaraciones y EEFF',
+  'Informes':'📄 Informes','Ingreso de Facturas':'🧾 Ingreso de Facturas',
+  'Medios magnéticos':'💾 Medios magnéticos','Reunión No Programada':'⚡ Reunión No Programada',
+  'Reunión Programada':'📅 Reunión Programada','Responder correos':'📧 Responder correos',
+  'RUB':'📝 RUB','SS Liquidación Afiliados':'👥 SS Liquidación Afiliados',
+  'SS Revisión':'🔍 SS Revisión',
+};
 
 const SEED_COS = [
   { id:'co1', name:'Podenza',   color:'#2e5c8a', desc:'' },
@@ -1548,6 +1559,7 @@ function loadState() {
   if (!STATE.days)     STATE.days     = {};
   if (!STATE.settings) STATE.settings = { dailyGoal:8, breakAlert:90 };
   if (!STATE.activities||!STATE.activities.length) STATE.activities=JSON.parse(JSON.stringify(SEED_ACTIVITIES));
+  else STATE.activities.forEach(a=>{if(_EMOJI_MIGRATION[a.name])a.name=_EMOJI_MIGRATION[a.name];});
   if (!STATE.activeSession) STATE.activeSession = null;
 }
 function save() { STATE._savedAt = Date.now(); localStorage.setItem(SK(), JSON.stringify(STATE)); Sync.schedule(); }
@@ -1722,7 +1734,17 @@ function _renderBanner() {
   const modeClass = s.mode === 'productive' ? 'productive' : s.mode === 'transit' ? 'transit' : 'on-break';
   ab.classList.add(modeClass, 'visible');
   const transitName = s.companyId==='personal' ? 'Personal' : (co ? co.name : '');
-  const label = s.mode === 'productive' ? `Trabajando · ${co ? co.name : '?'}` : s.mode === 'transit' ? `🚗 En traslado${transitName ? ' → ' + transitName : ''}` : `☕ ${s.breakType || 'Descansando'}`;
+  let label;
+  if(s.mode==='productive'){
+    const _actSelEl=el('timerActivity')||el('mTimerActivity');
+    const _actCustEl=el('timerCustomAct')||el('mTimerCustomAct');
+    const curAct=_actSelEl?(_actSelEl.value==='__custom__'?((_actCustEl||{}).value||'').trim():_actSelEl.value):'';
+    label=`Trabajando \u00b7 ${co?co.name:'?'}${curAct?' \u00b7 '+curAct:''}`;
+  }else if(s.mode==='transit'){
+    label=`\uD83D\uDE97 En traslado${transitName?' \u2192 '+transitName:''}`;
+  }else{
+    label=`\u2615 ${s.breakType||'Descansando'}`;
+  }
   if (abt) abt.textContent = label;
 }
 
@@ -2843,6 +2865,7 @@ function onActChange(sel,customId){
   const c=el(customId);if(!c)return;
   c.style.display=sel.value==='__custom__'?'':'none';
   if(sel.value!=='__custom__')c.value='';
+  if(STATE.activeSession&&STATE.activeSession.mode==='productive')_renderBanner();
 }
 function _sortedActivities(){
   if(!STATE.activities)return[];
@@ -2862,11 +2885,45 @@ function renderActivityList(){
   if(!sorted.length){e2.innerHTML='<div class="empty">Sin actividades.</div>';return;}
   e2.innerHTML=sorted.map(act=>{
     const i=STATE.activities.indexOf(act);
-    return `<div class="co-card">
-      <div style="flex:1"><div class="co-name-txt">${act.name}</div>${act.uses?`<div class="co-desc-txt">${act.uses} uso${act.uses!==1?'s':''}</div>`:''}</div>
-      <button class="icon-btn" style="color:var(--c-red)" onclick="deleteActivity(${i})">✕</button>
+    const safeVal=act.name.replace(/"/g,'&quot;');
+    return `<div class="co-card" id="actRow_${i}">
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="actName_${i}" class="co-name-txt">${act.name}</span>
+          <input id="actInput_${i}" type="text" class="field-input" value="${safeVal}" style="display:none;font-size:13px;padding:4px 8px;max-width:240px" autocomplete="off">
+        </div>
+        ${act.uses?`<div class="co-desc-txt">${act.uses} uso${act.uses!==1?'s':''}</div>`:''}
+      </div>
+      <div id="actBtns_${i}" style="display:flex;gap:6px">
+        <button class="icon-btn" title="Editar" onclick="editActivity(${i})">✎</button>
+        <button class="icon-btn" style="color:var(--c-red)" title="Eliminar" onclick="deleteActivity(${i})">✕</button>
+      </div>
+      <div id="actEditBtns_${i}" style="display:none;gap:6px">
+        <button class="btn btn-primary btn-sm" onclick="confirmEditActivity(${i})">✓</button>
+        <button class="btn btn-secondary btn-sm" onclick="cancelEditActivity(${i})">✕</button>
+      </div>
     </div>`;
   }).join('');
+}
+function editActivity(i){
+  const nameEl=el('actName_'+i),inputEl=el('actInput_'+i),btnsEl=el('actBtns_'+i),editBtnsEl=el('actEditBtns_'+i);
+  if(!nameEl||!inputEl)return;
+  nameEl.style.display='none';inputEl.style.display='';inputEl.focus();inputEl.select();
+  btnsEl.style.display='none';editBtnsEl.style.display='flex';
+}
+function cancelEditActivity(i){
+  const nameEl=el('actName_'+i),inputEl=el('actInput_'+i),btnsEl=el('actBtns_'+i),editBtnsEl=el('actEditBtns_'+i);
+  if(!nameEl||!inputEl)return;
+  inputEl.value=nameEl.textContent;
+  nameEl.style.display='';inputEl.style.display='none';
+  btnsEl.style.display='flex';editBtnsEl.style.display='none';
+}
+function confirmEditActivity(i){
+  const inputEl=el('actInput_'+i);if(!inputEl)return;
+  const newName=inputEl.value.trim();if(!newName){showToast('El nombre no puede estar vacío');return;}
+  if(STATE.activities.some((a,idx)=>idx!==i&&a.name.toLowerCase()===newName.toLowerCase())){showToast('Ya existe esa actividad');return;}
+  STATE.activities[i].name=newName;
+  save();renderActivityList();_renderActivityOptions();showToast('Actividad actualizada');
 }
 function saveActivity(){
   const name=((el('newActName')||{}).value||'').trim();if(!name){showToast('Escribe el nombre');return;}
