@@ -1749,9 +1749,7 @@ function _renderBanner() {
   const transitName = s.companyId==='personal' ? 'Personal' : (co ? co.name : '');
   let label;
   if(s.mode==='productive'){
-    const _actSelEl=el('timerActivity')||el('mTimerActivity');
-    const _actCustEl=el('timerCustomAct')||el('mTimerCustomAct');
-    const curAct=_actSelEl?(_actSelEl.value==='__custom__'?((_actCustEl||{}).value||'').trim():_actSelEl.value):'';
+    const curAct=s._currentActivity||'';
     label=`Trabajando \u00b7 ${co?co.name:'?'}${curAct?' \u00b7 '+curAct:''}`;
   }else if(s.mode==='transit'){
     label=`\uD83D\uDE97 En traslado${transitName?' \u2192 '+transitName:''}`;
@@ -2878,7 +2876,11 @@ function onActChange(sel,customId){
   const c=el(customId);if(!c)return;
   c.style.display=sel.value==='__custom__'?'':'none';
   if(sel.value!=='__custom__')c.value='';
-  if(STATE.activeSession&&STATE.activeSession.mode==='productive')_renderBanner();
+  if(STATE.activeSession&&STATE.activeSession.mode==='productive'){
+    const act=sel.value==='__custom__'?((c.value)||'').trim():sel.value;
+    STATE.activeSession._currentActivity=act;
+    _renderBanner();
+  }
 }
 function _sortedActivities(){
   if(!STATE.activities)return[];
