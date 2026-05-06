@@ -1298,7 +1298,11 @@ tr:hover .td-actions{opacity:1}
         <div class="field-dur-preview" id="editDurPreview"></div>
       </div>
     </div>
-    <div class="fg"><label class="field-label">Nota</label><textarea class="field-input" id="editSessNota" rows="2"></textarea></div>
+    <div class="fg" style="margin-bottom:10px">
+      <label class="field-label">Actividad</label>
+      <select class="field-input" id="editSessActSel" onchange="onActChange(this,'editSessCustomAct')"><option value="">— Seleccionar actividad —</option></select>
+      <input type="text" class="field-input" id="editSessCustomAct" placeholder="Describe la actividad…" autocomplete="off" style="display:none;margin-top:4px">
+    </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modalSess')">Cancelar</button>
       <button class="btn btn-primary" onclick="saveEditSess()">Guardar cambios</button>
@@ -2055,7 +2059,20 @@ function openEditSess(ds, idx) {
   if(el('editSessTipo'))el('editSessTipo').value=s.mode;
   if(el('editSessInicio'))el('editSessInicio').value=s.startDisplay;
   if(el('editSessFin'))el('editSessFin').value=s.endDisplay;
-  if(el('editSessNota'))el('editSessNota').value=s.nota||'';
+  _renderActivityOptions();
+  const _editActSel=el('editSessActSel');
+  if(_editActSel){
+    const _nota=s.nota||s.activity||'';
+    const _match=STATE.activities&&STATE.activities.find(a=>a.name===_nota);
+    if(_nota&&!_match){
+      // custom value not in list — add as custom option
+      _editActSel.value='__custom__';
+      if(el('editSessCustomAct')){el('editSessCustomAct').value=_nota;el('editSessCustomAct').style.display='';}
+    } else {
+      _editActSel.value=_nota;
+      if(el('editSessCustomAct'))el('editSessCustomAct').style.display='none';
+    }
+  }
   if(el('editSessEmpresa'))el('editSessEmpresa').value=s.companyId||'';
   if(el('editDurPreview'))el('editDurPreview').textContent='';
   if(el('editOverlapAlert'))el('editOverlapAlert').textContent='';
@@ -2071,7 +2088,7 @@ function saveEditSess() {
   const [ih,im]=ini.split(':').map(Number),[fh,fm]=fin.split(':').map(Number);
   const mins=(fh*60+fm)-(ih*60+im);
   if(mins<=0){if(el('editOverlapAlert'))el('editOverlapAlert').textContent='Fin debe ser después de inicio';return;}
-  day.sessions[idx]={...day.sessions[idx],mode:(el('editSessTipo')||{}).value||day.sessions[idx].mode,companyId:(el('editSessEmpresa')||{}).value||'',startDisplay:ini,endDisplay:fin,mins,nota:(el('editSessNota')||{}).value||''};
+  day.sessions[idx]={...day.sessions[idx],mode:(el('editSessTipo')||{}).value||day.sessions[idx].mode,companyId:(el('editSessEmpresa')||{}).value||'',startDisplay:ini,endDisplay:fin,mins,nota:(()=>{const _sel=el('editSessActSel'),_cust=el('editSessCustomAct');if(!_sel)return'';return _sel.value==='__custom__'?((_cust&&_cust.value)||'').trim():_sel.value;})()};
   save(); closeModal('modalSess'); showToast('Sesión actualizada'); renderDashboard();
 }
 
