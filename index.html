@@ -692,6 +692,7 @@ tr:hover .td-actions{opacity:1}
   <nav class="nav-section">
     <span class="nav-section-label">Config.</span>
     <button class="nav-link" onclick="navigate('empresas')"><span class="nav-icon">⬡</span><span>Empresas</span></button>
+    <button class="nav-link" onclick="navigate('actividades')"><span class="nav-icon">☰</span><span>Actividades</span></button>
     <button class="nav-link" onclick="navigate('ajustes')"><span class="nav-icon">◎</span><span>Ajustes</span></button>
   </nav>
 
@@ -1123,6 +1124,23 @@ tr:hover .td-actions{opacity:1}
         <div class="card-header"><span class="card-title">Insights del período</span></div>
         <div class="card-body" id="anaInsights"></div>
       </div>
+    </div>
+  </section>
+
+  <!-- ═══ ACTIVIDADES ═══ -->
+  <section id="page-actividades" class="page" aria-label="Actividades">
+    <div class="topbar"><h1 class="topbar-title">Actividades</h1></div>
+    <div class="page-content">
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header"><span class="card-title">Agregar actividad</span></div>
+        <div class="card-body">
+          <div class="fg-row-2">
+            <div><label class="field-label" for="newActName">Nombre</label><input type="text" class="field-input" id="newActName" placeholder="Nombre de la actividad" autocomplete="off"></div>
+            <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="saveActivity()">+ Agregar</button></div>
+          </div>
+        </div>
+      </div>
+      <div id="activityList"></div>
     </div>
   </section>
 
@@ -1734,7 +1752,8 @@ function navigate(page) {
   if (page === 'tareas')    { renderTasks(); _populateAllSelects(); }
   if (page === 'empresas')  renderCompanyList();
   if (page === 'registro')  { renderHistory(); initManual(); }
-  if (page === 'ajustes')   { loadSettings(); renderActivityList(); }
+  if (page === 'ajustes')      loadSettings();
+  if (page === 'actividades')  renderActivityList();
 }
 function openModal(id)  { const m = el(id); if (m) m.classList.add('open'); }
 function closeModal(id) { const m = el(id); if (m) m.classList.remove('open'); }
@@ -2899,6 +2918,7 @@ async function startApp(){
         if(!STATE.tasks)STATE.tasks=[];
         if(!STATE.days)STATE.days={};
         if(!STATE.settings)STATE.settings={dailyGoal:8,breakAlert:90};
+        if(!STATE.activities||!STATE.activities.length)STATE.activities=JSON.parse(JSON.stringify(SEED_ACTIVITIES));
         localStorage.setItem(SK(),JSON.stringify(STATE));
       } else {
         await Sync._push();
