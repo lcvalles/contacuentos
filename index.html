@@ -566,6 +566,10 @@ tr:hover .td-actions{opacity:1}
 .brk-row-head{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;color:var(--c-text2)}
 .brk-bar-bg{height:5px;border-radius:3px;background:var(--c-border2);overflow:hidden}
 .brk-bar-fill{height:100%;border-radius:3px;background:var(--c-amber)}
+.sess-badge{display:inline-block;font-size:9px;padding:1px 7px;border-radius:8px;font-weight:600;vertical-align:middle;margin-left:4px}
+.sess-badge-cat{background:var(--c-surface3);color:var(--c-text3)}
+.sess-badge-nobill{background:#fee2e2;color:#dc2626}
+.coherence-warn{padding:8px 16px;font-size:11px;color:#b45309;background:#fffbeb;border-bottom:1px solid #fde68a;display:flex;align-items:flex-start;gap:6px}
 @media(max-width:768px){.ana-kpi-row{grid-template-columns:repeat(2,1fr)}.ana-period-nav{padding:8px 14px}.grid-2{grid-template-columns:1fr}.topbar-user{display:none}}
 @media print{
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -725,8 +729,16 @@ tr:hover .td-actions{opacity:1}
         <input type="text" class="tf-input" id="timerActivity" placeholder="Actividad actual…" autocomplete="off">
       </div>
       <div class="tf-group">
+        <label for="timerCategory">Categoría</label>
+        <select class="tf-input" id="timerCategory"><option value="">— Tipo de actividad —</option></select>
+      </div>
+      <div class="tf-group">
         <label for="timerSel">Empresa</label>
         <select class="tf-input" id="timerSel"></select>
+      </div>
+      <div class="tf-group" style="flex-direction:row;align-items:center;gap:8px">
+        <input type="checkbox" id="timerBillable" checked style="accent-color:var(--c-teal);width:14px;height:14px;cursor:pointer">
+        <label for="timerBillable" style="font-size:11px;color:var(--c-text2);cursor:pointer;font-weight:500">Facturable</label>
       </div>
     </div>
     <div class="timer-saved" id="timerSavedLabel" style="font-size:9px;color:var(--c-text4);text-align:center;margin-top:8px">—</div>
@@ -866,7 +878,10 @@ tr:hover .td-actions{opacity:1}
         <div class="card">
           <div class="card-header">
             <span class="card-title">Sesiones del día</span>
-            <button class="btn btn-secondary btn-xs" onclick="navigate('registro')">Ver historial</button>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-secondary btn-xs" onclick="sendDaySummary()" title="Enviar resumen por email">✉ Resumen</button>
+              <button class="btn btn-secondary btn-xs" onclick="navigate('registro')">Ver historial</button>
+            </div>
           </div>
           <div class="card-body-flush" id="dashSessions"></div>
         </div>
@@ -957,6 +972,16 @@ tr:hover .td-actions{opacity:1}
             <div class="fg">
               <label class="field-label" for="mNota">Nota / Actividad</label>
               <textarea class="field-input" id="mNota" rows="2" placeholder="Describe la actividad realizada…"></textarea>
+            </div>
+            <div class="fg-row-2" style="margin-top:10px;margin-bottom:14px">
+              <div>
+                <label class="field-label" for="mCategoria">Categoría</label>
+                <select class="field-input" id="mCategoria"><option value="">— Tipo de actividad —</option></select>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding-top:20px">
+                <input type="checkbox" id="mBillable" checked style="accent-color:var(--c-teal);width:14px;height:14px;cursor:pointer">
+                <label for="mBillable" class="field-label" style="cursor:pointer;margin:0">Facturable</label>
+              </div>
             </div>
             <button class="btn btn-primary" onclick="saveManual()">Guardar sesión</button>
           </div>
@@ -1081,6 +1106,17 @@ tr:hover .td-actions{opacity:1}
         <div class="card">
           <div class="card-header"><span class="card-title">Tiempo no productivo</span></div>
           <div class="card-body" id="anaBreakTable"></div>
+        </div>
+      </div>
+      <!-- Por categoría + Facturabilidad -->
+      <div class="grid-2" style="margin-bottom:14px">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Por categoría</span></div>
+          <div class="card-body" id="anaCatTable"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Facturabilidad</span></div>
+          <div class="card-body" id="anaBillTable"></div>
         </div>
       </div>
       <!-- Horas pico + Por día semana -->
@@ -1209,9 +1245,21 @@ tr:hover .td-actions{opacity:1}
     <div style="font-size:12px;color:var(--c-text3);margin-top:4px" id="mSheetLabel">Inactivo</div>
   </div>
 
-  <div style="margin-bottom:12px">
+  <div style="margin-bottom:8px">
+    <label class="field-label" style="font-size:9px">¿Qué estás haciendo?</label>
+    <input type="text" class="field-input" id="mTimerActivity" placeholder="Actividad actual…" style="width:100%" autocomplete="off">
+  </div>
+  <div style="margin-bottom:8px">
+    <label class="field-label" style="font-size:9px">Categoría</label>
+    <select class="field-input" id="mTimerCategory" style="width:100%"><option value="">— Tipo de actividad —</option></select>
+  </div>
+  <div style="margin-bottom:8px">
     <label class="field-label" style="font-size:9px">Empresa</label>
     <select class="field-input" id="mTimerSel" style="width:100%"></select>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+    <input type="checkbox" id="mTimerBillable" checked style="accent-color:var(--c-teal);width:14px;height:14px;cursor:pointer">
+    <label for="mTimerBillable" class="field-label" style="cursor:pointer;margin:0;font-size:10px">Facturable</label>
   </div>
 
   <button class="timer-btn-main" id="mTimerMainBtn" onclick="toggleTimer()" style="margin-bottom:8px">▶ Iniciar</button>
@@ -1462,6 +1510,8 @@ function getCoHHMM(d) {
 
 // ── State ─────────────────────────────────────────────────────────────────────
 function SK() { return 'yc_data_' + (CURRENT_USER ? CURRENT_USER.username : 'yuli'); }
+const CATEGORIES = ['Reunión','Llamada','Desarrollo de actividad','Revisión','Pago de comisiones','Capacitación','Documentación','Otro'];
+
 const SEED_COS = [
   { id:'co1', name:'Podenza',   color:'#2e5c8a', desc:'' },
   { id:'co2', name:'IAC',       color:'#1a6b5e', desc:'' },
@@ -1517,15 +1567,19 @@ function _stopActive(silent) {
   const mins = Math.round((new Date(endIso) - new Date(s.startIso)) / 60000);
   if (mins >= 1) {
     const coDs = new Intl.DateTimeFormat('en-CA', { timeZone:'America/Bogota' }).format(new Date(s.startIso));
-    const activity = ((el('timerActivity')||{}).value||'').trim() || s.nota || '';
+    const activity = ((el('timerActivity')||{}).value||((el('mTimerActivity')||{}).value)||'').trim() || s.nota || '';
+    const category = ((el('timerCategory')||{}).value||((el('mTimerCategory')||{}).value)||'').trim() || s.category || '';
+    const billable = el('timerBillable') ? el('timerBillable').checked : (el('mTimerBillable') ? el('mTimerBillable').checked : true);
     getDay(coDs).sessions.push({
       mode:s.mode, companyId:s.companyId||'', breakType:s.breakType||'',
       startIso:s.startIso, endIso, startDisplay:s.startDisplay, endDisplay:getCoHHMM(),
-      mins, nota: activity, manual:false
+      mins, nota: activity, category, billable, manual:false
     });
   }
   STATE.activeSession = null;
-  if(el('timerActivity')) el('timerActivity').value = '';
+  ['timerActivity','mTimerActivity','timerCategory','mTimerCategory'].forEach(id=>{if(el(id))el(id).value='';});
+  if(el('timerBillable')) el('timerBillable').checked=true;
+  if(el('mTimerBillable')) el('mTimerBillable').checked=true;
   save();
   if (!silent) { _updateTimerUI(); _renderBanner(); if (VIEW_DATE === todayStr()) renderDashboard(); }
 }
@@ -1807,10 +1861,12 @@ function _renderDashSessions(sessions) {
     const subRows = g.sessions.map(({s, i}) => {
       const sh = Math.floor(s.mins/60), sm2 = s.mins%60;
       const act = s.nota || s.activity || '';
+      const catBadge = s.category ? `<span class="sess-badge sess-badge-cat">${s.category}</span>` : '';
+      const billBadge = s.billable === false ? `<span class="sess-badge sess-badge-nobill">No facturable</span>` : '';
       const liveTag = s._live ? '<span style="font-size:9px;color:var(--c-teal);margin-left:5px">● vivo</span>' : '';
       return `<div style="display:flex;align-items:center;gap:8px;padding:5px 16px 5px 38px;border-bottom:1px solid var(--c-border);background:var(--c-surface2)">
         <div style="flex:1;min-width:0">
-          <span style="font-size:11.5px;color:var(--c-text2)">${act||'—'}${liveTag}</span>
+          <span style="font-size:11.5px;color:var(--c-text2)">${act||'—'}${catBadge}${billBadge}${liveTag}</span>
         </div>
         <span style="font-size:10.5px;color:var(--c-text4);white-space:nowrap">${s.startDisplay}–${s.endDisplay}</span>
         <span style="font-size:11px;font-weight:600;color:var(--c-text3);min-width:36px;text-align:right">${sh>0?`${sh}h ${sm2}m`:`${sm2}m`}</span>
@@ -1856,7 +1912,30 @@ function _renderDashSessions(sessions) {
     ${dayTasks.length>6?`<div style="padding:5px 16px;font-size:10.5px;color:var(--c-text4)">+${dayTasks.length-6} más en Tareas</div>`:''}
   ` : '';
 
-  e2.innerHTML = rows.join('') + footer + tasksSection;
+  // Coherence warnings
+  const issues = _getCoherenceIssues(sessions);
+  const warnHtml = issues.map(w=>`<div class="coherence-warn">⚠ ${w}</div>`).join('');
+
+  e2.innerHTML = warnHtml + rows.join('') + footer + tasksSection;
+}
+function _getCoherenceIssues(sessions) {
+  const sorted = [...sessions].filter(s=>s.startIso&&s.endIso&&!s._live).sort((a,b)=>a.startIso<b.startIso?-1:1);
+  const issues = [];
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const a = sorted[i], b = sorted[i+1];
+    const aEnd = new Date(a.endIso), bStart = new Date(b.startIso);
+    if (aEnd > bStart) {
+      issues.push(`Solapamiento detectado entre ${a.startDisplay}–${a.endDisplay} y ${b.startDisplay}–${b.endDisplay}`);
+    } else {
+      const gapMin = Math.round((bStart - aEnd) / 60000);
+      const endH = aEnd.getHours(), startH = bStart.getHours();
+      if (gapMin > 120 && endH >= 8 && endH < 20 && startH >= 8 && startH < 20) {
+        const gh = Math.floor(gapMin/60), gm = gapMin%60;
+        issues.push(`Gap de ${gh>0?`${gh}h ${gm}m`:`${gm}m`} sin registrar entre ${a.endDisplay} y ${b.startDisplay}`);
+      }
+    }
+  }
+  return issues;
 }
 function _renderDashTasks() {
   const e2 = el('dashTasks'); if (!e2) return;
@@ -2082,7 +2161,9 @@ function saveManual(){
   if(mins<=0){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Fin debe ser después de inicio';return;}
   if(tipo==='productive'&&!coId){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Selecciona la empresa';return;}
   if(tipo==='productive'&&!nota){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Escribe la actividad realizada';return;}
-  getDay(ds).sessions.push({mode:tipo,companyId:coId,breakType:'',startIso:ds+'T'+ini+':00',endIso:ds+'T'+fin+':00',startDisplay:ini,endDisplay:fin,mins,nota,manual:true});
+  const category=((el('mCategoria')||{}).value||'').trim();
+  const billable=el('mBillable')?el('mBillable').checked:true;
+  getDay(ds).sessions.push({mode:tipo,companyId:coId,breakType:'',startIso:ds+'T'+ini+':00',endIso:ds+'T'+fin+':00',startDisplay:ini,endDisplay:fin,mins,nota,category,billable,manual:true});
   save(); if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent=''; showToast('Sesión guardada');
   if(VIEW_DATE===ds)renderDashboard();
 }
@@ -2264,7 +2345,7 @@ function renderAnalytics() {
 
   const dates=_getAnaDates();
   if(_anaView==='range'&&!dates.length){
-    ['anaKpiRow','anaChart','anaCoTable','anaBreakTable','anaHourChart','anaWdayChart','anaInsights','anaActTable'].forEach(id=>{const e=el(id);if(e)e.innerHTML='<div class="empty">Selecciona un rango y presiona Aplicar.</div>';});
+    ['anaKpiRow','anaChart','anaCoTable','anaBreakTable','anaCatTable','anaBillTable','anaHourChart','anaWdayChart','anaInsights','anaActTable'].forEach(id=>{const e=el(id);if(e)e.innerHTML='<div class="empty">Selecciona un rango y presiona Aplicar.</div>';});
     if(el('anaPeriodLabel'))el('anaPeriodLabel').textContent='';
     return;
   }
@@ -2380,6 +2461,52 @@ function renderAnalytics() {
           <div class="brk-bar-bg"><div class="brk-bar-fill" style="width:${Math.round(m/maxT*100)}%"></div></div>
         </div>`).join('')}`
       :'<div class="empty">Sin descansos en este período.</div>';
+  }
+
+  // ── Por categoría ──
+  const catEl=el('anaCatTable');
+  if(catEl){
+    const catData={};
+    dates.forEach(ds=>{((STATE.days[ds]&&STATE.days[ds].sessions)||[]).forEach(s=>{
+      if(s.mode==='productive'&&(!coFilter||s.companyId===coFilter)){
+        const cat=s.category||'Sin categoría';
+        catData[cat]=(catData[cat]||0)+s.mins;
+      }
+    });});
+    const sorted=Object.entries(catData).sort((a,b)=>b[1]-a[1]);
+    const maxC=Math.max(...sorted.map(e=>e[1]),1);
+    catEl.innerHTML=sorted.length
+      ?sorted.map(([cat,mins])=>{
+        const pct=totProd>0?Math.round(mins/totProd*100):0;
+        return `<div class="brk-row">
+          <div class="brk-row-head"><span>${cat}</span><span style="color:var(--c-text3)">${fmtMins(mins)} · ${pct}%</span></div>
+          <div class="brk-bar-bg"><div class="brk-bar-fill" style="width:${Math.round(mins/maxC*100)}%;background:var(--c-teal)"></div></div>
+        </div>`;
+      }).join('')
+      :'<div class="empty">Sin sesiones en este período.</div>';
+  }
+
+  // ── Facturabilidad ──
+  const billEl=el('anaBillTable');
+  if(billEl){
+    let totBill=0, totNoBill=0;
+    dates.forEach(ds=>{((STATE.days[ds]&&STATE.days[ds].sessions)||[]).forEach(s=>{
+      if(s.mode==='productive'&&(!coFilter||s.companyId===coFilter)){
+        if(s.billable===false)totNoBill+=s.mins; else totBill+=s.mins;
+      }
+    });});
+    const tot=totBill+totNoBill||1;
+    const billPct=Math.round(totBill/tot*100);
+    const noBillPct=100-billPct;
+    billEl.innerHTML=`
+      <div style="margin-bottom:12px">
+        <div class="brk-row-head" style="margin-bottom:4px"><span style="color:var(--c-teal);font-weight:600">Facturable</span><span>${fmtMins(totBill)} · ${billPct}%</span></div>
+        <div class="brk-bar-bg"><div class="brk-bar-fill" style="width:${billPct}%;background:var(--c-teal)"></div></div>
+      </div>
+      <div>
+        <div class="brk-row-head" style="margin-bottom:4px"><span style="color:#dc2626;font-weight:600">No facturable</span><span>${fmtMins(totNoBill)} · ${noBillPct}%</span></div>
+        <div class="brk-bar-bg"><div class="brk-bar-fill" style="width:${noBillPct}%;background:#dc2626"></div></div>
+      </div>`;
   }
 
   // ── Franja horaria más productiva ──
@@ -2611,9 +2738,35 @@ function exportAnaCSV(){
 }
 function exportAnaPDF(){
   const prev=document.title;
-  document.title='Reporte YC · '+_getAnaLabel();
+  const co=STATE.companies.find(c=>c.id===((el('anaCoFilter')||{}).value||''));
+  document.title='Reporte YC · '+(co?co.name+' · ':'')+_getAnaLabel();
   window.print();
   document.title=prev;
+}
+function sendDaySummary(){
+  const ds=VIEW_DATE;
+  const sessions=(STATE.days[ds]&&STATE.days[ds].sessions)||[];
+  const d=new Date(ds+'T12:00:00').toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const coMap={};
+  sessions.forEach(s=>{
+    if(s.mode!=='productive')return;
+    const co=STATE.companies.find(c=>c.id===s.companyId);
+    const key=co?co.name:(s.companyId||'Sin empresa');
+    if(!coMap[key])coMap[key]={mins:0,acts:[]};
+    coMap[key].mins+=s.mins;
+    if(s.nota||s.activity)coMap[key].acts.push((s.category?`[${s.category}] `:'')+(s.nota||s.activity));
+  });
+  let body=`Resumen del día – ${d}\n\n`;
+  Object.entries(coMap).forEach(([name,data])=>{
+    const h=Math.floor(data.mins/60),m=data.mins%60;
+    body+=`${name}: ${h>0?`${h}h ${m}m`:`${m}m`}\n`;
+    data.acts.forEach(a=>body+=`  • ${a}\n`);
+    body+='\n';
+  });
+  const totProd=sessions.filter(s=>s.mode==='productive').reduce((a,s)=>a+s.mins,0);
+  const th=Math.floor(totProd/60),tm=totProd%60;
+  body+=`Total productivo: ${th>0?`${th}h ${tm}m`:`${tm}m`}`;
+  window.location.href=`mailto:?subject=Resumen YC ${ds}&body=${encodeURIComponent(body)}`;
 }
 function printDayPDF(){
   const day=getDay(VIEW_DATE),sess=day.sessions||[];
@@ -2659,6 +2812,8 @@ function _renderTimerCompanies(){
   const tOpts='<option value="">— ¿A dónde vas? —</option><option value="personal">🏠 Personal</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
   if(el('transitCoSel'))  el('transitCoSel').innerHTML=tOpts;
   if(el('mTransitCoSel')) el('mTransitCoSel').innerHTML=tOpts;
+  const catOpts='<option value="">— Tipo de actividad —</option>'+CATEGORIES.map(c=>`<option value="${c}">${c}</option>`).join('');
+  ['timerCategory','mTimerCategory','mCategoria'].forEach(id=>{if(el(id))el(id).innerHTML=catOpts;});
 }
 
 // ── User pill ─────────────────────────────────────────────────────────────────
