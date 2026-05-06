@@ -729,16 +729,8 @@ tr:hover .td-actions{opacity:1}
         <input type="text" class="tf-input" id="timerActivity" placeholder="Actividad actual…" autocomplete="off">
       </div>
       <div class="tf-group">
-        <label for="timerCategory">Categoría</label>
-        <select class="tf-input" id="timerCategory"><option value="">— Tipo de actividad —</option></select>
-      </div>
-      <div class="tf-group">
         <label for="timerSel">Empresa</label>
         <select class="tf-input" id="timerSel"></select>
-      </div>
-      <div class="tf-group" style="flex-direction:row;align-items:center;gap:8px">
-        <input type="checkbox" id="timerBillable" checked style="accent-color:var(--c-teal);width:14px;height:14px;cursor:pointer">
-        <label for="timerBillable" style="font-size:11px;color:var(--c-text2);cursor:pointer;font-weight:500">Facturable</label>
       </div>
     </div>
     <div class="timer-saved" id="timerSavedLabel" style="font-size:9px;color:var(--c-text4);text-align:center;margin-top:8px">—</div>
@@ -973,16 +965,6 @@ tr:hover .td-actions{opacity:1}
               <label class="field-label" for="mNota">Nota / Actividad</label>
               <textarea class="field-input" id="mNota" rows="2" placeholder="Describe la actividad realizada…"></textarea>
             </div>
-            <div class="fg-row-2" style="margin-top:10px;margin-bottom:14px">
-              <div>
-                <label class="field-label" for="mCategoria">Categoría</label>
-                <select class="field-input" id="mCategoria"><option value="">— Tipo de actividad —</option></select>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;padding-top:20px">
-                <input type="checkbox" id="mBillable" checked style="accent-color:var(--c-teal);width:14px;height:14px;cursor:pointer">
-                <label for="mBillable" class="field-label" style="cursor:pointer;margin:0">Facturable</label>
-              </div>
-            </div>
             <button class="btn btn-primary" onclick="saveManual()">Guardar sesión</button>
           </div>
         </div>
@@ -1108,16 +1090,10 @@ tr:hover .td-actions{opacity:1}
           <div class="card-body" id="anaBreakTable"></div>
         </div>
       </div>
-      <!-- Por categoría + Facturabilidad -->
-      <div class="grid-2" style="margin-bottom:14px">
-        <div class="card">
-          <div class="card-header"><span class="card-title">Por categoría</span></div>
-          <div class="card-body" id="anaCatTable"></div>
-        </div>
-        <div class="card">
-          <div class="card-header"><span class="card-title">Facturabilidad</span></div>
-          <div class="card-body" id="anaBillTable"></div>
-        </div>
+      <!-- Facturabilidad -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header"><span class="card-title">Facturabilidad</span></div>
+        <div class="card-body" id="anaBillTable"></div>
       </div>
       <!-- Horas pico + Por día semana -->
       <div class="grid-2" style="margin-bottom:14px">
@@ -1250,16 +1226,8 @@ tr:hover .td-actions{opacity:1}
     <input type="text" class="field-input" id="mTimerActivity" placeholder="Actividad actual…" style="width:100%" autocomplete="off">
   </div>
   <div style="margin-bottom:8px">
-    <label class="field-label" style="font-size:9px">Categoría</label>
-    <select class="field-input" id="mTimerCategory" style="width:100%"><option value="">— Tipo de actividad —</option></select>
-  </div>
-  <div style="margin-bottom:8px">
     <label class="field-label" style="font-size:9px">Empresa</label>
     <select class="field-input" id="mTimerSel" style="width:100%"></select>
-  </div>
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-    <input type="checkbox" id="mTimerBillable" checked style="accent-color:var(--c-teal);width:14px;height:14px;cursor:pointer">
-    <label for="mTimerBillable" class="field-label" style="cursor:pointer;margin:0;font-size:10px">Facturable</label>
   </div>
 
   <button class="timer-btn-main" id="mTimerMainBtn" onclick="toggleTimer()" style="margin-bottom:8px">▶ Iniciar</button>
@@ -1416,7 +1384,7 @@ let CURRENT_USER = null;
 
 const SEED_USERS = [
   { username:'yuli',    password:'3010',   name:'Yulieth', color:'#9a7c2e' },
-  { username:'lvalles', password:'lv2024', name:'Laura',   color:'#2e5c8a' },
+  { username:'lvalles', password:'lv2024', name:'Laura',   color:'#2e5c8a', photo:'tequila.jpg' },
 ];
 function _loadUsers() {
   let users;
@@ -1510,8 +1478,6 @@ function getCoHHMM(d) {
 
 // ── State ─────────────────────────────────────────────────────────────────────
 function SK() { return 'yc_data_' + (CURRENT_USER ? CURRENT_USER.username : 'yuli'); }
-const CATEGORIES = ['Reunión','Llamada','Desarrollo de actividad','Revisión','Pago de comisiones','Capacitación','Documentación','Otro'];
-
 const SEED_COS = [
   { id:'co1', name:'Podenza',   color:'#2e5c8a', desc:'' },
   { id:'co2', name:'IAC',       color:'#1a6b5e', desc:'' },
@@ -1568,18 +1534,15 @@ function _stopActive(silent) {
   if (mins >= 1) {
     const coDs = new Intl.DateTimeFormat('en-CA', { timeZone:'America/Bogota' }).format(new Date(s.startIso));
     const activity = ((el('timerActivity')||{}).value||((el('mTimerActivity')||{}).value)||'').trim() || s.nota || '';
-    const category = ((el('timerCategory')||{}).value||((el('mTimerCategory')||{}).value)||'').trim() || s.category || '';
-    const billable = el('timerBillable') ? el('timerBillable').checked : (el('mTimerBillable') ? el('mTimerBillable').checked : true);
+    const billable = s.mode === 'productive';
     getDay(coDs).sessions.push({
       mode:s.mode, companyId:s.companyId||'', breakType:s.breakType||'',
       startIso:s.startIso, endIso, startDisplay:s.startDisplay, endDisplay:getCoHHMM(),
-      mins, nota: activity, category, billable, manual:false
+      mins, nota: activity, billable, manual:false
     });
   }
   STATE.activeSession = null;
-  ['timerActivity','mTimerActivity','timerCategory','mTimerCategory'].forEach(id=>{if(el(id))el(id).value='';});
-  if(el('timerBillable')) el('timerBillable').checked=true;
-  if(el('mTimerBillable')) el('mTimerBillable').checked=true;
+  ['timerActivity','mTimerActivity'].forEach(id=>{if(el(id))el(id).value='';});
   save();
   if (!silent) { _updateTimerUI(); _renderBanner(); if (VIEW_DATE === todayStr()) renderDashboard(); }
 }
@@ -1861,12 +1824,10 @@ function _renderDashSessions(sessions) {
     const subRows = g.sessions.map(({s, i}) => {
       const sh = Math.floor(s.mins/60), sm2 = s.mins%60;
       const act = s.nota || s.activity || '';
-      const catBadge = s.category ? `<span class="sess-badge sess-badge-cat">${s.category}</span>` : '';
-      const billBadge = s.billable === false ? `<span class="sess-badge sess-badge-nobill">No facturable</span>` : '';
       const liveTag = s._live ? '<span style="font-size:9px;color:var(--c-teal);margin-left:5px">● vivo</span>' : '';
       return `<div style="display:flex;align-items:center;gap:8px;padding:5px 16px 5px 38px;border-bottom:1px solid var(--c-border);background:var(--c-surface2)">
         <div style="flex:1;min-width:0">
-          <span style="font-size:11.5px;color:var(--c-text2)">${act||'—'}${catBadge}${billBadge}${liveTag}</span>
+          <span style="font-size:11.5px;color:var(--c-text2)">${act||'—'}${liveTag}</span>
         </div>
         <span style="font-size:10.5px;color:var(--c-text4);white-space:nowrap">${s.startDisplay}–${s.endDisplay}</span>
         <span style="font-size:11px;font-weight:600;color:var(--c-text3);min-width:36px;text-align:right">${sh>0?`${sh}h ${sm2}m`:`${sm2}m`}</span>
@@ -2161,9 +2122,8 @@ function saveManual(){
   if(mins<=0){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Fin debe ser después de inicio';return;}
   if(tipo==='productive'&&!coId){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Selecciona la empresa';return;}
   if(tipo==='productive'&&!nota){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Escribe la actividad realizada';return;}
-  const category=((el('mCategoria')||{}).value||'').trim();
-  const billable=el('mBillable')?el('mBillable').checked:true;
-  getDay(ds).sessions.push({mode:tipo,companyId:coId,breakType:'',startIso:ds+'T'+ini+':00',endIso:ds+'T'+fin+':00',startDisplay:ini,endDisplay:fin,mins,nota,category,billable,manual:true});
+  const billable=tipo==='productive';
+  getDay(ds).sessions.push({mode:tipo,companyId:coId,breakType:'',startIso:ds+'T'+ini+':00',endIso:ds+'T'+fin+':00',startDisplay:ini,endDisplay:fin,mins,nota,billable,manual:true});
   save(); if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent=''; showToast('Sesión guardada');
   if(VIEW_DATE===ds)renderDashboard();
 }
@@ -2345,7 +2305,7 @@ function renderAnalytics() {
 
   const dates=_getAnaDates();
   if(_anaView==='range'&&!dates.length){
-    ['anaKpiRow','anaChart','anaCoTable','anaBreakTable','anaCatTable','anaBillTable','anaHourChart','anaWdayChart','anaInsights','anaActTable'].forEach(id=>{const e=el(id);if(e)e.innerHTML='<div class="empty">Selecciona un rango y presiona Aplicar.</div>';});
+    ['anaKpiRow','anaChart','anaCoTable','anaBreakTable','anaBillTable','anaHourChart','anaWdayChart','anaInsights','anaActTable'].forEach(id=>{const e=el(id);if(e)e.innerHTML='<div class="empty">Selecciona un rango y presiona Aplicar.</div>';});
     if(el('anaPeriodLabel'))el('anaPeriodLabel').textContent='';
     return;
   }
@@ -2461,29 +2421,6 @@ function renderAnalytics() {
           <div class="brk-bar-bg"><div class="brk-bar-fill" style="width:${Math.round(m/maxT*100)}%"></div></div>
         </div>`).join('')}`
       :'<div class="empty">Sin descansos en este período.</div>';
-  }
-
-  // ── Por categoría ──
-  const catEl=el('anaCatTable');
-  if(catEl){
-    const catData={};
-    dates.forEach(ds=>{((STATE.days[ds]&&STATE.days[ds].sessions)||[]).forEach(s=>{
-      if(s.mode==='productive'&&(!coFilter||s.companyId===coFilter)){
-        const cat=s.category||'Sin categoría';
-        catData[cat]=(catData[cat]||0)+s.mins;
-      }
-    });});
-    const sorted=Object.entries(catData).sort((a,b)=>b[1]-a[1]);
-    const maxC=Math.max(...sorted.map(e=>e[1]),1);
-    catEl.innerHTML=sorted.length
-      ?sorted.map(([cat,mins])=>{
-        const pct=totProd>0?Math.round(mins/totProd*100):0;
-        return `<div class="brk-row">
-          <div class="brk-row-head"><span>${cat}</span><span style="color:var(--c-text3)">${fmtMins(mins)} · ${pct}%</span></div>
-          <div class="brk-bar-bg"><div class="brk-bar-fill" style="width:${Math.round(mins/maxC*100)}%;background:var(--c-teal)"></div></div>
-        </div>`;
-      }).join('')
-      :'<div class="empty">Sin sesiones en este período.</div>';
   }
 
   // ── Facturabilidad ──
@@ -2754,7 +2691,7 @@ function sendDaySummary(){
     const key=co?co.name:(s.companyId||'Sin empresa');
     if(!coMap[key])coMap[key]={mins:0,acts:[]};
     coMap[key].mins+=s.mins;
-    if(s.nota||s.activity)coMap[key].acts.push((s.category?`[${s.category}] `:'')+(s.nota||s.activity));
+    if(s.nota||s.activity)coMap[key].acts.push(s.nota||s.activity);
   });
   let body=`Resumen del día – ${d}\n\n`;
   Object.entries(coMap).forEach(([name,data])=>{
@@ -2812,8 +2749,6 @@ function _renderTimerCompanies(){
   const tOpts='<option value="">— ¿A dónde vas? —</option><option value="personal">🏠 Personal</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
   if(el('transitCoSel'))  el('transitCoSel').innerHTML=tOpts;
   if(el('mTransitCoSel')) el('mTransitCoSel').innerHTML=tOpts;
-  const catOpts='<option value="">— Tipo de actividad —</option>'+CATEGORIES.map(c=>`<option value="${c}">${c}</option>`).join('');
-  ['timerCategory','mTimerCategory','mCategoria'].forEach(id=>{if(el(id))el(id).innerHTML=catOpts;});
 }
 
 // ── User pill ─────────────────────────────────────────────────────────────────
@@ -2822,7 +2757,10 @@ function _renderUserPill(){
   const name=CURRENT_USER.name||CURRENT_USER.username;
   const initial=name.charAt(0).toUpperCase();
   const color=CURRENT_USER.color||'var(--c-gold)';
-  pill.innerHTML=`<div class="topbar-user-dot" style="background:${color}">${initial}</div>${name}<button onclick="doLogout()" title="Cerrar sesión" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--c-text3);padding:0 0 0 4px;line-height:1;transition:color .15s" onmouseover="this.style.color='var(--c-red)'" onmouseout="this.style.color='var(--c-text3)'">⎋</button>`;
+  const avatarHtml=CURRENT_USER.photo
+    ? `<img src="${CURRENT_USER.photo}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.outerHTML='<div class=topbar-user-dot style=background:${color}>${initial}</div>'">`
+    : `<div class="topbar-user-dot" style="background:${color}">${initial}</div>`;
+  pill.innerHTML=`${avatarHtml}${name}<button onclick="doLogout()" title="Cerrar sesión" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--c-text3);padding:0 0 0 4px;line-height:1;transition:color .15s" onmouseover="this.style.color='var(--c-red)'" onmouseout="this.style.color='var(--c-text3)'">⎋</button>`;
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
