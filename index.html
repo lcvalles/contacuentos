@@ -1134,9 +1134,15 @@ tr:hover .td-actions{opacity:1}
       <div class="card" style="margin-bottom:14px">
         <div class="card-header"><span class="card-title">Agregar actividad</span></div>
         <div class="card-body">
-          <div class="fg-row-2">
-            <div><label class="field-label" for="newActName">Nombre</label><input type="text" class="field-input" id="newActName" placeholder="Nombre de la actividad" autocomplete="off"></div>
-            <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="saveActivity()">+ Agregar</button></div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div>
+              <label class="field-label" for="newActName">Nombre</label>
+              <div style="display:flex;gap:6px;position:relative">
+                <input type="text" class="field-input" id="newActName" placeholder="Nombre de la actividad" autocomplete="off" style="flex:1">
+                <button class="btn btn-secondary" onclick="openEmojiPicker('newActName',this)" style="padding:0 10px;font-size:17px;flex-shrink:0" title="Insertar emoji">🙂</button>
+              </div>
+            </div>
+            <div><button class="btn btn-primary" onclick="saveActivity()">+ Agregar</button></div>
           </div>
         </div>
       </div>
@@ -1179,9 +1185,15 @@ tr:hover .td-actions{opacity:1}
       <div class="card" style="margin-bottom:14px">
         <div class="card-header"><span class="card-title">Actividades</span></div>
         <div class="card-body">
-          <div class="fg-row-2" style="margin-bottom:12px">
-            <div><label class="field-label" for="newActName">Nueva actividad</label><input type="text" class="field-input" id="newActName" placeholder="Nombre de la actividad" autocomplete="off"></div>
-            <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="saveActivity()">+ Agregar</button></div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
+            <div>
+              <label class="field-label" for="newActName">Nueva actividad</label>
+              <div style="display:flex;gap:6px;position:relative">
+                <input type="text" class="field-input" id="newActName" placeholder="Nombre de la actividad" autocomplete="off" style="flex:1">
+                <button class="btn btn-secondary" onclick="openEmojiPicker('newActName',this)" style="padding:0 10px;font-size:17px;flex-shrink:0" title="Insertar emoji">🙂</button>
+              </div>
+            </div>
+            <div><button class="btn btn-primary" onclick="saveActivity()">+ Agregar</button></div>
           </div>
           <div id="activityList"></div>
         </div>
@@ -2890,7 +2902,8 @@ function renderActivityList(){
       <div style="flex:1">
         <div style="display:flex;align-items:center;gap:8px">
           <span id="actName_${i}" class="co-name-txt">${act.name}</span>
-          <input id="actInput_${i}" type="text" class="field-input" value="${safeVal}" style="display:none;font-size:13px;padding:4px 8px;max-width:240px" autocomplete="off">
+          <input id="actInput_${i}" type="text" class="field-input" value="${safeVal}" style="display:none;font-size:13px;padding:4px 8px;max-width:200px" autocomplete="off">
+          <button id="actEmojiBtn_${i}" onclick="openEmojiPicker('actInput_'+${i},this)" style="display:none;font-size:16px;background:none;border:1px solid var(--c-border);border-radius:6px;padding:2px 7px;cursor:pointer" title="Emoji">🙂</button>
         </div>
         ${act.uses?`<div class="co-desc-txt">${act.uses} uso${act.uses!==1?'s':''}</div>`:''}
       </div>
@@ -2906,16 +2919,18 @@ function renderActivityList(){
   }).join('');
 }
 function editActivity(i){
-  const nameEl=el('actName_'+i),inputEl=el('actInput_'+i),btnsEl=el('actBtns_'+i),editBtnsEl=el('actEditBtns_'+i);
+  const nameEl=el('actName_'+i),inputEl=el('actInput_'+i),btnsEl=el('actBtns_'+i),editBtnsEl=el('actEditBtns_'+i),emojiBtnEl=el('actEmojiBtn_'+i);
   if(!nameEl||!inputEl)return;
   nameEl.style.display='none';inputEl.style.display='';inputEl.focus();inputEl.select();
+  if(emojiBtnEl)emojiBtnEl.style.display='';
   btnsEl.style.display='none';editBtnsEl.style.display='flex';
 }
 function cancelEditActivity(i){
-  const nameEl=el('actName_'+i),inputEl=el('actInput_'+i),btnsEl=el('actBtns_'+i),editBtnsEl=el('actEditBtns_'+i);
+  const nameEl=el('actName_'+i),inputEl=el('actInput_'+i),btnsEl=el('actBtns_'+i),editBtnsEl=el('actEditBtns_'+i),emojiBtnEl=el('actEmojiBtn_'+i);
   if(!nameEl||!inputEl)return;
   inputEl.value=nameEl.textContent;
   nameEl.style.display='';inputEl.style.display='none';
+  if(emojiBtnEl)emojiBtnEl.style.display='none';
   btnsEl.style.display='flex';editBtnsEl.style.display='none';
 }
 function confirmEditActivity(i){
@@ -2925,6 +2940,32 @@ function confirmEditActivity(i){
   STATE.activities[i].name=newName;
   save();renderActivityList();_renderActivityOptions();showToast('Actividad actualizada');
 }
+const _EMOJIS=['💰','📊','🔒','✏️','👤','📋','🏙️','📑','📄','🧾','💾','⚡','📅','📧','📝','👥','🔍','📌','💼','🗂️','📂','✅','🔔','💡','⏰','🚀','📞','🤝','📈','🗓️','🖊️','💳','🏦','🔐','📰'];
+let _emojiTarget=null;
+function openEmojiPicker(inputId,btn){
+  const pk=el('emojiPickerGlobal');if(!pk)return;
+  if(_emojiTarget===inputId&&pk.style.display==='flex'){pk.style.display='none';_emojiTarget=null;return;}
+  _emojiTarget=inputId;
+  pk.innerHTML=_EMOJIS.map(e=>`<button onclick="insertEmoji('${e}')" style="font-size:20px;background:none;border:none;cursor:pointer;padding:4px;border-radius:5px;line-height:1" onmouseover="this.style.background='var(--c-surface2)'" onmouseout="this.style.background='none'">${e}</button>`).join('');
+  const r=btn.getBoundingClientRect();
+  pk.style.display='flex';
+  const top=r.bottom+6+window.scrollY;
+  const left=Math.min(r.left+window.scrollX,window.innerWidth-290);
+  pk.style.top=top+'px';pk.style.left=left+'px';
+}
+function insertEmoji(emoji){
+  const inp=el(_emojiTarget);if(!inp)return;
+  const s=inp.selectionStart||inp.value.length,e2=inp.selectionEnd||inp.value.length;
+  inp.value=inp.value.slice(0,s)+emoji+inp.value.slice(e2);
+  inp.focus();inp.setSelectionRange(s+emoji.length,s+emoji.length);
+  el('emojiPickerGlobal').style.display='none';_emojiTarget=null;
+}
+document.addEventListener('click',function(ev){
+  const pk=el('emojiPickerGlobal');if(!pk||pk.style.display==='none')return;
+  if(!pk.contains(ev.target)&&!ev.target.closest('[onclick*="openEmojiPicker"]')){
+    pk.style.display='none';_emojiTarget=null;
+  }
+});
 function saveActivity(){
   const name=((el('newActName')||{}).value||'').trim();if(!name){showToast('Escribe el nombre');return;}
   if(STATE.activities&&STATE.activities.find(a=>a.name.toLowerCase()===name.toLowerCase())){showToast('Ya existe esa actividad');return;}
@@ -3007,5 +3048,6 @@ async function startApp(){
   }
 })();
 </script>
+<div id="emojiPickerGlobal" style="display:none;position:fixed;z-index:9999;background:var(--c-surface);border:1px solid var(--c-border);border-radius:10px;padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.18);flex-wrap:wrap;gap:3px;max-width:272px;width:272px"></div>
 </body>
 </html>
