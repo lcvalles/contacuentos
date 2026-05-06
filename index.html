@@ -2509,7 +2509,9 @@ function renderAnalytics() {
     let totBill=0, totNoBill=0;
     dates.forEach(ds=>{((STATE.days[ds]&&STATE.days[ds].sessions)||[]).forEach(s=>{
       if(s.mode==='productive'&&(!coFilter||s.companyId===coFilter)){
-        if(s.billable===false)totNoBill+=s.mins; else totBill+=s.mins;
+        totBill+=s.mins;
+      } else if(s.mode!=='productive'&&!coFilter){
+        totNoBill+=s.mins;
       }
     });});
     const tot=totBill+totNoBill||1;
