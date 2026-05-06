@@ -2976,6 +2976,7 @@ async function startApp(){
         if(!STATE.days)STATE.days={};
         if(!STATE.settings)STATE.settings={dailyGoal:8,breakAlert:90};
         if(!STATE.activities||!STATE.activities.length)STATE.activities=JSON.parse(JSON.stringify(SEED_ACTIVITIES));
+        else STATE.activities.forEach(a=>{if(_EMOJI_MIGRATION[a.name])a.name=_EMOJI_MIGRATION[a.name];});
         localStorage.setItem(SK(),JSON.stringify(STATE));
       } else {
         await Sync._push();
