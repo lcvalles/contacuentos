@@ -779,50 +779,6 @@ tr:hover .td-actions{opacity:1}
       <button class="date-nav-today-btn" id="btnGoToday" onclick="goToday()" style="display:none">Hoy</button>
     </div>
 
-    <!-- QUICK ENTRY CARD -->
-    <div class="qe-card" role="form" aria-label="Entrada rápida">
-      <div class="qe-card-header">
-        <span class="qe-card-title">⚡ Entrada rápida</span>
-        <span class="qe-err-msg" id="qeErr" role="alert"></span>
-        <div style="margin-left:auto;display:flex;align-items:center;gap:5px">
-          <span id="qeDurBadge" class="qe-dur-badge"></span>
-          <button class="qe-add-btn" onclick="quickEntry()">+ Agregar</button>
-        </div>
-      </div>
-      <div class="qe-row">
-        <div class="qe-field">
-          <label>Inicio</label>
-          <div class="qe-time-wrap">
-            <input type="time" class="qe-input" id="qeInicio" style="width:88px" oninput="qeCalcDur()">
-            <button class="qe-now-btn" onclick="setQeNow('qeInicio')">Ahora</button>
-          </div>
-        </div>
-        <div class="qe-field">
-          <label>Fin</label>
-          <div class="qe-time-wrap">
-            <input type="time" class="qe-input" id="qeFin" style="width:88px" oninput="qeCalcDur()">
-            <button class="qe-now-btn" onclick="setQeNow('qeFin')">Ahora</button>
-          </div>
-        </div>
-        <div class="qe-field" style="flex:1;min-width:140px">
-          <label>Actividad / nota</label>
-          <input type="text" class="qe-input" id="qeNota" style="width:100%" placeholder="¿Qué hiciste?" autocomplete="off">
-        </div>
-        <div class="qe-field">
-          <label>Empresa</label>
-          <select class="qe-input" id="qeEmpresa" style="width:120px"></select>
-        </div>
-        <div class="qe-field">
-          <label>Tipo</label>
-          <select class="qe-input" id="qeTipo" style="width:110px">
-            <option value="productive">Productiva</option>
-            <option value="break">Descanso</option>
-            <option value="transit">Traslado</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
     <div class="page-content">
       <!-- Goal -->
       <div class="goal-card">
@@ -900,6 +856,50 @@ tr:hover .td-actions{opacity:1}
       <div class="card">
         <div class="card-header"><span class="card-title">Tiempo por empresa</span></div>
         <div class="card-body" id="coBreakdown"></div>
+      </div>
+
+      <!-- QUICK ENTRY CARD -->
+      <div class="qe-card" role="form" aria-label="Entrada rápida">
+        <div class="qe-card-header">
+          <span class="qe-card-title">⚡ Entrada rápida</span>
+          <span class="qe-err-msg" id="qeErr" role="alert"></span>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:5px">
+            <span id="qeDurBadge" class="qe-dur-badge"></span>
+            <button class="qe-add-btn" onclick="quickEntry()">+ Agregar</button>
+          </div>
+        </div>
+        <div class="qe-row">
+          <div class="qe-field">
+            <label>Inicio</label>
+            <div class="qe-time-wrap">
+              <input type="time" class="qe-input" id="qeInicio" style="width:88px" oninput="qeCalcDur()">
+              <button class="qe-now-btn" onclick="setQeNow('qeInicio')">Ahora</button>
+            </div>
+          </div>
+          <div class="qe-field">
+            <label>Fin</label>
+            <div class="qe-time-wrap">
+              <input type="time" class="qe-input" id="qeFin" style="width:88px" oninput="qeCalcDur()">
+              <button class="qe-now-btn" onclick="setQeNow('qeFin')">Ahora</button>
+            </div>
+          </div>
+          <div class="qe-field" style="flex:1;min-width:140px">
+            <label>Actividad / nota</label>
+            <input type="text" class="qe-input" id="qeNota" style="width:100%" placeholder="¿Qué hiciste?" autocomplete="off">
+          </div>
+          <div class="qe-field">
+            <label>Empresa</label>
+            <select class="qe-input" id="qeEmpresa" style="width:120px"></select>
+          </div>
+          <div class="qe-field">
+            <label>Tipo</label>
+            <select class="qe-input" id="qeTipo" style="width:110px">
+              <option value="productive">Productiva</option>
+              <option value="break">Descanso</option>
+              <option value="transit">Traslado</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div class="card">
