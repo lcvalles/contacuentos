@@ -633,6 +633,9 @@ tr:hover .td-actions{opacity:1}
   .page-content .card{margin-bottom:10px}
   .banner{padding:8px 14px;font-size:12px}
 }
+.emoji-picker{display:flex;flex-wrap:wrap;gap:2px;padding:8px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:10px;box-shadow:var(--sh-md);margin-top:6px;max-width:300px}
+.ep-btn{font-size:20px;background:none;border:none;cursor:pointer;padding:4px 5px;border-radius:5px;line-height:1;transition:background .1s}
+.ep-btn:hover{background:var(--c-surface2)}
 </style>
 </head>
 <body>
@@ -1134,15 +1137,14 @@ tr:hover .td-actions{opacity:1}
       <div class="card" style="margin-bottom:14px">
         <div class="card-header"><span class="card-title">Agregar actividad</span></div>
         <div class="card-body">
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div>
-              <label class="field-label" for="newActName">Nombre</label>
-              <div style="display:flex;gap:6px;position:relative">
-                <input type="text" class="field-input" id="newActName" placeholder="Nombre de la actividad" autocomplete="off" style="flex:1">
-                <button class="btn btn-secondary" onclick="openEmojiPicker('newActName',this)" style="padding:0 10px;font-size:17px;flex-shrink:0" title="Insertar emoji">🙂</button>
-              </div>
+          <div>
+            <label class="field-label" for="newActName">Nombre</label>
+            <div style="display:flex;gap:6px">
+              <input type="text" class="field-input" id="newActName" placeholder="Nombre de la actividad" autocomplete="off" style="flex:1">
+              <button type="button" class="btn btn-secondary" onclick="epToggle('ep_newActName')" style="padding:0 11px;font-size:17px;flex-shrink:0" title="Emoji">🙂</button>
             </div>
-            <div><button class="btn btn-primary" onclick="saveActivity()">+ Agregar</button></div>
+<div class="emoji-picker" id="ep_newActName" style="display:none"><button type="button" class="ep-btn" onclick="epInsert(this)">💰</button><button type="button" class="ep-btn" onclick="epInsert(this)">📊</button><button type="button" class="ep-btn" onclick="epInsert(this)">🔒</button><button type="button" class="ep-btn" onclick="epInsert(this)">✏️</button><button type="button" class="ep-btn" onclick="epInsert(this)">👤</button><button type="button" class="ep-btn" onclick="epInsert(this)">📋</button><button type="button" class="ep-btn" onclick="epInsert(this)">🏙️</button><button type="button" class="ep-btn" onclick="epInsert(this)">📑</button><button type="button" class="ep-btn" onclick="epInsert(this)">📄</button><button type="button" class="ep-btn" onclick="epInsert(this)">🧾</button><button type="button" class="ep-btn" onclick="epInsert(this)">💾</button><button type="button" class="ep-btn" onclick="epInsert(this)">⚡</button><button type="button" class="ep-btn" onclick="epInsert(this)">📅</button><button type="button" class="ep-btn" onclick="epInsert(this)">📧</button><button type="button" class="ep-btn" onclick="epInsert(this)">📝</button><button type="button" class="ep-btn" onclick="epInsert(this)">👥</button><button type="button" class="ep-btn" onclick="epInsert(this)">🔍</button><button type="button" class="ep-btn" onclick="epInsert(this)">📌</button><button type="button" class="ep-btn" onclick="epInsert(this)">💼</button><button type="button" class="ep-btn" onclick="epInsert(this)">🗂️</button><button type="button" class="ep-btn" onclick="epInsert(this)">📂</button><button type="button" class="ep-btn" onclick="epInsert(this)">✅</button><button type="button" class="ep-btn" onclick="epInsert(this)">🔔</button><button type="button" class="ep-btn" onclick="epInsert(this)">💡</button><button type="button" class="ep-btn" onclick="epInsert(this)">⏰</button><button type="button" class="ep-btn" onclick="epInsert(this)">🚀</button><button type="button" class="ep-btn" onclick="epInsert(this)">📞</button><button type="button" class="ep-btn" onclick="epInsert(this)">🤝</button><button type="button" class="ep-btn" onclick="epInsert(this)">📈</button><button type="button" class="ep-btn" onclick="epInsert(this)">🗓️</button><button type="button" class="ep-btn" onclick="epInsert(this)">🖊️</button><button type="button" class="ep-btn" onclick="epInsert(this)">💳</button><button type="button" class="ep-btn" onclick="epInsert(this)">🏦</button><button type="button" class="ep-btn" onclick="epInsert(this)">🔐</button><button type="button" class="ep-btn" onclick="epInsert(this)">📰</button></div>
+            <button class="btn btn-primary" onclick="saveActivity()" style="margin-top:8px">+ Agregar</button>
           </div>
         </div>
       </div>
@@ -1185,15 +1187,14 @@ tr:hover .td-actions{opacity:1}
       <div class="card" style="margin-bottom:14px">
         <div class="card-header"><span class="card-title">Actividades</span></div>
         <div class="card-body">
-          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
-            <div>
-              <label class="field-label" for="newActName">Nueva actividad</label>
-              <div style="display:flex;gap:6px;position:relative">
-                <input type="text" class="field-input" id="newActName" placeholder="Nombre de la actividad" autocomplete="off" style="flex:1">
-                <button class="btn btn-secondary" onclick="openEmojiPicker('newActName',this)" style="padding:0 10px;font-size:17px;flex-shrink:0" title="Insertar emoji">🙂</button>
-              </div>
+          <div style="margin-bottom:12px">
+            <label class="field-label" for="newActName">Nueva actividad</label>
+            <div style="display:flex;gap:6px">
+              <input type="text" class="field-input" id="newActName" placeholder="Nombre de la actividad" autocomplete="off" style="flex:1">
+              <button type="button" class="btn btn-secondary" onclick="epToggle('ep_newActName2')" style="padding:0 11px;font-size:17px;flex-shrink:0" title="Emoji">🙂</button>
             </div>
-            <div><button class="btn btn-primary" onclick="saveActivity()">+ Agregar</button></div>
+<div class="emoji-picker" id="ep_newActName2" style="display:none"><button type="button" class="ep-btn" onclick="epInsert(this)">💰</button><button type="button" class="ep-btn" onclick="epInsert(this)">📊</button><button type="button" class="ep-btn" onclick="epInsert(this)">🔒</button><button type="button" class="ep-btn" onclick="epInsert(this)">✏️</button><button type="button" class="ep-btn" onclick="epInsert(this)">👤</button><button type="button" class="ep-btn" onclick="epInsert(this)">📋</button><button type="button" class="ep-btn" onclick="epInsert(this)">🏙️</button><button type="button" class="ep-btn" onclick="epInsert(this)">📑</button><button type="button" class="ep-btn" onclick="epInsert(this)">📄</button><button type="button" class="ep-btn" onclick="epInsert(this)">🧾</button><button type="button" class="ep-btn" onclick="epInsert(this)">💾</button><button type="button" class="ep-btn" onclick="epInsert(this)">⚡</button><button type="button" class="ep-btn" onclick="epInsert(this)">📅</button><button type="button" class="ep-btn" onclick="epInsert(this)">📧</button><button type="button" class="ep-btn" onclick="epInsert(this)">📝</button><button type="button" class="ep-btn" onclick="epInsert(this)">👥</button><button type="button" class="ep-btn" onclick="epInsert(this)">🔍</button><button type="button" class="ep-btn" onclick="epInsert(this)">📌</button><button type="button" class="ep-btn" onclick="epInsert(this)">💼</button><button type="button" class="ep-btn" onclick="epInsert(this)">🗂️</button><button type="button" class="ep-btn" onclick="epInsert(this)">📂</button><button type="button" class="ep-btn" onclick="epInsert(this)">✅</button><button type="button" class="ep-btn" onclick="epInsert(this)">🔔</button><button type="button" class="ep-btn" onclick="epInsert(this)">💡</button><button type="button" class="ep-btn" onclick="epInsert(this)">⏰</button><button type="button" class="ep-btn" onclick="epInsert(this)">🚀</button><button type="button" class="ep-btn" onclick="epInsert(this)">📞</button><button type="button" class="ep-btn" onclick="epInsert(this)">🤝</button><button type="button" class="ep-btn" onclick="epInsert(this)">📈</button><button type="button" class="ep-btn" onclick="epInsert(this)">🗓️</button><button type="button" class="ep-btn" onclick="epInsert(this)">🖊️</button><button type="button" class="ep-btn" onclick="epInsert(this)">💳</button><button type="button" class="ep-btn" onclick="epInsert(this)">🏦</button><button type="button" class="ep-btn" onclick="epInsert(this)">🔐</button><button type="button" class="ep-btn" onclick="epInsert(this)">📰</button></div>
+            <button class="btn btn-primary" onclick="saveActivity()" style="margin-top:8px">+ Agregar</button>
           </div>
           <div id="activityList"></div>
         </div>
@@ -2903,7 +2904,8 @@ function renderActivityList(){
         <div style="display:flex;align-items:center;gap:8px">
           <span id="actName_${i}" class="co-name-txt">${act.name}</span>
           <input id="actInput_${i}" type="text" class="field-input" value="${safeVal}" style="display:none;font-size:13px;padding:4px 8px;max-width:200px" autocomplete="off">
-          <button id="actEmojiBtn_${i}" onclick="openEmojiPicker('actInput_'+${i},this)" style="display:none;font-size:16px;background:none;border:1px solid var(--c-border);border-radius:6px;padding:2px 7px;cursor:pointer" title="Emoji">🙂</button>
+          <button id="actEmojiBtn_${i}" onclick="epToggleForInput('actInput_'+${i},'actEP_'+${i})" style="display:none;font-size:16px;background:none;border:1px solid var(--c-border);border-radius:6px;padding:2px 7px;cursor:pointer" title="Emoji">🙂</button>
+          <div id="actEP_${i}" class="emoji-picker" style="display:none"><button type="button" class="ep-btn" onclick="epInsert(this)">💰</button><button type="button" class="ep-btn" onclick="epInsert(this)">📊</button><button type="button" class="ep-btn" onclick="epInsert(this)">🔒</button><button type="button" class="ep-btn" onclick="epInsert(this)">✏️</button><button type="button" class="ep-btn" onclick="epInsert(this)">👤</button><button type="button" class="ep-btn" onclick="epInsert(this)">📋</button><button type="button" class="ep-btn" onclick="epInsert(this)">🏙️</button><button type="button" class="ep-btn" onclick="epInsert(this)">📑</button><button type="button" class="ep-btn" onclick="epInsert(this)">📄</button><button type="button" class="ep-btn" onclick="epInsert(this)">🧾</button><button type="button" class="ep-btn" onclick="epInsert(this)">💾</button><button type="button" class="ep-btn" onclick="epInsert(this)">⚡</button><button type="button" class="ep-btn" onclick="epInsert(this)">📅</button><button type="button" class="ep-btn" onclick="epInsert(this)">📧</button><button type="button" class="ep-btn" onclick="epInsert(this)">📝</button><button type="button" class="ep-btn" onclick="epInsert(this)">👥</button><button type="button" class="ep-btn" onclick="epInsert(this)">🔍</button><button type="button" class="ep-btn" onclick="epInsert(this)">📌</button><button type="button" class="ep-btn" onclick="epInsert(this)">💼</button><button type="button" class="ep-btn" onclick="epInsert(this)">🗂️</button><button type="button" class="ep-btn" onclick="epInsert(this)">📂</button><button type="button" class="ep-btn" onclick="epInsert(this)">✅</button><button type="button" class="ep-btn" onclick="epInsert(this)">🔔</button><button type="button" class="ep-btn" onclick="epInsert(this)">💡</button><button type="button" class="ep-btn" onclick="epInsert(this)">⏰</button><button type="button" class="ep-btn" onclick="epInsert(this)">🚀</button><button type="button" class="ep-btn" onclick="epInsert(this)">📞</button><button type="button" class="ep-btn" onclick="epInsert(this)">🤝</button><button type="button" class="ep-btn" onclick="epInsert(this)">📈</button><button type="button" class="ep-btn" onclick="epInsert(this)">🗓️</button><button type="button" class="ep-btn" onclick="epInsert(this)">🖊️</button><button type="button" class="ep-btn" onclick="epInsert(this)">💳</button><button type="button" class="ep-btn" onclick="epInsert(this)">🏦</button><button type="button" class="ep-btn" onclick="epInsert(this)">🔐</button><button type="button" class="ep-btn" onclick="epInsert(this)">📰</button></div>
         </div>
         ${act.uses?`<div class="co-desc-txt">${act.uses} uso${act.uses!==1?'s':''}</div>`:''}
       </div>
@@ -2940,32 +2942,35 @@ function confirmEditActivity(i){
   STATE.activities[i].name=newName;
   save();renderActivityList();_renderActivityOptions();showToast('Actividad actualizada');
 }
-const _EMOJIS=['💰','📊','🔒','✏️','👤','📋','🏙️','📑','📄','🧾','💾','⚡','📅','📧','📝','👥','🔍','📌','💼','🗂️','📂','✅','🔔','💡','⏰','🚀','📞','🤝','📈','🗓️','🖊️','💳','🏦','🔐','📰'];
-let _emojiTarget=null;
-function openEmojiPicker(inputId,btn){
-  const pk=el('emojiPickerGlobal');if(!pk)return;
-  if(_emojiTarget===inputId&&pk.style.display==='flex'){pk.style.display='none';_emojiTarget=null;return;}
-  _emojiTarget=inputId;
-  pk.innerHTML=_EMOJIS.map(e=>`<button onclick="insertEmoji('${e}')" style="font-size:20px;background:none;border:none;cursor:pointer;padding:4px;border-radius:5px;line-height:1" onmouseover="this.style.background='var(--c-surface2)'" onmouseout="this.style.background='none'">${e}</button>`).join('');
-  const r=btn.getBoundingClientRect();
+function epToggle(pickerId){
+  const pk=el(pickerId);if(!pk)return;
+  pk.style.display=pk.style.display==='flex'?'none':'flex';
+}
+function epToggleForInput(inputId,pickerId){
+  const pk=el(pickerId);if(!pk)return;
+  if(pk.style.display==='flex'){pk.style.display='none';return;}
   pk.style.display='flex';
-  const top=r.bottom+6+window.scrollY;
-  const left=Math.min(r.left+window.scrollX,window.innerWidth-290);
-  pk.style.top=top+'px';pk.style.left=left+'px';
+  pk.querySelectorAll('.ep-btn').forEach(b=>{
+    b.onclick=function(){
+      const target=el(inputId);if(!target)return;
+      const s=target.selectionStart||target.value.length;
+      target.value=target.value.slice(0,s)+this.textContent+target.value.slice(target.selectionEnd||s);
+      target.focus();target.setSelectionRange(s+this.textContent.length,s+this.textContent.length);
+      pk.style.display='none';
+    };
+  });
 }
-function insertEmoji(emoji){
-  const inp=el(_emojiTarget);if(!inp)return;
-  const s=inp.selectionStart||inp.value.length,e2=inp.selectionEnd||inp.value.length;
-  inp.value=inp.value.slice(0,s)+emoji+inp.value.slice(e2);
-  inp.focus();inp.setSelectionRange(s+emoji.length,s+emoji.length);
-  el('emojiPickerGlobal').style.display='none';_emojiTarget=null;
+function epInsert(btn){
+  const pk=btn.closest('.emoji-picker');if(!pk)return;
+  const inp=pk.previousElementSibling;
+  if(!inp)return;
+  const target=inp.tagName==='INPUT'?inp:inp.querySelector('input');
+  if(!target)return;
+  const s=target.selectionStart||target.value.length;
+  target.value=target.value.slice(0,s)+btn.textContent+target.value.slice(target.selectionEnd||s);
+  target.focus();target.setSelectionRange(s+btn.textContent.length,s+btn.textContent.length);
+  pk.style.display='none';
 }
-document.addEventListener('click',function(ev){
-  const pk=el('emojiPickerGlobal');if(!pk||pk.style.display==='none')return;
-  if(!pk.contains(ev.target)&&!ev.target.closest('[onclick*="openEmojiPicker"]')){
-    pk.style.display='none';_emojiTarget=null;
-  }
-});
 function saveActivity(){
   const name=((el('newActName')||{}).value||'').trim();if(!name){showToast('Escribe el nombre');return;}
   if(STATE.activities&&STATE.activities.find(a=>a.name.toLowerCase()===name.toLowerCase())){showToast('Ya existe esa actividad');return;}
@@ -3048,6 +3053,5 @@ async function startApp(){
   }
 })();
 </script>
-<div id="emojiPickerGlobal" style="display:none;position:fixed;z-index:9999;background:var(--c-surface);border:1px solid var(--c-border);border-radius:10px;padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.18);flex-wrap:wrap;gap:3px;max-width:272px;width:272px"></div>
 </body>
 </html>
