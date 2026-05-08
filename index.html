@@ -722,12 +722,6 @@ tr:hover .td-actions{opacity:1}
       <input type="text" class="tf-input" id="otherBreakText" placeholder="¿Qué actividad?" style="font-size:11px;padding:5px 8px">
       <button onclick="confirmOtherBreak()" class="btn btn-primary btn-xs">OK</button>
     </div>
-    <button class="timer-btn-transit" id="timerTransitBtn" onclick="toggleTransit()">🚗 Traslado / Movilización</button>
-    <div style="margin-bottom:8px">
-      <label style="font-size:9.5px;color:var(--c-text3);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">Destino del traslado</label>
-      <select class="tf-input" id="transitCoSel" style="font-size:11.5px"></select>
-    </div>
-
     <div class="timer-fields">
       <div class="tf-group">
         <label for="timerActivity">¿Qué estás haciendo?</label>
@@ -738,6 +732,14 @@ tr:hover .td-actions{opacity:1}
         <label for="timerSel">Empresa</label>
         <select class="tf-input" id="timerSel"></select>
       </div>
+    </div>
+
+    <div style="border-top:1px solid var(--c-border);margin:10px 0 8px"></div>
+
+    <button class="timer-btn-transit" id="timerTransitBtn" onclick="toggleTransit()">🚗 Traslado / Movilización</button>
+    <div style="margin-bottom:8px">
+      <label style="font-size:9.5px;color:var(--c-text3);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">Destino del traslado</label>
+      <select class="tf-input" id="transitCoSel" style="font-size:11.5px"></select>
     </div>
     <div class="timer-saved" id="timerSavedLabel" style="font-size:9px;color:var(--c-text4);text-align:center;margin-top:8px">—</div>
   </div>
