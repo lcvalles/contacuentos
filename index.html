@@ -2508,9 +2508,9 @@ function renderAnalytics() {
   const totNP=totBrk+totTrans;
   const isWeekday=ds=>{const d=new Date(ds+'T12:00:00').getDay();return d>=1&&d<=5;};
   const laboralDates=dates.filter(isWeekday);
-  const workDays=laboralDates.filter(ds=>dayData[ds].prod+dayData[ds].brk+dayData[ds].trans>0).length;
   const totalLaboralDays=laboralDates.length;
-  const goalDays=laboralDates.filter(ds=>dayData[ds].prod>=goalMins).length;
+  const workDays=dates.filter(ds=>dayData[ds].prod+dayData[ds].brk+dayData[ds].trans>0).length;
+  const goalDays=dates.filter(ds=>dayData[ds].prod>=goalMins).length;
   const eff=(totProd+totNP)>0?Math.round(totProd/(totProd+totNP)*100):0;
   const avgProd=workDays>0?Math.round(totProd/workDays):0;
   const bestDay=dates.filter(ds=>dayData[ds].prod>0).sort((a,b)=>dayData[b].prod-dayData[a].prod)[0];
@@ -2520,10 +2520,10 @@ function renderAnalytics() {
   if(kpiEl){
     const effColor=eff>=80?'teal':eff>=60?'gold':'amber';
     kpiEl.innerHTML=[
-      {cls:'gold',   lbl:'Productivo',    val:fmtMins(totProd),                        sub:`${workDays} de ${totalLaboralDays} días laborales`},
-      {cls:'amber',  lbl:'No productivo', val:fmtMins(totNP),                          sub:`${fmtMins(totBrk)} descanso · ${fmtMins(totTrans)} traslado`},
-      {cls:effColor, lbl:'Eficiencia',    val:eff+'%',                                 sub:'tiempo en pantalla útil'},
-      {cls:'teal',   lbl:'Meta diaria',   val:`${goalDays}/${totalLaboralDays}`,        sub:`Promedio ${fmtMins(avgProd)}/día laboral`},
+      {cls:'gold',   lbl:'Productivo',    val:fmtMins(totProd),                sub:`${workDays} día${workDays!==1?'s':''} trabajado${workDays!==1?'s':''}`},
+      {cls:'amber',  lbl:'No productivo', val:fmtMins(totNP),                  sub:`${fmtMins(totBrk)} descanso · ${fmtMins(totTrans)} traslado`},
+      {cls:effColor, lbl:'Eficiencia',    val:eff+'%',                          sub:'tiempo en pantalla útil'},
+      {cls:'teal',   lbl:'Meta diaria',   val:`${goalDays}/${totalLaboralDays}`, sub:`Promedio ${fmtMins(avgProd)}/día · ${totalLaboralDays} días laborales`},
     ].map(k=>`<div class="stat-card ${k.cls}">
       <div class="stat-label">${k.lbl}</div>
       <div class="stat-value ${k.cls}">${k.val}</div>
