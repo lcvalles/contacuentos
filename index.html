@@ -1866,12 +1866,10 @@ function _renderDashSessions(sessions) {
   if (!sessions.length) { e2.innerHTML = '<div class="empty">Sin sesiones hoy.</div>'; return; }
   let prodTotal = 0;
 
-  // Ordenar todas las sesiones cronológicamente
+  // Ordenar cronológicamente usando hora local (startDisplay) para evitar problemas UTC vs local
+  const toM = t => { if(!t) return 0; const [h,m]=(t+'').split(':').map(Number); return h*60+(m||0); };
   const indexed = sessions.map((s,i)=>({s,i}));
-  indexed.sort((a,b)=>{
-    const ta=a.s.startIso||a.s.startDisplay||'', tb=b.s.startIso||b.s.startDisplay||'';
-    return ta<tb?-1:ta>tb?1:0;
-  });
+  indexed.sort((a,b) => toM(a.s.startDisplay) - toM(b.s.startDisplay));
 
   const rows = indexed.map(({s,i})=>{
     const co = STATE.companies.find(c=>c.id===s.companyId);
