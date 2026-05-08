@@ -836,32 +836,47 @@ tr:hover .td-actions{opacity:1}
           </div>
           <div class="card-body-flush" id="dashSessions"></div>
         </div>
-        <div class="card">
+        <div class="card" style="overflow:hidden">
           <div class="card-header">
             <span class="card-title">Tareas</span>
             <button class="btn btn-secondary btn-xs" onclick="movePendingToday()">↓ Traer pendientes</button>
           </div>
-          <div style="padding:0 16px">
-            <div style="padding:10px 0 6px;border-bottom:1px solid var(--c-border)">
-              <div class="quick-add-row" style="padding:0 0 6px;border-bottom:none">
-                <input type="text" class="quick-add-input" id="dashTaskInput" placeholder="Nueva tarea… (Enter)" autocomplete="off" onkeydown="if(event.key==='Enter')dashAddTask()">
-                <button class="btn btn-primary btn-xs" onclick="dashAddTask()">+ Agregar</button>
-              </div>
-              <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">
-                <select class="dash-task-sel" id="dashTaskTipo" onchange="onDashNewTipoChange(this.value)">
-                  <option value="profesional">💼 Profesional</option>
-                  <option value="personal">💚 Personal</option>
-                </select>
-                <span style="display:inline-flex;gap:5px;align-items:center" title="Urgencia">
-                  <button id="dashNewUrg_alta" onclick="setDashNewUrgencia('alta')" title="Alta" style="width:13px;height:13px;border-radius:50%;background:#e53935;border:none;cursor:pointer;padding:0;opacity:0.3"></button>
-                  <button id="dashNewUrg_media" onclick="setDashNewUrgencia('media')" title="Media" style="width:13px;height:13px;border-radius:50%;background:#f59e0b;border:none;cursor:pointer;padding:0;opacity:1"></button>
-                  <button id="dashNewUrg_baja" onclick="setDashNewUrgencia('baja')" title="Baja" style="width:13px;height:13px;border-radius:50%;background:#22c55e;border:none;cursor:pointer;padding:0;opacity:0.3"></button>
-                  <input type="hidden" id="dashTaskUrgencia" value="media">
-                </span>
-                <span id="dashTaskEmpresaWrap"><select class="dash-task-sel" id="dashTaskEmpresa"></select></span>
+          <div style="display:grid;grid-template-columns:1fr 1fr">
+            <!-- Personal -->
+            <div style="border-right:1px solid var(--c-border)">
+              <div style="padding:6px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#22c55e;border-bottom:1px solid var(--c-border);background:var(--c-surface2)">💚 Personal</div>
+              <div id="dashTasksPersonal"></div>
+              <div style="padding:8px 12px;border-top:1px solid var(--c-border)">
+                <div style="display:flex;gap:5px;align-items:center">
+                  <input type="text" id="dashPersonalInput" placeholder="Nueva…" class="quick-add-input" autocomplete="off" style="font-size:12px;flex:1;min-width:0" onkeydown="if(event.key==='Enter')dashAddTask('personal')">
+                  <span style="display:inline-flex;gap:4px;align-items:center">
+                    <button id="dPA_alta"  onclick="setDashNewUrg('personal','alta')"  title="Alta"  style="width:11px;height:11px;border-radius:50%;background:#e53935;border:none;cursor:pointer;padding:0;opacity:.3"></button>
+                    <button id="dPA_media" onclick="setDashNewUrg('personal','media')" title="Media" style="width:11px;height:11px;border-radius:50%;background:#f59e0b;border:none;cursor:pointer;padding:0;opacity:1"></button>
+                    <button id="dPA_baja"  onclick="setDashNewUrg('personal','baja')"  title="Baja"  style="width:11px;height:11px;border-radius:50%;background:#22c55e;border:none;cursor:pointer;padding:0;opacity:.3"></button>
+                    <input type="hidden" id="dashPersonalUrg" value="media">
+                  </span>
+                  <button class="btn btn-primary btn-xs" onclick="dashAddTask('personal')">+</button>
+                </div>
               </div>
             </div>
-            <div id="dashTasks"></div>
+            <!-- Laboral -->
+            <div>
+              <div style="padding:6px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--c-gold);border-bottom:1px solid var(--c-border);background:var(--c-surface2)">💼 Laboral</div>
+              <div id="dashTasksLaboral"></div>
+              <div style="padding:8px 12px;border-top:1px solid var(--c-border)">
+                <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
+                  <input type="text" id="dashLaboralInput" placeholder="Nueva…" class="quick-add-input" autocomplete="off" style="font-size:12px;flex:1;min-width:60px" onkeydown="if(event.key==='Enter')dashAddTask('profesional')">
+                  <span style="display:inline-flex;gap:4px;align-items:center">
+                    <button id="dLA_alta"  onclick="setDashNewUrg('laboral','alta')"  title="Alta"  style="width:11px;height:11px;border-radius:50%;background:#e53935;border:none;cursor:pointer;padding:0;opacity:.3"></button>
+                    <button id="dLA_media" onclick="setDashNewUrg('laboral','media')" title="Media" style="width:11px;height:11px;border-radius:50%;background:#f59e0b;border:none;cursor:pointer;padding:0;opacity:1"></button>
+                    <button id="dLA_baja"  onclick="setDashNewUrg('laboral','baja')"  title="Baja"  style="width:11px;height:11px;border-radius:50%;background:#22c55e;border:none;cursor:pointer;padding:0;opacity:.3"></button>
+                    <input type="hidden" id="dashLaboralUrg" value="media">
+                  </span>
+                  <select class="dash-task-sel" id="dashLaboralEmpresa" style="max-width:90px"></select>
+                  <button class="btn btn-primary btn-xs" onclick="dashAddTask('profesional')">+</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1959,53 +1974,49 @@ function _getCoherenceIssues(sessions) {
   return issues;
 }
 function _renderDashTasks() {
-  const e2 = el('dashTasks'); if (!e2) return;
-  _populateSel('dashTaskEmpresa');
-  const tasks = STATE.tasks.filter(t => (!t.fecha || t.fecha === VIEW_DATE) && !t.done && t.estado !== 'done');
-  if (!tasks.length) { e2.innerHTML = '<div class="empty" style="padding:12px 0">Sin tareas.</div>'; return; }
+  _populateSel('dashLaboralEmpresa');
+  _renderDashTasksCol('personal', 'dashTasksPersonal');
+  _renderDashTasksCol('profesional', 'dashTasksLaboral');
+}
+function _renderDashTasksCol(tipo, containerId) {
+  const e2 = el(containerId); if (!e2) return;
+  const tasks = STATE.tasks.filter(t => (!t.fecha || t.fecha === VIEW_DATE) && !t.done && t.estado !== 'done' && (t.tipo||'profesional') === tipo);
+  if (!tasks.length) { e2.innerHTML = '<div style="padding:10px 16px;font-size:12px;color:var(--c-text3)">Sin tareas.</div>'; return; }
   const urgColors = { alta:'#e53935', media:'#f59e0b', baja:'#22c55e' };
-  const estadoOpts = [
-    ['pending','Pendiente'],['inprogress','En progreso'],['blocked','Bloqueada'],
-    ['waiting','En espera'],['review','En revisión'],['cancelled','Cancelada']
-  ];
+  const estadoOpts = [['pending','Pendiente'],['inprogress','En progreso'],['blocked','Bloqueada'],['waiting','En espera'],['review','En revisión'],['cancelled','Cancelada']];
   e2.innerHTML = tasks.map(t => {
     const ri = STATE.tasks.indexOf(t);
     const urgencia = t.urgencia || 'media';
-    const tipo = t.tipo || 'profesional';
     const estado = t.estado || 'pending';
     const empresa = t.empresa || '';
     const co = STATE.companies.find(c => c.id === empresa);
-    const borderColor = urgColors[urgencia] || urgColors.media;
-    const isPersonal = tipo === 'personal';
-    const tipoLabel = isPersonal ? '💚 Personal' : '💼 Profesional';
-    const tipoBorder = isPersonal ? '#22c55e' : 'var(--c-gold)';
-    const tipoColor = isPersonal ? '#22c55e' : 'var(--c-gold)';
+    const dotColor = urgColors[urgencia] || urgColors.media;
     const urgDots = ['alta','media','baja'].map(u => {
       const c = urgColors[u]; const active = urgencia === u;
-      return `<button onclick="dashTaskField(${ri},'urgencia','${u}')" title="${u}" style="width:11px;height:11px;border-radius:50%;background:${c};border:none;cursor:pointer;padding:0;opacity:${active?1:0.25};transform:scale(${active?1.3:1});transition:all .1s;flex-shrink:0"></button>`;
+      return `<button onclick="dashTaskField(${ri},'urgencia','${u}')" title="${u}" style="width:9px;height:9px;border-radius:50%;background:${c};border:none;cursor:pointer;padding:0;opacity:${active?1:0.22};transform:scale(${active?1.3:1});transition:all .1s;flex-shrink:0"></button>`;
     }).join('');
     const estOpts = estadoOpts.map(([v,l])=>`<option value="${v}"${estado===v?' selected':''}>${l}</option>`).join('');
     const coOpts = `<option value=""${!empresa?' selected':''}>Sin empresa</option>`+STATE.companies.map(c=>`<option value="${c.id}"${empresa===c.id?' selected':''}>${c.name}</option>`).join('');
-    const proSelects = isPersonal ? '' : `<select class="dash-task-sel" onchange="dashTaskField(${ri},'estado',this.value)">${estOpts}</select><select class="dash-task-sel" onchange="dashTaskField(${ri},'empresa',this.value)">${coOpts}</select>`;
-    return `<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0 8px 10px;border-bottom:1px solid var(--c-border);border-left:3px solid ${borderColor};margin-left:-4px">
+    const meta = tipo === 'profesional'
+      ? `${co?`<div style="font-size:10.5px;color:var(--c-text3);margin-top:1px">${co.name}</div>`:''}
+         <div style="display:flex;gap:4px;align-items:center;margin-top:4px;flex-wrap:wrap"><span style="display:inline-flex;gap:3px">${urgDots}</span><select class="dash-task-sel" onchange="dashTaskField(${ri},'estado',this.value)">${estOpts}</select><select class="dash-task-sel" onchange="dashTaskField(${ri},'empresa',this.value)">${coOpts}</select></div>`
+      : `<div style="display:inline-flex;gap:3px;margin-top:4px">${urgDots}</div>`;
+    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 14px;border-bottom:1px solid var(--c-border)">
       <input type="checkbox" style="margin-top:3px;accent-color:var(--c-gold);flex-shrink:0;cursor:pointer" onchange="quickToggleTask(${ri})">
+      <span class="dot" style="background:${dotColor};flex-shrink:0;margin-top:4px"></span>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;color:var(--c-text);line-height:1.4">${t.desc||t.titulo||''}</div>
-        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-top:5px">
-          <span onclick="dashTaskToggleTipo(${ri})" style="font-size:10.5px;padding:2px 7px;border-radius:3px;cursor:pointer;color:${tipoColor};border:1px solid ${tipoBorder}60;background:${tipoBorder}15;user-select:none">${tipoLabel}</span>
-          <span style="display:inline-flex;gap:4px;align-items:center">${urgDots}</span>
-          ${proSelects}
-        </div>
+        <div style="font-size:12.5px;font-weight:500;color:var(--c-text);line-height:1.4">${t.desc||t.titulo||''}</div>
+        ${meta}
       </div>
-      <button class="icon-btn" style="color:var(--c-red);flex-shrink:0;margin-top:1px" onclick="deleteTask(${ri})">✕</button>
+      <button class="icon-btn" style="color:var(--c-red);flex-shrink:0" onclick="deleteTask(${ri})">✕</button>
     </div>`;
   }).join('');
 }
-function dashAddTask() {
-  const inp = el('dashTaskInput'); if (!inp || !inp.value.trim()) return;
-  const urgencia = (el('dashTaskUrgencia')||{}).value || 'media';
-  const tipo = (el('dashTaskTipo')||{}).value || 'profesional';
-  const empresa = (el('dashTaskEmpresa')||{}).value || '';
+function dashAddTask(tipo) {
+  const isPersonal = tipo === 'personal';
+  const inp = el(isPersonal ? 'dashPersonalInput' : 'dashLaboralInput'); if (!inp || !inp.value.trim()) return;
+  const urgencia = (el(isPersonal ? 'dashPersonalUrg' : 'dashLaboralUrg')||{}).value || 'media';
+  const empresa = isPersonal ? '' : ((el('dashLaboralEmpresa')||{}).value || '');
   STATE.tasks.push({ id:'t'+Date.now(), desc:inp.value.trim(), titulo:inp.value.trim(), fecha:VIEW_DATE, estado:'pending', urgencia, tipo, empresa, etiqueta:'', nota:'', done:false });
   inp.value = ''; save(); _renderDashTasks();
 }
@@ -2020,12 +2031,10 @@ function dashTaskField(i, field, value) {
   if (field === 'estado') { t.done = value === 'done'; }
   save(); _renderDashTasks(); renderDashboard();
 }
-function setDashNewUrgencia(u) {
-  const inp = el('dashTaskUrgencia'); if (inp) inp.value = u;
-  ['alta','media','baja'].forEach(x => { const b = el('dashNewUrg_'+x); if (b) b.style.opacity = x===u?'1':'0.3'; });
-}
-function onDashNewTipoChange(val) {
-  const w = el('dashTaskEmpresaWrap'); if (w) w.style.display = val==='personal'?'none':'';
+function setDashNewUrg(col, u) {
+  const prefix = col === 'personal' ? 'dPA' : 'dLA';
+  const inp = el(col === 'personal' ? 'dashPersonalUrg' : 'dashLaboralUrg'); if (inp) inp.value = u;
+  ['alta','media','baja'].forEach(x => { const b = el(prefix+'_'+x); if (b) b.style.opacity = x===u?'1':'0.3'; });
 }
 function dashTaskToggleTipo(i) {
   const t = STATE.tasks[i]; if (!t) return;
