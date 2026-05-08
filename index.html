@@ -261,15 +261,15 @@ a{color:inherit}
 .ttab.active{color:var(--c-gold);border-bottom:2px solid var(--c-gold);font-weight:500}
 
 /* ── BANNERS ─────────────────────────────────── */
-.banner{display:none;align-items:center;gap:10px;padding:9px 24px;font-size:12.5px;flex-shrink:0;border-bottom:1px solid transparent}
+.banner{display:none;align-items:center;gap:12px;padding:13px 28px;font-size:14px;font-weight:500;flex-shrink:0;border-bottom:2px solid transparent}
 .banner.visible{display:flex}
-.banner.productive{background:var(--c-teal-bg);border-color:var(--c-teal-bd);color:var(--c-teal)}
+.banner.productive{background:var(--c-teal-bg);border-color:var(--c-teal);color:var(--c-teal)}
 .banner.on-break{background:var(--c-amber-bg);border-color:var(--c-amber-bd);color:var(--c-amber)}
 .banner.transit{background:var(--c-transit-bg);border-color:var(--c-transit-bd);color:var(--c-transit)}
 .banner.warn{background:var(--c-red-bg);border-color:var(--c-red-bd);color:var(--c-red)}
-.banner-dot{width:8px;height:8px;border-radius:50%;background:currentColor;flex-shrink:0;animation:pulse-anim 1.6s infinite}
-.banner-stop{margin-left:auto;padding:4px 12px;border-radius:var(--r-sm);border:1px solid currentColor;background:transparent;color:inherit;font-size:11.5px;font-weight:500;cursor:pointer}
-.banner-stop:hover{opacity:.8}
+.banner-dot{width:11px;height:11px;border-radius:50%;background:currentColor;flex-shrink:0;animation:pulse-anim 1.6s infinite}
+.banner-stop{margin-left:auto;padding:6px 18px;border-radius:var(--r-sm);border:2px solid currentColor;background:transparent;color:inherit;font-size:12.5px;font-weight:600;cursor:pointer;letter-spacing:.3px}
+.banner-stop:hover{background:currentColor;color:#fff}
 .banner-dismiss{padding:4px 10px;border-radius:var(--r-sm);border:1px solid currentColor;background:transparent;color:inherit;font-size:11.5px;cursor:pointer;opacity:.7}
 
 /* ── DATE NAV ────────────────────────────────── */
@@ -1630,6 +1630,10 @@ function toggleTimer() {
   } else {
     const coId = (el('timerSel') && el('timerSel').value) || (el('mTimerSel') && el('mTimerSel').value) || '';
     if (!coId) { showToast('Selecciona una empresa primero'); return; }
+    const actSel = el('timerActivity') || el('mTimerActivity');
+    const actCustom = el('timerCustomAct') || el('mTimerCustomAct');
+    const act = actSel ? (actSel.value === '__custom__' ? ((actCustom||{}).value||'').trim() : actSel.value) : '';
+    if (!act) { showToast('Selecciona la actividad antes de iniciar'); return; }
     startWork(coId);
   }
 }
