@@ -1095,6 +1095,15 @@ tr:hover .td-actions{opacity:1}
     <div class="page-content">
       <!-- KPIs -->
       <div class="ana-kpi-row" id="anaKpiRow"></div>
+      <!-- Sesiones sin actividad -->
+      <div class="card" id="anaSinActCard" style="margin-bottom:14px;display:none">
+        <div class="card-header">
+          <span class="card-title">⚠ Sesiones sin actividad</span>
+          <span id="anaSinActCount" style="font-size:11.5px;color:var(--c-red)"></span>
+        </div>
+        <div style="font-size:11.5px;color:var(--c-text3);padding:0 16px 8px">Estas sesiones productivas no tienen actividad registrada. Asígnales una para tener un estado real.</div>
+        <div style="padding:0" id="anaSinActBody"></div>
+      </div>
       <!-- Actividades por empresa (visible solo con filtro activo) -->
       <div class="card" id="anaActCard" style="margin-bottom:14px;display:none">
         <div class="card-header">
@@ -2195,7 +2204,11 @@ function saveEditSess() {
   const [ih,im]=ini.split(':').map(Number),[fh,fm]=fin.split(':').map(Number);
   const mins=(fh*60+fm)-(ih*60+im);
   if(mins<=0){if(el('editOverlapAlert'))el('editOverlapAlert').textContent='Fin debe ser después de inicio';return;}
-  day.sessions[idx]={...day.sessions[idx],mode:(el('editSessTipo')||{}).value||day.sessions[idx].mode,companyId:(el('editSessEmpresa')||{}).value||'',startDisplay:ini,endDisplay:fin,mins,nota:(()=>{const _sel=el('editSessActSel'),_cust=el('editSessCustomAct');if(!_sel)return'';return _sel.value==='__custom__'?((_cust&&_cust.value)||'').trim():_sel.value;})()};
+  const _editMode=(el('editSessTipo')||{}).value||day.sessions[idx].mode;
+  const _editNota=(()=>{const _sel=el('editSessActSel'),_cust=el('editSessCustomAct');if(!_sel)return'';return _sel.value==='__custom__'?((_cust&&_cust.value)||'').trim():_sel.value;})();
+  const _editCoId=(el('editSessEmpresa')||{}).value||'';
+  if(_editMode==='productive'&&_editCoId&&!_editNota){if(el('editOverlapAlert'))el('editOverlapAlert').textContent='La actividad es obligatoria';return;}
+  day.sessions[idx]={...day.sessions[idx],mode:_editMode,companyId:_editCoId,startDisplay:ini,endDisplay:fin,mins,nota:_editNota};
   save(); closeModal('modalSess'); showToast('Sesión actualizada'); renderDashboard();
 }
 
@@ -2282,6 +2295,7 @@ function saveManual(){
   const mins=(fh*60+fm)-(ih*60+im);
   if(mins<=0){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Fin debe ser después de inicio';return;}
   if(tipo==='productive'&&!coId){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='Selecciona la empresa';return;}
+  if(tipo==='productive'&&coId&&!nota){if(el('manualOverlapAlert'))el('manualOverlapAlert').textContent='La actividad es obligatoria para sesiones productivas';return;}
   const billable=tipo==='productive';
   if(nota&&tipo==='productive'){const _a2=STATE.activities&&STATE.activities.find(a=>a.name===nota);if(_a2)_a2.uses=(_a2.uses||0)+1;}
   getDay(ds).sessions.push({mode:tipo,companyId:coId,breakType:'',startIso:ds+'T'+ini+':00',endIso:ds+'T'+fin+':00',startDisplay:ini,endDisplay:fin,mins,nota,billable,manual:true});
@@ -2466,7 +2480,8 @@ function renderAnalytics() {
 
   const dates=_getAnaDates();
   if(_anaView==='range'&&!dates.length){
-    ['anaKpiRow','anaChart','anaCoTable','anaBreakTable','anaActTimeTable','anaBillTable','anaHourChart','anaWdayChart','anaInsights','anaActTable'].forEach(id=>{const e=el(id);if(e)e.innerHTML='<div class="empty">Selecciona un rango y presiona Aplicar.</div>';});
+    ['anaKpiRow','anaChart','anaCoTable','anaBreakTable','anaActTimeTable','anaBillTable','anaHourChart','anaWdayChart','anaInsights','anaActTable','anaSinActBody'].forEach(id=>{const e=el(id);if(e)e.innerHTML='<div class="empty">Selecciona un rango y presiona Aplicar.</div>';});
+    if(el('anaSinActCard'))el('anaSinActCard').style.display='none';
     if(el('anaPeriodLabel'))el('anaPeriodLabel').textContent='';
     return;
   }
@@ -2743,6 +2758,63 @@ function renderAnalytics() {
       actCard.style.display='none';
     }
   }
+
+  // ── Sesiones sin actividad ──
+  const sinActCard=el('anaSinActCard'), sinActBody=el('anaSinActBody');
+  if(sinActCard&&sinActBody){
+    const knownActs=new Set((STATE.activities||[]).map(a=>a.name));
+    const sinAct=[];
+    dates.forEach(ds=>{
+      ((STATE.days[ds]&&STATE.days[ds].sessions)||[]).forEach((s,si)=>{
+        if(s.mode==='productive'&&(!coFilter||s.companyId===coFilter)){
+          if(!s.nota||!knownActs.has(s.nota)) sinAct.push({...s,_ds:ds,_si:si});
+        }
+      });
+    });
+    if(sinAct.length){
+      sinActCard.style.display='block';
+      if(el('anaSinActCount'))el('anaSinActCount').textContent=`${sinAct.length} sesión${sinAct.length!==1?'es':''} pendiente${sinAct.length!==1?'s':''}`;
+      const actOpts='<option value="">— Actividad —</option>'+(STATE.activities||[]).sort((a,b)=>a.name.localeCompare(b.name)).map(a=>`<option value="${a.name}">${a.name}</option>`).join('');
+      sinActBody.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="border-bottom:1px solid var(--c-border);background:var(--c-surface2)">
+          <th style="text-align:left;padding:7px 12px;font-weight:600;font-size:11px;color:var(--c-text3)">Fecha</th>
+          <th style="text-align:left;padding:7px 12px;font-weight:600;font-size:11px;color:var(--c-text3)">Empresa</th>
+          <th style="text-align:left;padding:7px 12px;font-weight:600;font-size:11px;color:var(--c-text3)">Horario</th>
+          <th style="text-align:right;padding:7px 12px;font-weight:600;font-size:11px;color:var(--c-text3)">Dur.</th>
+          <th style="padding:7px 12px;font-weight:600;font-size:11px;color:var(--c-text3)">Lo que se hizo</th>
+        </tr></thead>
+        <tbody>${sinAct.map(s=>{
+          const co=STATE.companies.find(c=>c.id===s.companyId);
+          const dateLbl=new Date(s._ds+'T12:00:00').toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short'});
+          const dur=Math.floor(s.mins/60)>0?`${Math.floor(s.mins/60)}h ${s.mins%60}m`:`${s.mins%60}m`;
+          const currentNota=s.nota||'';
+          return`<tr style="border-bottom:1px solid var(--c-border)">
+            <td style="padding:7px 12px;color:var(--c-text3);white-space:nowrap">${dateLbl}</td>
+            <td style="padding:7px 12px;white-space:nowrap">${co?co.name:'Sin empresa'}</td>
+            <td style="padding:7px 12px;color:var(--c-text3);white-space:nowrap">${s.startDisplay}–${s.endDisplay}</td>
+            <td style="padding:7px 12px;text-align:right;font-weight:600;color:var(--c-teal);white-space:nowrap">${dur}</td>
+            <td style="padding:6px 12px">
+              <div style="display:flex;gap:6px;align-items:center">
+                <select id="sinActSel_${s._ds}_${s._si}" style="font-size:11.5px;padding:3px 7px;border-radius:6px;border:1px solid var(--c-border);background:var(--c-surface);flex:1">${actOpts.replace(`value="${currentNota}"`,`value="${currentNota}" selected`)}</select>
+                <button class="btn btn-primary btn-xs" onclick="assignSessActivity('${s._ds}',${s._si})">✓</button>
+              </div>
+            </td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`;
+    } else {
+      sinActCard.style.display='none';
+    }
+  }
+}
+
+function assignSessActivity(ds, si) {
+  const sel=el(`sinActSel_${ds}_${si}`); if(!sel||!sel.value)return;
+  const day=STATE.days[ds]; if(!day||!day.sessions[si])return;
+  day.sessions[si].nota=sel.value;
+  const act=STATE.activities&&STATE.activities.find(a=>a.name===sel.value);
+  if(act)act.uses=(act.uses||0)+1;
+  save(); renderAnalytics(); showToast('Actividad asignada');
 }
 
 // ── Gestión de usuarios ───────────────────────────────────────────────────────
