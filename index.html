@@ -1980,7 +1980,9 @@ function _renderDashTasks() {
 }
 function _renderDashTasksCol(tipo, containerId) {
   const e2 = el(containerId); if (!e2) return;
-  const tasks = STATE.tasks.filter(t => (!t.fecha || t.fecha === VIEW_DATE) && !t.done && t.estado !== 'done' && (t.tipo||'profesional') === tipo);
+  let tasks = STATE.tasks.filter(t => (!t.fecha || t.fecha === VIEW_DATE) && !t.done && t.estado !== 'done' && (t.tipo||'profesional') === tipo);
+  // Alta urgencia primero
+  tasks = [...tasks.filter(t=>(t.urgencia||'media')==='alta'), ...tasks.filter(t=>(t.urgencia||'media')!=='alta')];
   if (!tasks.length) { e2.innerHTML = '<div style="padding:10px 16px;font-size:12px;color:var(--c-text3)">Sin tareas.</div>'; return; }
   const urgColors = { alta:'#ef4444', media:'#eab308', baja:'#22c55e' };
   const estadoOpts = [['pending','Pendiente'],['inprogress','En progreso'],['blocked','Bloqueada'],['waiting','En espera'],['review','En revisión'],['cancelled','Cancelada']];
@@ -1990,6 +1992,7 @@ function _renderDashTasksCol(tipo, containerId) {
     const estado = t.estado || 'pending';
     const empresa = t.empresa || '';
     const co = STATE.companies.find(c => c.id === empresa);
+    const isAlta = urgencia === 'alta';
     const dotColor = urgColors[urgencia] || urgColors.media;
     const urgDots = ['alta','media','baja'].map(u => {
       const c = urgColors[u]; const active = urgencia === u;
@@ -1997,15 +2000,18 @@ function _renderDashTasksCol(tipo, containerId) {
     }).join('');
     const estOpts = estadoOpts.map(([v,l])=>`<option value="${v}"${estado===v?' selected':''}>${l}</option>`).join('');
     const coOpts = `<option value=""${!empresa?' selected':''}>Sin empresa</option>`+STATE.companies.map(c=>`<option value="${c.id}"${empresa===c.id?' selected':''}>${c.name}</option>`).join('');
+    const empresaSel = !empresa ? `<select class="dash-task-sel" onchange="dashTaskField(${ri},'empresa',this.value)">${coOpts}</select>` : '';
     const meta = tipo === 'profesional'
       ? `${co?`<div style="font-size:10.5px;color:var(--c-text3);margin-top:1px">${co.name}</div>`:''}
-         <div style="display:flex;gap:4px;align-items:center;margin-top:4px;flex-wrap:wrap"><span style="display:inline-flex;gap:3px">${urgDots}</span><select class="dash-task-sel" onchange="dashTaskField(${ri},'estado',this.value)">${estOpts}</select><select class="dash-task-sel" onchange="dashTaskField(${ri},'empresa',this.value)">${coOpts}</select></div>`
+         <div style="display:flex;gap:4px;align-items:center;margin-top:4px;flex-wrap:wrap"><span style="display:inline-flex;gap:3px">${urgDots}</span><select class="dash-task-sel" onchange="dashTaskField(${ri},'estado',this.value)">${estOpts}</select>${empresaSel}</div>`
       : `<div style="display:inline-flex;gap:3px;margin-top:4px">${urgDots}</div>`;
-    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 14px;border-bottom:1px solid var(--c-border)">
+    const rowBg = isAlta ? 'background:#fef2f2;' : '';
+    const flagIcon = isAlta ? '<span style="font-size:12px;line-height:1;flex-shrink:0" title="Urgente">🚩</span>' : '';
+    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 14px;border-bottom:1px solid var(--c-border);${rowBg}">
       <input type="checkbox" style="margin-top:3px;accent-color:var(--c-gold);flex-shrink:0;cursor:pointer" onchange="quickToggleTask(${ri})">
       <span class="dot" style="background:${dotColor};flex-shrink:0;margin-top:4px"></span>
       <div style="flex:1;min-width:0">
-        <div style="font-size:12.5px;font-weight:500;color:var(--c-text);line-height:1.4">${t.desc||t.titulo||''}</div>
+        <div style="font-size:12.5px;font-weight:${isAlta?600:500};color:var(--c-text);line-height:1.4;display:flex;align-items:center;gap:5px">${t.desc||t.titulo||''}${flagIcon}</div>
         ${meta}
       </div>
       <button class="icon-btn" style="color:var(--c-red);flex-shrink:0" onclick="deleteTask(${ri})">✕</button>
