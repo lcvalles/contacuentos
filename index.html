@@ -2057,8 +2057,18 @@ function clearDoneTasks() {
 }
 function movePendingToday() {
   const today = todayStr();
-  STATE.tasks.forEach(t => { if (!t.done && t.estado !== 'done' && t.fecha && t.fecha < today) t.fecha = today; });
+  let count = 0;
+  STATE.tasks.forEach(t => {
+    if (!t.done && t.estado !== 'done' && t.fecha && t.fecha < today) {
+      t.fecha = today;
+      if (!t.urgencia) t.urgencia = 'media';
+      if (!t.tipo) t.tipo = 'profesional';
+      count++;
+    }
+  });
+  if (!count) { showToast('No hay tareas pendientes de días anteriores'); return; }
   save(); _renderDashTasks();
+  showToast(`${count} tarea${count>1?'s':''} traída${count>1?'s':''} al día de hoy`);
 }
 function _renderCoBars(coMins) {
   const e2 = el('coBreakdown'); if (!e2) return;
