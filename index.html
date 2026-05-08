@@ -2622,6 +2622,7 @@ function renderAnalytics() {
   }
 
   // ── Franja horaria más productiva ──
+  const ANA_BAR_MAX=52;
   const hourEl=el('anaHourChart');
   if(hourEl){
     const hMap={};
@@ -2630,7 +2631,6 @@ function renderAnalytics() {
     });});
     const maxH2=Math.max(...Object.values(hMap),1);
     const peak=Object.entries(hMap).sort((a,b)=>b[1]-a[1])[0];
-    const ANA_BAR_MAX=52;
     hourEl.innerHTML=`${peak?`<div style="font-size:11px;color:var(--c-text3);margin-bottom:8px">Pico: <strong style="color:var(--c-teal)">${peak[0]}:00–${+peak[0]+1}:00</strong> (${fmtMins(peak[1])})</div>`:''}
       <div class="hour-grid">${Array.from({length:16},(_,i)=>i+6).map(h=>{
         const m=hMap[h]||0, isPeak=peak&&+peak[0]===h;
