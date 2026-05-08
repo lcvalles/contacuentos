@@ -838,7 +838,10 @@ tr:hover .td-actions{opacity:1}
         <div class="card">
           <div class="card-header">
             <span class="card-title">Tareas</span>
-            <button class="btn btn-secondary btn-xs" onclick="movePendingToday()">↓ Traer pendientes</button>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-secondary btn-xs" onclick="movePendingToday()">↓ Traer pendientes</button>
+              <button class="btn btn-secondary btn-xs" style="color:var(--c-red)" onclick="clearDoneTasks()">✕ Limpiar realizadas</button>
+            </div>
           </div>
           <div style="padding:0 16px">
             <div class="quick-add-row">
@@ -1966,6 +1969,13 @@ function quickToggleTask(i) {
   const t = STATE.tasks[i]; if (!t) return;
   t.done = !t.done; t.estado = t.done ? 'done' : 'pending';
   save(); _renderDashTasks(); renderDashboard();
+}
+function clearDoneTasks() {
+  const done = STATE.tasks.filter(t => t.done || t.estado === 'done');
+  if (!done.length) { showToast('No hay tareas realizadas'); return; }
+  STATE.tasks = STATE.tasks.filter(t => !t.done && t.estado !== 'done');
+  save(); _renderDashTasks(); renderDashboard();
+  showToast(`${done.length} tarea${done.length>1?'s':''} eliminada${done.length>1?'s':''}`);
 }
 function movePendingToday() {
   const today = todayStr();
