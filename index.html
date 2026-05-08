@@ -847,17 +847,18 @@ tr:hover .td-actions{opacity:1}
                 <input type="text" class="quick-add-input" id="dashTaskInput" placeholder="Nueva tarea… (Enter)" autocomplete="off" onkeydown="if(event.key==='Enter')dashAddTask()">
                 <button class="btn btn-primary btn-xs" onclick="dashAddTask()">+ Agregar</button>
               </div>
-              <div style="display:flex;gap:5px;flex-wrap:wrap">
-                <select class="dash-task-sel" id="dashTaskUrgencia">
-                  <option value="media">Urgencia: Media</option>
-                  <option value="alta">Urgencia: Alta</option>
-                  <option value="baja">Urgencia: Baja</option>
-                </select>
-                <select class="dash-task-sel" id="dashTaskTipo">
+              <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">
+                <select class="dash-task-sel" id="dashTaskTipo" onchange="onDashNewTipoChange(this.value)">
                   <option value="profesional">💼 Profesional</option>
-                  <option value="personal">👤 Personal</option>
+                  <option value="personal">💚 Personal</option>
                 </select>
-                <select class="dash-task-sel" id="dashTaskEmpresa"></select>
+                <span style="display:inline-flex;gap:5px;align-items:center" title="Urgencia">
+                  <button id="dashNewUrg_alta" onclick="setDashNewUrgencia('alta')" title="Alta" style="width:13px;height:13px;border-radius:50%;background:#e53935;border:none;cursor:pointer;padding:0;opacity:0.3"></button>
+                  <button id="dashNewUrg_media" onclick="setDashNewUrgencia('media')" title="Media" style="width:13px;height:13px;border-radius:50%;background:#f59e0b;border:none;cursor:pointer;padding:0;opacity:1"></button>
+                  <button id="dashNewUrg_baja" onclick="setDashNewUrgencia('baja')" title="Baja" style="width:13px;height:13px;border-radius:50%;background:#22c55e;border:none;cursor:pointer;padding:0;opacity:0.3"></button>
+                  <input type="hidden" id="dashTaskUrgencia" value="media">
+                </span>
+                <span id="dashTaskEmpresaWrap"><select class="dash-task-sel" id="dashTaskEmpresa"></select></span>
               </div>
             </div>
             <div id="dashTasks"></div>
@@ -1975,21 +1976,25 @@ function _renderDashTasks() {
     const empresa = t.empresa || '';
     const co = STATE.companies.find(c => c.id === empresa);
     const borderColor = urgColors[urgencia] || urgColors.media;
-    const tipoLabel = tipo === 'personal' ? '👤 Personal' : '💼 Profesional';
-    const tipoBorder = tipo === 'personal' ? '#94a3b8' : 'var(--c-gold)';
-    const tipoColor = tipo === 'personal' ? 'var(--c-text3)' : 'var(--c-gold)';
-    const urgOpts = ['alta','media','baja'].map(u=>`<option value="${u}"${urgencia===u?' selected':''}>${u.charAt(0).toUpperCase()+u.slice(1)}</option>`).join('');
+    const isPersonal = tipo === 'personal';
+    const tipoLabel = isPersonal ? '💚 Personal' : '💼 Profesional';
+    const tipoBorder = isPersonal ? '#22c55e' : 'var(--c-gold)';
+    const tipoColor = isPersonal ? '#22c55e' : 'var(--c-gold)';
+    const urgDots = ['alta','media','baja'].map(u => {
+      const c = urgColors[u]; const active = urgencia === u;
+      return `<button onclick="dashTaskField(${ri},'urgencia','${u}')" title="${u}" style="width:11px;height:11px;border-radius:50%;background:${c};border:none;cursor:pointer;padding:0;opacity:${active?1:0.25};transform:scale(${active?1.3:1});transition:all .1s;flex-shrink:0"></button>`;
+    }).join('');
     const estOpts = estadoOpts.map(([v,l])=>`<option value="${v}"${estado===v?' selected':''}>${l}</option>`).join('');
     const coOpts = `<option value=""${!empresa?' selected':''}>Sin empresa</option>`+STATE.companies.map(c=>`<option value="${c.id}"${empresa===c.id?' selected':''}>${c.name}</option>`).join('');
+    const proSelects = isPersonal ? '' : `<select class="dash-task-sel" onchange="dashTaskField(${ri},'estado',this.value)">${estOpts}</select><select class="dash-task-sel" onchange="dashTaskField(${ri},'empresa',this.value)">${coOpts}</select>`;
     return `<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0 8px 10px;border-bottom:1px solid var(--c-border);border-left:3px solid ${borderColor};margin-left:-4px">
       <input type="checkbox" style="margin-top:3px;accent-color:var(--c-gold);flex-shrink:0;cursor:pointer" onchange="quickToggleTask(${ri})">
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;color:var(--c-text);line-height:1.4">${t.desc||t.titulo||''}</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-top:5px">
           <span onclick="dashTaskToggleTipo(${ri})" style="font-size:10.5px;padding:2px 7px;border-radius:3px;cursor:pointer;color:${tipoColor};border:1px solid ${tipoBorder}60;background:${tipoBorder}15;user-select:none">${tipoLabel}</span>
-          <select class="dash-task-sel" onchange="dashTaskField(${ri},'urgencia',this.value)">${urgOpts}</select>
-          <select class="dash-task-sel" onchange="dashTaskField(${ri},'estado',this.value)">${estOpts}</select>
-          <select class="dash-task-sel" onchange="dashTaskField(${ri},'empresa',this.value)">${coOpts}</select>
+          <span style="display:inline-flex;gap:4px;align-items:center">${urgDots}</span>
+          ${proSelects}
         </div>
       </div>
       <button class="icon-btn" style="color:var(--c-red);flex-shrink:0;margin-top:1px" onclick="deleteTask(${ri})">✕</button>
@@ -2014,6 +2019,13 @@ function dashTaskField(i, field, value) {
   t[field] = value;
   if (field === 'estado') { t.done = value === 'done'; }
   save(); _renderDashTasks(); renderDashboard();
+}
+function setDashNewUrgencia(u) {
+  const inp = el('dashTaskUrgencia'); if (inp) inp.value = u;
+  ['alta','media','baja'].forEach(x => { const b = el('dashNewUrg_'+x); if (b) b.style.opacity = x===u?'1':'0.3'; });
+}
+function onDashNewTipoChange(val) {
+  const w = el('dashTaskEmpresaWrap'); if (w) w.style.display = val==='personal'?'none':'';
 }
 function dashTaskToggleTipo(i) {
   const t = STATE.tasks[i]; if (!t) return;
