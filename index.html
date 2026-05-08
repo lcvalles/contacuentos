@@ -850,9 +850,9 @@ tr:hover .td-actions{opacity:1}
                 <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
                   <input type="text" id="dashLaboralInput" placeholder="Nueva…" class="quick-add-input" autocomplete="off" style="font-size:12px;flex:1;min-width:60px" onkeydown="if(event.key==='Enter')dashAddTask('profesional')">
                   <span style="display:inline-flex;gap:4px;align-items:center">
-                    <button id="dLA_alta"  onclick="setDashNewUrg('laboral','alta')"  title="Alta"  style="width:11px;height:11px;border-radius:50%;background:#b91c1c;border:none;cursor:pointer;padding:0;opacity:.3"></button>
-                    <button id="dLA_media" onclick="setDashNewUrg('laboral','media')" title="Media" style="width:11px;height:11px;border-radius:50%;background:#b45309;border:none;cursor:pointer;padding:0;opacity:1"></button>
-                    <button id="dLA_baja"  onclick="setDashNewUrg('laboral','baja')"  title="Baja"  style="width:11px;height:11px;border-radius:50%;background:#15803d;border:none;cursor:pointer;padding:0;opacity:.3"></button>
+                    <button id="dLA_alta"  onclick="setDashNewUrg('laboral','alta')"  title="Alta"  style="width:11px;height:11px;border-radius:50%;background:#ef4444;border:none;cursor:pointer;padding:0;opacity:.3"></button>
+                    <button id="dLA_media" onclick="setDashNewUrg('laboral','media')" title="Media" style="width:11px;height:11px;border-radius:50%;background:#eab308;border:none;cursor:pointer;padding:0;opacity:1"></button>
+                    <button id="dLA_baja"  onclick="setDashNewUrg('laboral','baja')"  title="Baja"  style="width:11px;height:11px;border-radius:50%;background:#22c55e;border:none;cursor:pointer;padding:0;opacity:.3"></button>
                     <input type="hidden" id="dashLaboralUrg" value="media">
                   </span>
                   <select class="dash-task-sel" id="dashLaboralEmpresa" style="max-width:90px"></select>
@@ -868,9 +868,9 @@ tr:hover .td-actions{opacity:1}
                 <div style="display:flex;gap:5px;align-items:center">
                   <input type="text" id="dashPersonalInput" placeholder="Nueva…" class="quick-add-input" autocomplete="off" style="font-size:12px;flex:1;min-width:0" onkeydown="if(event.key==='Enter')dashAddTask('personal')">
                   <span style="display:inline-flex;gap:4px;align-items:center">
-                    <button id="dPA_alta"  onclick="setDashNewUrg('personal','alta')"  title="Alta"  style="width:11px;height:11px;border-radius:50%;background:#b91c1c;border:none;cursor:pointer;padding:0;opacity:.3"></button>
-                    <button id="dPA_media" onclick="setDashNewUrg('personal','media')" title="Media" style="width:11px;height:11px;border-radius:50%;background:#b45309;border:none;cursor:pointer;padding:0;opacity:1"></button>
-                    <button id="dPA_baja"  onclick="setDashNewUrg('personal','baja')"  title="Baja"  style="width:11px;height:11px;border-radius:50%;background:#15803d;border:none;cursor:pointer;padding:0;opacity:.3"></button>
+                    <button id="dPA_alta"  onclick="setDashNewUrg('personal','alta')"  title="Alta"  style="width:11px;height:11px;border-radius:50%;background:#ef4444;border:none;cursor:pointer;padding:0;opacity:.3"></button>
+                    <button id="dPA_media" onclick="setDashNewUrg('personal','media')" title="Media" style="width:11px;height:11px;border-radius:50%;background:#eab308;border:none;cursor:pointer;padding:0;opacity:1"></button>
+                    <button id="dPA_baja"  onclick="setDashNewUrg('personal','baja')"  title="Baja"  style="width:11px;height:11px;border-radius:50%;background:#22c55e;border:none;cursor:pointer;padding:0;opacity:.3"></button>
                     <input type="hidden" id="dashPersonalUrg" value="media">
                   </span>
                   <button class="btn btn-primary btn-xs" onclick="dashAddTask('personal')">+</button>
@@ -1982,7 +1982,7 @@ function _renderDashTasksCol(tipo, containerId) {
   const e2 = el(containerId); if (!e2) return;
   const tasks = STATE.tasks.filter(t => (!t.fecha || t.fecha === VIEW_DATE) && !t.done && t.estado !== 'done' && (t.tipo||'profesional') === tipo);
   if (!tasks.length) { e2.innerHTML = '<div style="padding:10px 16px;font-size:12px;color:var(--c-text3)">Sin tareas.</div>'; return; }
-  const urgColors = { alta:'#b91c1c', media:'#b45309', baja:'#15803d' };
+  const urgColors = { alta:'#ef4444', media:'#eab308', baja:'#22c55e' };
   const estadoOpts = [['pending','Pendiente'],['inprogress','En progreso'],['blocked','Bloqueada'],['waiting','En espera'],['review','En revisión'],['cancelled','Cancelada']];
   e2.innerHTML = tasks.map(t => {
     const ri = STATE.tasks.indexOf(t);
