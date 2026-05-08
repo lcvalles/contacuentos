@@ -471,6 +471,7 @@ tr:hover .td-actions{opacity:1}
 .task-tag{font-size:10.5px;padding:1px 7px;border-radius:3px;background:var(--c-gold-bg);color:var(--c-gold);border:1px solid var(--c-gold-bd)}
 .task-actions{display:flex;gap:4px;opacity:0;transition:opacity .15s}
 .task-item:hover .task-actions{opacity:1}
+.dash-task-sel{font-size:11px;padding:2px 5px;border-radius:4px;border:1px solid var(--c-border);background:var(--c-surface);color:var(--c-text2);cursor:pointer;line-height:1.4}
 .quick-add-row{display:flex;gap:7px;padding:10px 0 8px;border-bottom:1px solid var(--c-border)}
 .quick-add-input{flex:1;background:var(--c-surface3);border:1px solid var(--c-border);border-radius:var(--r-sm);color:var(--c-text);font-size:12.5px;padding:6px 10px;outline:none;transition:border-color .15s,background .15s}
 .quick-add-input:focus{border-color:var(--c-gold);background:var(--c-surface)}
@@ -841,9 +842,23 @@ tr:hover .td-actions{opacity:1}
             <button class="btn btn-secondary btn-xs" onclick="movePendingToday()">↓ Traer pendientes</button>
           </div>
           <div style="padding:0 16px">
-            <div class="quick-add-row">
-              <input type="text" class="quick-add-input" id="dashTaskInput" placeholder="Nueva tarea… (Enter)" autocomplete="off" onkeydown="if(event.key==='Enter')dashAddTask()">
-              <button class="btn btn-primary btn-xs" onclick="dashAddTask()">+ Agregar</button>
+            <div style="padding:10px 0 6px;border-bottom:1px solid var(--c-border)">
+              <div class="quick-add-row" style="padding:0 0 6px;border-bottom:none">
+                <input type="text" class="quick-add-input" id="dashTaskInput" placeholder="Nueva tarea… (Enter)" autocomplete="off" onkeydown="if(event.key==='Enter')dashAddTask()">
+                <button class="btn btn-primary btn-xs" onclick="dashAddTask()">+ Agregar</button>
+              </div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap">
+                <select class="dash-task-sel" id="dashTaskUrgencia">
+                  <option value="media">Urgencia: Media</option>
+                  <option value="alta">Urgencia: Alta</option>
+                  <option value="baja">Urgencia: Baja</option>
+                </select>
+                <select class="dash-task-sel" id="dashTaskTipo">
+                  <option value="profesional">💼 Profesional</option>
+                  <option value="personal">👤 Personal</option>
+                </select>
+                <select class="dash-task-sel" id="dashTaskEmpresa"></select>
+              </div>
             </div>
             <div id="dashTasks"></div>
           </div>
@@ -1944,26 +1959,66 @@ function _getCoherenceIssues(sessions) {
 }
 function _renderDashTasks() {
   const e2 = el('dashTasks'); if (!e2) return;
+  _populateSel('dashTaskEmpresa');
   const tasks = STATE.tasks.filter(t => (!t.fecha || t.fecha === VIEW_DATE) && !t.done && t.estado !== 'done');
   if (!tasks.length) { e2.innerHTML = '<div class="empty" style="padding:12px 0">Sin tareas.</div>'; return; }
+  const urgColors = { alta:'#e53935', media:'#f59e0b', baja:'#22c55e' };
+  const estadoOpts = [
+    ['pending','Pendiente'],['inprogress','En progreso'],['blocked','Bloqueada'],
+    ['waiting','En espera'],['review','En revisión'],['cancelled','Cancelada']
+  ];
   e2.innerHTML = tasks.map(t => {
-    const done = t.estado==='done' || t.done;
     const ri = STATE.tasks.indexOf(t);
-    return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--c-border)">
-      <input type="checkbox" ${done?'checked':''} onchange="quickToggleTask(${ri})">
-      <span style="flex:1;font-size:12.5px;${done?'text-decoration:line-through;color:var(--c-text3)':''}">${t.desc||t.titulo||''}</span>
+    const urgencia = t.urgencia || 'media';
+    const tipo = t.tipo || 'profesional';
+    const estado = t.estado || 'pending';
+    const empresa = t.empresa || '';
+    const co = STATE.companies.find(c => c.id === empresa);
+    const borderColor = urgColors[urgencia] || urgColors.media;
+    const tipoLabel = tipo === 'personal' ? '👤 Personal' : '💼 Profesional';
+    const tipoBorder = tipo === 'personal' ? '#94a3b8' : 'var(--c-gold)';
+    const tipoColor = tipo === 'personal' ? 'var(--c-text3)' : 'var(--c-gold)';
+    const urgOpts = ['alta','media','baja'].map(u=>`<option value="${u}"${urgencia===u?' selected':''}>${u.charAt(0).toUpperCase()+u.slice(1)}</option>`).join('');
+    const estOpts = estadoOpts.map(([v,l])=>`<option value="${v}"${estado===v?' selected':''}>${l}</option>`).join('');
+    const coOpts = `<option value=""${!empresa?' selected':''}>Sin empresa</option>`+STATE.companies.map(c=>`<option value="${c.id}"${empresa===c.id?' selected':''}>${c.name}</option>`).join('');
+    return `<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0 8px 10px;border-bottom:1px solid var(--c-border);border-left:3px solid ${borderColor};margin-left:-4px">
+      <input type="checkbox" style="margin-top:3px;accent-color:var(--c-gold);flex-shrink:0;cursor:pointer" onchange="quickToggleTask(${ri})">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;color:var(--c-text);line-height:1.4">${t.desc||t.titulo||''}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-top:5px">
+          <span onclick="dashTaskToggleTipo(${ri})" style="font-size:10.5px;padding:2px 7px;border-radius:3px;cursor:pointer;color:${tipoColor};border:1px solid ${tipoBorder}60;background:${tipoBorder}15;user-select:none">${tipoLabel}</span>
+          <select class="dash-task-sel" onchange="dashTaskField(${ri},'urgencia',this.value)">${urgOpts}</select>
+          <select class="dash-task-sel" onchange="dashTaskField(${ri},'estado',this.value)">${estOpts}</select>
+          <select class="dash-task-sel" onchange="dashTaskField(${ri},'empresa',this.value)">${coOpts}</select>
+        </div>
+      </div>
+      <button class="icon-btn" style="color:var(--c-red);flex-shrink:0;margin-top:1px" onclick="deleteTask(${ri})">✕</button>
     </div>`;
   }).join('');
 }
 function dashAddTask() {
   const inp = el('dashTaskInput'); if (!inp || !inp.value.trim()) return;
-  STATE.tasks.push({ id:'t'+Date.now(), desc:inp.value.trim(), titulo:inp.value.trim(), fecha:VIEW_DATE, estado:'pending', empresa:'', etiqueta:'', nota:'', done:false });
+  const urgencia = (el('dashTaskUrgencia')||{}).value || 'media';
+  const tipo = (el('dashTaskTipo')||{}).value || 'profesional';
+  const empresa = (el('dashTaskEmpresa')||{}).value || '';
+  STATE.tasks.push({ id:'t'+Date.now(), desc:inp.value.trim(), titulo:inp.value.trim(), fecha:VIEW_DATE, estado:'pending', urgencia, tipo, empresa, etiqueta:'', nota:'', done:false });
   inp.value = ''; save(); _renderDashTasks();
 }
 function quickToggleTask(i) {
   const t = STATE.tasks[i]; if (!t) return;
   t.done = !t.done; t.estado = t.done ? 'done' : 'pending';
   save(); _renderDashTasks(); renderDashboard();
+}
+function dashTaskField(i, field, value) {
+  const t = STATE.tasks[i]; if (!t) return;
+  t[field] = value;
+  if (field === 'estado') { t.done = value === 'done'; }
+  save(); _renderDashTasks(); renderDashboard();
+}
+function dashTaskToggleTipo(i) {
+  const t = STATE.tasks[i]; if (!t) return;
+  t.tipo = (t.tipo === 'personal') ? 'profesional' : 'personal';
+  save(); _renderDashTasks();
 }
 function clearDoneTasks() {
   const done = STATE.tasks.filter(t => t.done || t.estado === 'done');
