@@ -1924,16 +1924,18 @@ function _renderDashSessions(sessions) {
   e2.innerHTML = warnHtml + rows.join('') + footer;
 }
 function _getCoherenceIssues(sessions) {
-  const sorted = [...sessions].filter(s=>s.startIso&&s.endIso&&!s._live).sort((a,b)=>a.startIso<b.startIso?-1:1);
+  const toMins = t => { if(!t) return 0; const [h,m] = (t+'').split(':').map(Number); return h*60+(m||0); };
+  const valid = sessions.filter(s=>s.startDisplay&&s.endDisplay&&!s._live);
+  valid.sort((a,b) => toMins(a.startDisplay) - toMins(b.startDisplay));
   const issues = [];
-  for (let i = 0; i < sorted.length - 1; i++) {
-    const a = sorted[i], b = sorted[i+1];
-    const aEnd = new Date(a.endIso), bStart = new Date(b.startIso);
+  for (let i = 0; i < valid.length - 1; i++) {
+    const a = valid[i], b = valid[i+1];
+    const aEnd = toMins(a.endDisplay), bStart = toMins(b.startDisplay);
     if (aEnd > bStart) {
       issues.push(`Solapamiento detectado entre ${a.startDisplay}–${a.endDisplay} y ${b.startDisplay}–${b.endDisplay}`);
     } else {
-      const gapMin = Math.round((bStart - aEnd) / 60000);
-      const endH = aEnd.getHours(), startH = bStart.getHours();
+      const gapMin = bStart - aEnd;
+      const endH = Math.floor(aEnd/60), startH = Math.floor(bStart/60);
       if (gapMin > 120 && endH >= 8 && endH < 20 && startH >= 8 && startH < 20) {
         const gh = Math.floor(gapMin/60), gm = gapMin%60;
         issues.push(`Gap de ${gh>0?`${gh}h ${gm}m`:`${gm}m`} sin registrar entre ${a.endDisplay} y ${b.startDisplay}`);
