@@ -1523,7 +1523,7 @@ const Sync = {
     if (!USE_FB) { setSyncStatus('local'); return; }
     setSyncStatus('saving');
     clearTimeout(this._t);
-    this._t = setTimeout(() => this._push(), 1500);
+    this._t = setTimeout(() => this._push(), 400);
   },
   async _push() {
     try {
@@ -3081,6 +3081,10 @@ async function startApp(){
         if(!STATE.settings)STATE.settings={dailyGoal:8,breakAlert:90};
         if(!STATE.activities||!STATE.activities.length)STATE.activities=JSON.parse(JSON.stringify(SEED_ACTIVITIES));
         else STATE.activities.forEach(a=>{if(_EMOJI_MIGRATION[a.name])a.name=_EMOJI_MIGRATION[a.name];});
+        // Migrar campos nuevos de tareas si vienen sin ellos desde Firebase
+        let _tasksMigrated=false;
+        STATE.tasks.forEach(t=>{if(!t.urgencia){t.urgencia='media';_tasksMigrated=true;}if(!t.tipo){t.tipo='profesional';_tasksMigrated=true;}});
+        if(_tasksMigrated){STATE._savedAt=Date.now();await Sync._push();}
         localStorage.setItem(SK(),JSON.stringify(STATE));
       } else {
         await Sync._push();
