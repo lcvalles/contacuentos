@@ -3149,26 +3149,23 @@ async function startApp(){
   loadState();
   if(USE_FB){
     setSyncStatus('saving');
-    const localSavedAt = STATE._savedAt || 0;
     const remote=await Sync.pull();
     if(remote){
-      const remoteSavedAt = remote._savedAt || 0;
-      if(remoteSavedAt >= localSavedAt){
-        STATE=remote;
-        if(!STATE.companies||!STATE.companies.length)STATE.companies=JSON.parse(JSON.stringify(SEED_COS));
-        if(!STATE.tasks)STATE.tasks=[];
-        if(!STATE.days)STATE.days={};
-        if(!STATE.settings)STATE.settings={dailyGoal:8,breakAlert:90};
-        if(!STATE.activities||!STATE.activities.length)STATE.activities=JSON.parse(JSON.stringify(SEED_ACTIVITIES));
-        else STATE.activities.forEach(a=>{if(_EMOJI_MIGRATION[a.name])a.name=_EMOJI_MIGRATION[a.name];});
-        // Migrar campos nuevos de tareas si vienen sin ellos desde Firebase
-        let _tasksMigrated=false;
-        STATE.tasks.forEach(t=>{if(!t.urgencia){t.urgencia='media';_tasksMigrated=true;}if(!t.tipo){t.tipo='profesional';_tasksMigrated=true;}});
-        if(_tasksMigrated){STATE._savedAt=Date.now();await Sync._push();}
-        localStorage.setItem(SK(),JSON.stringify(STATE));
-      } else {
-        await Sync._push();
-      }
+      // Firebase siempre gana — nunca sobreescribir con data local desactualizada
+      STATE=remote;
+      if(!STATE.companies||!STATE.companies.length)STATE.companies=JSON.parse(JSON.stringify(SEED_COS));
+      if(!STATE.tasks)STATE.tasks=[];
+      if(!STATE.days)STATE.days={};
+      if(!STATE.settings)STATE.settings={dailyGoal:8,breakAlert:90};
+      if(!STATE.activities||!STATE.activities.length)STATE.activities=JSON.parse(JSON.stringify(SEED_ACTIVITIES));
+      else STATE.activities.forEach(a=>{if(_EMOJI_MIGRATION[a.name])a.name=_EMOJI_MIGRATION[a.name];});
+      let _tasksMigrated=false;
+      STATE.tasks.forEach(t=>{if(!t.urgencia){t.urgencia='media';_tasksMigrated=true;}if(!t.tipo){t.tipo='profesional';_tasksMigrated=true;}});
+      if(_tasksMigrated){STATE._savedAt=Date.now();await Sync._push();}
+      localStorage.setItem(SK(),JSON.stringify(STATE));
+    } else {
+      // Firebase vacío — subir data local para que otros equipos puedan sincronizar
+      await Sync._push();
     }
     setSyncStatus('ok');
   } else {
@@ -3185,6 +3182,8 @@ async function startApp(){
   _renderBanner();
   updateClock();
   _clockTick=setInterval(updateClock,1000);
+  // Flush pendiente si el usuario cambia de pestaña o cierra
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&Sync._t){clearTimeout(Sync._t);Sync._push();}});
 }
 
 (function(){
