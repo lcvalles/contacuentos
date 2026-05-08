@@ -1521,6 +1521,7 @@ function doLogin() {
   }
 }
 function doLogout() {
+  Sync.stopListen();
   localStorage.removeItem(SESSION_KEY);
   sessionStorage.removeItem(SESSION_KEY);
   CURRENT_USER = null;
@@ -1530,6 +1531,8 @@ function doLogout() {
 // ── Firebase Sync ─────────────────────────────────────────────────────────────
 const Sync = {
   _t: null,
+  _unsubscribe: null,
+  _lastPushedAt: 0,
   schedule() {
     if (!USE_FB) { setSyncStatus('local'); return; }
     setSyncStatus('saving');
@@ -1537,9 +1540,11 @@ const Sync = {
     this._t = setTimeout(() => this._push(), 400);
   },
   async _push() {
+    this._t = null;
     try {
       setSyncStatus('saving');
       const uid = CURRENT_USER ? CURRENT_USER.username : 'yuli';
+      this._lastPushedAt = STATE._savedAt; // registrar antes de push para filtrar eco
       await db.collection('productivity').doc(uid).set(STATE);
       setSyncStatus('ok');
     } catch(e) { console.error('Firestore save:', e); setSyncStatus('error'); }
@@ -1550,10 +1555,36 @@ const Sync = {
       const uid = CURRENT_USER ? CURRENT_USER.username : 'yuli';
       const snap = await db.collection('productivity').doc(uid).get();
       if (snap.exists) return snap.data();
-      // compatibilidad: intentar ruta antigua
       const old = await db.collection('yuli').doc('productivity').get();
       return old.exists ? old.data() : null;
     } catch(e) { console.error('Firestore pull:', e); setSyncStatus('error'); return null; }
+  },
+  startListen() {
+    if (!USE_FB || this._unsubscribe) return;
+    const uid = CURRENT_USER ? CURRENT_USER.username : 'yuli';
+    this._unsubscribe = db.collection('productivity').doc(uid).onSnapshot(snap => {
+      if (!snap.exists) return;
+      const remote = snap.data();
+      const remoteAt = remote._savedAt || 0;
+      // Ignorar eco de nuestro propio push
+      if (remoteAt <= this._lastPushedAt) return;
+      // Preservar sesión activa local para no interrumpir el timer
+      const localSession = STATE.activeSession;
+      STATE = remote;
+      if (localSession) STATE.activeSession = localSession;
+      if (!STATE.companies || !STATE.companies.length) STATE.companies = JSON.parse(JSON.stringify(SEED_COS));
+      if (!STATE.tasks) STATE.tasks = [];
+      if (!STATE.days) STATE.days = {};
+      if (!STATE.settings) STATE.settings = { dailyGoal:8, breakAlert:90 };
+      if (!STATE.activities || !STATE.activities.length) STATE.activities = JSON.parse(JSON.stringify(SEED_ACTIVITIES));
+      else STATE.activities.forEach(a => { if (_EMOJI_MIGRATION[a.name]) a.name = _EMOJI_MIGRATION[a.name]; });
+      localStorage.setItem(SK(), JSON.stringify(STATE));
+      _syncReRender();
+      setSyncStatus('ok');
+    }, err => { console.error('onSnapshot:', err); setSyncStatus('error'); });
+  },
+  stopListen() {
+    if (this._unsubscribe) { this._unsubscribe(); this._unsubscribe = null; }
   }
 };
 function setSyncStatus(s) {
@@ -1621,6 +1652,7 @@ function getDay(ds) {
 
 // ── App State ─────────────────────────────────────────────────────────────────
 let VIEW_DATE = '';
+let _CURRENT_PAGE = 'dashboard';
 let _timerTick = null, _clockTick = null, _breakMenuOpen = false;
 let _anaView = 'week', _anaRef = '', _anaRangeFrom = '', _anaRangeTo = '';
 
@@ -1811,7 +1843,18 @@ function updateClock() {
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────────
+function _syncReRender() {
+  if (_CURRENT_PAGE === 'dashboard')    renderDashboard();
+  else if (_CURRENT_PAGE === 'analitica')   renderAnalytics();
+  else if (_CURRENT_PAGE === 'tareas')      renderTasks();
+  else if (_CURRENT_PAGE === 'registro')    renderHistory();
+  else if (_CURRENT_PAGE === 'empresas')    renderCompanyList();
+  else if (_CURRENT_PAGE === 'actividades') renderActivityList();
+  _updateTimerUI();
+  _renderBanner();
+}
 function navigate(page) {
+  _CURRENT_PAGE = page;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
   const pg = el('page-' + page); if (pg) pg.classList.add('active');
@@ -3151,7 +3194,6 @@ async function startApp(){
     setSyncStatus('saving');
     const remote=await Sync.pull();
     if(remote){
-      // Firebase siempre gana — nunca sobreescribir con data local desactualizada
       STATE=remote;
       if(!STATE.companies||!STATE.companies.length)STATE.companies=JSON.parse(JSON.stringify(SEED_COS));
       if(!STATE.tasks)STATE.tasks=[];
@@ -3162,12 +3204,14 @@ async function startApp(){
       let _tasksMigrated=false;
       STATE.tasks.forEach(t=>{if(!t.urgencia){t.urgencia='media';_tasksMigrated=true;}if(!t.tipo){t.tipo='profesional';_tasksMigrated=true;}});
       if(_tasksMigrated){STATE._savedAt=Date.now();await Sync._push();}
+      // Marcar _savedAt cargado para que el primer onSnapshot no se aplique como "remoto nuevo"
+      Sync._lastPushedAt=STATE._savedAt||0;
       localStorage.setItem(SK(),JSON.stringify(STATE));
     } else {
-      // Firebase vacío — subir data local para que otros equipos puedan sincronizar
       await Sync._push();
     }
     setSyncStatus('ok');
+    Sync.startListen(); // escuchar cambios en tiempo real de otros equipos
   } else {
     setSyncStatus('local');
   }
