@@ -838,10 +838,7 @@ tr:hover .td-actions{opacity:1}
         <div class="card">
           <div class="card-header">
             <span class="card-title">Tareas</span>
-            <div style="display:flex;gap:6px">
-              <button class="btn btn-secondary btn-xs" onclick="movePendingToday()">↓ Traer pendientes</button>
-              <button class="btn btn-secondary btn-xs" style="color:var(--c-red)" onclick="clearDoneTasks()">✕ Limpiar realizadas</button>
-            </div>
+            <button class="btn btn-secondary btn-xs" onclick="movePendingToday()">↓ Traer pendientes</button>
           </div>
           <div style="padding:0 16px">
             <div class="quick-add-row">
@@ -1949,7 +1946,7 @@ function _getCoherenceIssues(sessions) {
 }
 function _renderDashTasks() {
   const e2 = el('dashTasks'); if (!e2) return;
-  const tasks = STATE.tasks.filter(t => !t.fecha || t.fecha === VIEW_DATE);
+  const tasks = STATE.tasks.filter(t => (!t.fecha || t.fecha === VIEW_DATE) && !t.done && t.estado !== 'done');
   if (!tasks.length) { e2.innerHTML = '<div class="empty" style="padding:12px 0">Sin tareas.</div>'; return; }
   e2.innerHTML = tasks.map(t => {
     const done = t.estado==='done' || t.done;
