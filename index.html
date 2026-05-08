@@ -1983,7 +1983,8 @@ function _renderDashTasksCol(tipo, containerId) {
   let tasks = STATE.tasks.filter(t => (!t.fecha || t.fecha === VIEW_DATE) && !t.done && t.estado !== 'done' && (t.tipo||'profesional') === tipo);
   // Alta urgencia primero
   tasks = [...tasks.filter(t=>(t.urgencia||'media')==='alta'), ...tasks.filter(t=>(t.urgencia||'media')!=='alta')];
-  if (!tasks.length) { e2.innerHTML = '<div style="padding:10px 16px;font-size:12px;color:var(--c-text3)">Sin tareas.</div>'; return; }
+  if (!tasks.length) { e2.innerHTML = '<div style="padding:12px 16px;font-size:12px;color:var(--c-text3)">Sin tareas.</div>'; return; }
+  e2.style.padding = '4px 0';
   const urgColors = { alta:'#ef4444', media:'#eab308', baja:'#22c55e' };
   const estadoOpts = [['pending','Pendiente'],['inprogress','En progreso'],['blocked','Bloqueada'],['waiting','En espera'],['review','En revisión'],['cancelled','Cancelada']];
   e2.innerHTML = tasks.map(t => {
@@ -2007,7 +2008,7 @@ function _renderDashTasksCol(tipo, containerId) {
       : `<div style="display:inline-flex;gap:3px;margin-top:4px">${urgDots}</div>`;
     const rowBg = urgencia==='alta' ? 'background:#fef2f2;' : urgencia==='media' ? 'background:#fefce8;' : '';
     const flagIcon = isAlta ? '<span style="font-size:12px;line-height:1;flex-shrink:0" title="Urgente">🚩</span>' : '';
-    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 14px;border-bottom:1px solid var(--c-border);${rowBg}">
+    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 12px;margin:5px 8px;border-radius:10px;border:1px solid var(--c-border);${rowBg}box-shadow:0 1px 3px rgba(0,0,0,.05)">
       <input type="checkbox" style="margin-top:3px;accent-color:var(--c-gold);flex-shrink:0;cursor:pointer" onchange="quickToggleTask(${ri})">
       <span class="dot" style="background:${dotColor};flex-shrink:0;margin-top:4px"></span>
       <div style="flex:1;min-width:0">
