@@ -1855,6 +1855,7 @@ function _syncReRender() {
 }
 function navigate(page) {
   _CURRENT_PAGE = page;
+  sessionStorage.setItem('yc_page', page);
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
   const pg = el('page-' + page); if (pg) pg.classList.add('active');
@@ -3221,7 +3222,7 @@ async function startApp(){
   _renderActivityOptions();
   _populateAllSelects();
   _renderUserPill();
-  navigate('dashboard');
+  navigate(sessionStorage.getItem('yc_page') || 'dashboard');
   _updateTimerUI();
   _renderBanner();
   updateClock();
