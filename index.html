@@ -1854,9 +1854,9 @@ let _timerTick = null, _clockTick = null, _breakMenuOpen = false;
 let _anaView = 'week', _anaRef = '', _anaRangeFrom = '', _anaRangeTo = '';
 
 // ── Timer ─────────────────────────────────────────────────────────────────────
-function startWork(coId) {
+function startWork(coId, nota) {
   _stopActive(true);
-  STATE.activeSession = { mode:'productive', companyId:coId, breakType:'', startIso:new Date().toISOString(), startDisplay:getCoHHMM() };
+  STATE.activeSession = { mode:'productive', companyId:coId, breakType:'', nota:nota||'', startIso:new Date().toISOString(), startDisplay:getCoHHMM() };
   save(); _updateTimerUI(); _renderBanner();
 }
 function startBreak(type) {
@@ -1905,7 +1905,7 @@ function toggleTimer() {
     const actCustom = el('timerCustomAct') || el('mTimerCustomAct');
     const act = actSel ? (actSel.value === '__custom__' ? ((actCustom||{}).value||'').trim() : actSel.value) : '';
     if (!act) { showToast('Selecciona la actividad antes de iniciar'); return; }
-    startWork(coId);
+    startWork(coId, act);
   }
 }
 function toggleBreakMenu() {
