@@ -1887,7 +1887,7 @@ function _stopActive(silent) {
   if (!silent) { _updateTimerUI(); _renderBanner(); if (VIEW_DATE === todayStr()) renderDashboard(); }
 }
 function toggleTimer() {
-  if (STATE.activeSession && STATE.activeSession.mode === 'productive') {
+  if (STATE.activeSession) {
     _stopActive(false);
   } else {
     const coId = (el('timerSel') && el('timerSel').value) || (el('mTimerSel') && el('mTimerSel').value) || '';
