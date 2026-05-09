@@ -691,6 +691,7 @@ tr:hover .td-actions{opacity:1}
   <nav class="nav-section">
     <span class="nav-section-label">Análisis</span>
     <button class="nav-link" onclick="navigate('analitica')"><span class="nav-icon">◫</span><span>Métricas</span></button>
+    <button class="nav-link" onclick="navigate('tributario')"><span class="nav-icon">📅</span><span>Tributario</span></button>
   </nav>
   <nav class="nav-section">
     <span class="nav-section-label">Config.</span>
@@ -828,6 +829,15 @@ tr:hover .td-actions{opacity:1}
           <div class="stat-value teal" id="stClientes">—</div>
           <div class="stat-sub" id="stClientesSub">con sesiones</div>
         </div>
+      </div>
+
+      <!-- VENCIMIENTOS TRIBUTARIOS -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header">
+          <span class="card-title">📅 Vencimientos próximos</span>
+          <button class="btn btn-secondary btn-xs" onclick="navigate('tributario')">Ver calendario</button>
+        </div>
+        <div id="dashVencBody" style="max-height:260px;overflow-y:auto"></div>
       </div>
 
       <div class="grid-2">
@@ -1201,7 +1211,10 @@ tr:hover .td-actions{opacity:1}
             <div><label class="field-label" for="cNombre">Nombre</label><input type="text" class="field-input" id="cNombre" placeholder="Nombre de la empresa" autocomplete="off"></div>
             <div><label class="field-label" for="cColor">Color</label><input type="color" class="field-input" id="cColor" value="#9a7c2e" style="padding:5px;height:42px"></div>
           </div>
-          <div class="fg"><label class="field-label" for="cDesc">Descripción / NIT / contacto</label><input type="text" class="field-input" id="cDesc" placeholder="Información adicional" autocomplete="off"></div>
+          <div class="fg-row-2">
+            <div><label class="field-label" for="cDesc">Descripción / NIT / contacto</label><input type="text" class="field-input" id="cDesc" placeholder="Información adicional" autocomplete="off"></div>
+            <div><label class="field-label" for="cNit">Último dígito NIT</label><select class="field-input" id="cNit"><option value="">— Sin NIT —</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+          </div>
           <button class="btn btn-primary" onclick="saveCompany()">Agregar empresa</button>
         </div>
       </div>
@@ -1272,6 +1285,51 @@ tr:hover .td-actions{opacity:1}
           Diseñada para <strong style="color:var(--c-gold)">Yulieth Castrillón</strong>, Contadora Pública · Medellín<br>
           <span id="ajustesFirebaseStatus" style="font-size:11.5px;color:var(--c-text3)">Cargando estado de sincronización…</span>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ TRIBUTARIO ═══ -->
+  <section id="page-tributario" class="page" aria-label="Calendario Tributario">
+    <div class="topbar">
+      <h1 class="topbar-title">📅 Tributario 2026</h1>
+    </div>
+    <div class="page-content">
+      <!-- Controles -->
+      <div class="card" style="margin-bottom:14px">
+        <div style="padding:14px 18px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+            <button onclick="_calNav(-1)" class="btn btn-secondary btn-xs">◀</button>
+            <h2 id="calMonthLabel" style="flex:1;text-align:center;font-size:15px;font-weight:700;color:var(--c-text)">—</h2>
+            <button onclick="_calNav(1)" class="btn btn-secondary btn-xs">▶</button>
+            <button onclick="_calGoToday()" class="btn btn-secondary btn-xs">Hoy</button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px" id="calFilters"></div>
+          <label style="display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;color:var(--c-text2)">
+            <input type="checkbox" id="calMisEmpresas" onchange="renderCalendario()" style="accent-color:var(--c-gold)">
+            <span>Resaltar solo mis empresas (por NIT)</span>
+          </label>
+        </div>
+      </div>
+      <!-- Grilla calendario -->
+      <div class="card" style="overflow:hidden;margin-bottom:14px">
+        <div style="display:grid;grid-template-columns:repeat(7,1fr)">
+          <div style="padding:8px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--c-text3);border-bottom:1px solid var(--c-border)">Lun</div>
+          <div style="padding:8px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--c-text3);border-bottom:1px solid var(--c-border)">Mar</div>
+          <div style="padding:8px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--c-text3);border-bottom:1px solid var(--c-border)">Mié</div>
+          <div style="padding:8px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--c-text3);border-bottom:1px solid var(--c-border)">Jue</div>
+          <div style="padding:8px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--c-text3);border-bottom:1px solid var(--c-border)">Vie</div>
+          <div style="padding:8px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--c-text3);border-bottom:1px solid var(--c-border);background:#fafafa">Sáb</div>
+          <div style="padding:8px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--c-text3);border-bottom:1px solid var(--c-border);background:#fafafa">Dom</div>
+        </div>
+        <div id="calGrid" style="display:grid;grid-template-columns:repeat(7,1fr)"></div>
+      </div>
+      <!-- Panel detalle día seleccionado -->
+      <div id="calDayDetail" class="card" style="display:none;margin-bottom:14px"></div>
+      <!-- Lista del mes -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">Resumen del mes</span></div>
+        <div id="calListBody" style="font-size:13px"></div>
       </div>
     </div>
   </section>
@@ -1446,7 +1504,10 @@ tr:hover .td-actions{opacity:1}
       <div><label class="field-label">Nombre</label><input type="text" class="field-input" id="editCoNombre" autocomplete="off"></div>
       <div><label class="field-label">Color</label><input type="color" class="field-input" id="editCoColor" style="padding:5px;height:42px"></div>
     </div>
-    <div class="fg"><label class="field-label">Descripción</label><input type="text" class="field-input" id="editCoDesc" autocomplete="off"></div>
+    <div class="fg-row-2">
+      <div><label class="field-label">Descripción</label><input type="text" class="field-input" id="editCoDesc" autocomplete="off"></div>
+      <div><label class="field-label">Último dígito NIT</label><select class="field-input" id="editCoNit"><option value="">— Sin NIT —</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modalCo')">Cancelar</button>
       <button class="btn btn-primary" onclick="saveEditCompany()">Guardar</button>
@@ -1625,12 +1686,12 @@ const _EMOJI_MIGRATION = {
 };
 
 const SEED_COS = [
-  { id:'co1', name:'Podenza',   color:'#2e5c8a', desc:'' },
-  { id:'co2', name:'IAC',       color:'#1a6b5e', desc:'' },
-  { id:'co3', name:'Crispetas', color:'#8a5e0a', desc:'' },
-  { id:'co4', name:'Wlabel',    color:'#5e3a98', desc:'' },
-  { id:'co5', name:'Dinafik',   color:'#8b2020', desc:'' },
-  { id:'co6', name:'Afl',       color:'#1a4a8a', desc:'' },
+  { id:'co1', name:'Podenza',   color:'#2e5c8a', desc:'', nit:'' },
+  { id:'co2', name:'IAC',       color:'#1a6b5e', desc:'', nit:'' },
+  { id:'co3', name:'Crispetas', color:'#8a5e0a', desc:'', nit:'' },
+  { id:'co4', name:'Wlabel',    color:'#5e3a98', desc:'', nit:'' },
+  { id:'co5', name:'Dinafik',   color:'#8b2020', desc:'', nit:'' },
+  { id:'co6', name:'Afl',       color:'#1a4a8a', desc:'', nit:'' },
 ];
 let STATE = { companies:[], tasks:[], days:{}, settings:{ dailyGoal:8, breakAlert:90 }, activeSession:null };
 
@@ -1650,9 +1711,136 @@ function getDay(ds) {
   return STATE.days[ds];
 }
 
+// ── Calendario Tributario 2026 ────────────────────────────────────────────────
+const _CAT_META = {
+  renta_gc:   { color:'#6366f1', bg:'#eef2ff', nombre:'Renta GC',          icon:'🏦' },
+  renta_pj:   { color:'#8b5cf6', bg:'#f5f3ff', nombre:'Renta PJ',          icon:'🏢' },
+  renta_pn:   { color:'#ec4899', bg:'#fdf2f8', nombre:'Renta PN',          icon:'👤' },
+  iva_bim:    { color:'#10b981', bg:'#ecfdf5', nombre:'IVA Bimestral',     icon:'📊' },
+  iva_cuatri: { color:'#14b8a6', bg:'#f0fdfa', nombre:'IVA Cuatrimestral', icon:'📋' },
+  rte:        { color:'#d97706', bg:'#fffbeb', nombre:'Retención Fte.',    icon:'✂️' },
+  rst:        { color:'#0ea5e9', bg:'#f0f9ff', nombre:'RST Anticipo',      icon:'💼' },
+  patrimonio: { color:'#a855f7', bg:'#faf5ff', nombre:'Patrimonio',        icon:'🏛️' },
+  gasolina:   { color:'#f97316', bg:'#fff7ed', nombre:'Gasolina/ACPM',     icon:'⛽' },
+  carbono:    { color:'#64748b', bg:'#f8fafc', nombre:'Carbono',           icon:'🌱' },
+};
+function _bv(cat, periodos) {
+  const { color, bg, nombre, icon } = _CAT_META[cat];
+  return periodos.flatMap(({ label, mes, f }) =>
+    Object.entries(f).map(([nit, d]) => {
+      const [y,m] = mes.split('-');
+      return { cat, color, bg, nombre, icon, label, ds:`${y}-${m}-${String(d).padStart(2,'0')}`, nit };
+    })
+  );
+}
+function _bvPN(periodos) {
+  return periodos.flatMap(({ label, mes, f2 }) =>
+    Object.entries(f2).map(([rango, d]) => {
+      const [y,m] = mes.split('-');
+      return { cat:'renta_pn', color:'#ec4899', bg:'#fdf2f8', nombre:'Renta PN', icon:'👤', label, ds:`${y}-${m}-${String(d).padStart(2,'0')}`, nit:null, nitRango:rango };
+    })
+  );
+}
+const _F10 = {'1':10,'2':11,'3':12,'4':13,'5':16,'6':17,'7':18,'8':19,'9':20,'0':23};
+const _F04 = {'1':13,'2':14,'3':15,'4':16,'5':20,'6':21,'7':22,'8':23,'9':24,'0':27};
+const _F05 = {'1':12,'2':13,'3':14,'4':15,'5':19,'6':20,'7':21,'8':22,'9':25,'0':26};
+const _F06 = {'1':10,'2':11,'3':12,'4':16,'5':17,'6':18,'7':19,'8':22,'9':23,'0':24};
+const _F07 = {'1':9,'2':10,'3':13,'4':14,'5':15,'6':16,'7':17,'8':21,'9':22,'0':23};
+const _F09 = {'1':9,'2':10,'3':11,'4':14,'5':15,'6':16,'7':17,'8':18,'9':21,'0':22};
+const _F11 = {'1':11,'2':12,'3':13,'4':17,'5':18,'6':19,'7':20,'8':23,'9':24,'0':25};
+const _F27 = {'1':13,'2':14,'3':15,'4':18,'5':19,'6':20,'7':21,'8':22,'9':25,'0':26};
+const CAL_2026 = [
+  // ── Renta Grandes Contribuyentes ──
+  ..._bv('renta_gc',[
+    {label:'Pago 1a cuota',mes:'2026-02',f:_F10},
+    {label:'Declaración y pago 2a cuota',mes:'2026-04',f:_F04},
+    {label:'Pago 3a cuota',mes:'2026-06',f:_F06},
+  ]),
+  // ── Renta Personas Jurídicas ──
+  ..._bv('renta_pj',[
+    {label:'Declaración y pago 1a cuota',mes:'2026-05',f:_F05},
+    {label:'Pago 2a cuota',mes:'2026-07',f:_F07},
+  ]),
+  // ── Renta Personas Naturales (últimos 2 dígitos NIT) ──
+  ..._bvPN([
+    {label:'Declaración y pago',mes:'2026-08',f2:{'01-02':12,'03-04':13,'05-06':14,'07-08':18,'09-10':19,'11-12':20,'13-14':21,'15-16':24,'17-18':25,'19-20':26,'21-22':27,'23-24':28,'25-26':31}},
+    {label:'Declaración y pago',mes:'2026-09',f2:{'27-28':1,'29-30':2,'31-32':3,'33-34':4,'35-36':7,'37-38':8,'39-40':9,'41-42':10,'43-44':11,'45-46':14,'47-48':15,'49-50':16,'51-52':17,'53-54':18,'55-56':21,'57-58':22,'59-60':23,'61-62':24,'63-64':25,'65-66':28}},
+    {label:'Declaración y pago',mes:'2026-10',f2:{'67-68':1,'69-70':2,'71-72':5,'73-74':6,'75-76':7,'77-78':8,'79-80':9,'81-82':13,'83-84':14,'85-86':15,'87-88':16,'89-90':19,'91-92':20,'93-94':21,'95-96':22,'97-98':23,'99-00':26}},
+  ]),
+  // ── IVA Bimestral ──
+  ..._bv('iva_bim',[
+    {label:'Ene-Feb',mes:'2026-03',f:{'1':10,'2':11,'3':12,'4':13,'5':16,'6':17,'7':18,'8':19,'9':20,'0':24}},
+    {label:'Mar-Abr',mes:'2026-05',f:_F05},
+    {label:'May-Jun',mes:'2026-07',f:_F07},
+    {label:'Jul-Ago',mes:'2026-09',f:_F09},
+    {label:'Sep-Oct',mes:'2026-11',f:_F11},
+    {label:'Nov-Dic',mes:'2027-01',f:_F27},
+  ]),
+  // ── IVA Cuatrimestral ──
+  ..._bv('iva_cuatri',[
+    {label:'Ene-Abr',mes:'2026-05',f:_F05},
+    {label:'May-Ago',mes:'2026-09',f:_F09},
+    {label:'Sep-Dic',mes:'2027-01',f:_F27},
+  ]),
+  // ── Retención en la Fuente (mensual) ──
+  ..._bv('rte',[
+    {label:'Enero',mes:'2026-02',f:_F10},
+    {label:'Febrero',mes:'2026-03',f:{'1':10,'2':11,'3':12,'4':13,'5':16,'6':17,'7':18,'8':19,'9':20,'0':24}},
+    {label:'Marzo',mes:'2026-04',f:_F04},
+    {label:'Abril',mes:'2026-05',f:_F05},
+    {label:'Mayo',mes:'2026-06',f:_F06},
+    {label:'Junio',mes:'2026-07',f:_F07},
+    {label:'Julio',mes:'2026-08',f:{'1':12,'2':13,'3':14,'4':18,'5':19,'6':20,'7':21,'8':24,'9':25,'0':26}},
+    {label:'Agosto',mes:'2026-09',f:_F09},
+    {label:'Septiembre',mes:'2026-10',f:{'1':9,'2':13,'3':14,'4':15,'5':16,'6':19,'7':20,'8':21,'9':22,'0':23}},
+    {label:'Octubre',mes:'2026-11',f:_F11},
+    {label:'Noviembre',mes:'2026-12',f:{'1':10,'2':11,'3':14,'4':15,'5':16,'6':17,'7':18,'8':21,'9':22,'0':23}},
+    {label:'Diciembre',mes:'2027-01',f:_F27},
+  ]),
+  // ── RST Anticipo Bimestral ──
+  ..._bv('rst',[
+    {label:'Ene-Feb',mes:'2026-05',f:_F05},
+    {label:'Mar-Abr',mes:'2026-06',f:_F06},
+    {label:'May-Jun',mes:'2026-07',f:_F07},
+    {label:'Jul-Ago',mes:'2026-09',f:_F09},
+    {label:'Sep-Oct',mes:'2026-11',f:_F11},
+    {label:'Nov-Dic',mes:'2027-01',f:_F27},
+  ]),
+  // ── Patrimonio ──
+  ..._bv('patrimonio',[
+    {label:'Declaración y pago 1a cuota',mes:'2026-05',f:_F05},
+    {label:'Pago 2a cuota',mes:'2026-09',f:{'1':14,'2':14,'3':14,'4':14,'5':14,'6':14,'7':14,'8':14,'9':14,'0':14}},
+  ]),
+  // ── Gasolina y ACPM (mensual, misma fecha todos los NIT) ──
+  ..._bv('gasolina',[
+    {label:'Enero',mes:'2026-02',f:{'all':13}},
+    {label:'Febrero',mes:'2026-03',f:{'all':13}},
+    {label:'Marzo',mes:'2026-04',f:{'all':16}},
+    {label:'Abril',mes:'2026-05',f:{'all':15}},
+    {label:'Mayo',mes:'2026-06',f:{'all':16}},
+    {label:'Junio',mes:'2026-07',f:{'all':14}},
+    {label:'Julio',mes:'2026-08',f:{'all':18}},
+    {label:'Agosto',mes:'2026-09',f:{'all':14}},
+    {label:'Septiembre',mes:'2026-10',f:{'all':15}},
+    {label:'Octubre',mes:'2026-11',f:{'all':17}},
+    {label:'Noviembre',mes:'2026-12',f:{'all':15}},
+    {label:'Diciembre',mes:'2027-01',f:{'all':18}},
+  ]),
+  // ── Carbono (bimestral, misma fecha todos los NIT) ──
+  ..._bv('carbono',[
+    {label:'Ene-Feb',mes:'2026-03',f:{'all':13}},
+    {label:'Mar-Abr',mes:'2026-05',f:{'all':15}},
+    {label:'May-Jun',mes:'2026-07',f:{'all':14}},
+    {label:'Jul-Ago',mes:'2026-09',f:{'all':14}},
+    {label:'Sep-Oct',mes:'2026-11',f:{'all':17}},
+    {label:'Nov-Dic',mes:'2027-01',f:{'all':18}},
+  ]),
+];
+
 // ── App State ─────────────────────────────────────────────────────────────────
 let VIEW_DATE = '';
 let _CURRENT_PAGE = 'dashboard';
+let _CAL_VIEW = '';
 let _timerTick = null, _clockTick = null, _breakMenuOpen = false;
 let _anaView = 'week', _anaRef = '', _anaRangeFrom = '', _anaRangeTo = '';
 
@@ -1850,6 +2038,7 @@ function _syncReRender() {
   else if (_CURRENT_PAGE === 'registro')    renderHistory();
   else if (_CURRENT_PAGE === 'empresas')    renderCompanyList();
   else if (_CURRENT_PAGE === 'actividades') renderActivityList();
+  else if (_CURRENT_PAGE === 'tributario')  renderCalendario();
   _updateTimerUI();
   _renderBanner();
 }
@@ -1864,15 +2053,16 @@ function navigate(page) {
   });
   // Mobile bottom nav active state
   ['mnDashboard','mnRegistro','mnTareas','mnAjustes'].forEach(id=>{const b=el(id);if(b)b.classList.remove('active');});
-  const _mMap={dashboard:'mnDashboard',registro:'mnRegistro',tareas:'mnTareas',ajustes:'mnAjustes',analitica:'mnAjustes',empresas:'mnAjustes'};
+  const _mMap={dashboard:'mnDashboard',registro:'mnRegistro',tareas:'mnTareas',ajustes:'mnAjustes',analitica:'mnAjustes',empresas:'mnAjustes',tributario:'mnAjustes',actividades:'mnAjustes'};
   if(_mMap[page]&&el(_mMap[page]))el(_mMap[page]).classList.add('active');
-  if (page === 'dashboard') renderDashboard();
-  if (page === 'analitica') renderAnalytics();
-  if (page === 'tareas')    { renderTasks(); _populateAllSelects(); }
-  if (page === 'empresas')  renderCompanyList();
-  if (page === 'registro')  { renderHistory(); initManual(); }
-  if (page === 'ajustes')      loadSettings();
-  if (page === 'actividades')  renderActivityList();
+  if (page === 'dashboard')   renderDashboard();
+  if (page === 'analitica')   renderAnalytics();
+  if (page === 'tareas')      { renderTasks(); _populateAllSelects(); }
+  if (page === 'empresas')    renderCompanyList();
+  if (page === 'registro')    { renderHistory(); initManual(); }
+  if (page === 'ajustes')     loadSettings();
+  if (page === 'actividades') renderActivityList();
+  if (page === 'tributario')  renderCalendario();
 }
 function openModal(id)  { const m = el(id); if (m) m.classList.add('open'); }
 function closeModal(id) { const m = el(id); if (m) m.classList.remove('open'); }
@@ -1946,6 +2136,7 @@ function renderDashboard() {
   _renderDashTasks();
   _renderCoBars(coMins);
   _renderBestHours(allSess);
+  renderDashVenc();
 }
 function _renderDashSessions(sessions) {
   const e2 = el('dashSessions'); if (!e2) return;
@@ -2419,8 +2610,9 @@ function _populateAllSelects(){
 // ── Companies ─────────────────────────────────────────────────────────────────
 function saveCompany(){
   const name=((el('cNombre')||{}).value||'').trim();if(!name)return;
-  STATE.companies.push({id:'co'+Date.now(),name,color:(el('cColor')||{}).value||'#9a7c2e',desc:(el('cDesc')||{}).value||''});
-  if(el('cNombre'))el('cNombre').value='';if(el('cDesc'))el('cDesc').value='';if(el('cColor'))el('cColor').value='#9a7c2e';
+  const nit=((el('cNit')||{}).value||'').trim();
+  STATE.companies.push({id:'co'+Date.now(),name,color:(el('cColor')||{}).value||'#9a7c2e',desc:(el('cDesc')||{}).value||'',nit});
+  if(el('cNombre'))el('cNombre').value='';if(el('cDesc'))el('cDesc').value='';if(el('cColor'))el('cColor').value='#9a7c2e';if(el('cNit'))el('cNit').value='';
   save();renderCompanyList();_renderTimerCompanies();
 }
 function renderCompanyList(){
@@ -2428,7 +2620,7 @@ function renderCompanyList(){
   e2.innerHTML=STATE.companies.map((co,i)=>`
     <div class="co-card">
       <div class="co-swatch" style="background:${co.color}"></div>
-      <div style="flex:1"><div class="co-name-txt">${co.name}</div>${co.desc?`<div class="co-desc-txt">${co.desc}</div>`:''}</div>
+      <div style="flex:1"><div class="co-name-txt">${co.name}</div><div style="font-size:11px;color:var(--c-text3)">${co.desc?co.desc+' ':''} ${co.nit?`<span style="background:var(--c-gold-bg);color:var(--c-gold);padding:1px 5px;border-radius:4px;font-weight:600">NIT ●${co.nit}</span>`:''}</div></div>
       <button class="icon-btn" onclick="openEditCompany(${i})">✎</button>
       <button class="icon-btn" style="color:var(--c-red)" onclick="deleteCompany(${i})">✕</button>
     </div>`).join('');
@@ -2439,12 +2631,14 @@ function openEditCompany(i){
   if(el('editCoNombre'))el('editCoNombre').value=co.name;
   if(el('editCoColor'))el('editCoColor').value=co.color;
   if(el('editCoDesc'))el('editCoDesc').value=co.desc||'';
+  if(el('editCoNit'))el('editCoNit').value=co.nit||'';
   openModal('modalCo');
 }
 function saveEditCompany(){
   const i=parseInt((el('editCoId')||{}).value);const co=STATE.companies[i];if(!co)return;
   const name=((el('editCoNombre')||{}).value||'').trim();if(!name)return;
-  STATE.companies[i]={...co,name,color:(el('editCoColor')||{}).value||co.color,desc:(el('editCoDesc')||{}).value||''};
+  const nit=((el('editCoNit')||{}).value||'').trim();
+  STATE.companies[i]={...co,name,color:(el('editCoColor')||{}).value||co.color,desc:(el('editCoDesc')||{}).value||'',nit};
   save();closeModal('modalCo');renderCompanyList();_renderTimerCompanies();showToast('Empresa guardada');
 }
 function deleteCompany(i){
@@ -3186,6 +3380,185 @@ function _renderUserPill(){
   pill.innerHTML=`${avatarHtml}${name}`;
 }
 
+// ── Tributario ────────────────────────────────────────────────────────────────
+const _MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const _DIAS_ES  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+function _calNav(delta) {
+  const [y,m] = _CAL_VIEW.split('-').map(Number);
+  const d = new Date(y, m-1+delta, 1);
+  _CAL_VIEW = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  renderCalendario();
+}
+function _calGoToday() { _CAL_VIEW = todayStr().slice(0,7); renderCalendario(); }
+
+function _calSelectDay(ds) {
+  const panel = el('calDayDetail'); if (!panel) return;
+  const misNits = new Set((STATE.companies||[]).map(c=>c.nit).filter(Boolean));
+  const dayVenc = CAL_2026.filter(v => v.ds === ds);
+  if (!dayVenc.length) { panel.style.display='none'; return; }
+  const d = new Date(ds+'T12:00:00');
+  panel.style.display = 'block';
+  panel.innerHTML = `<div class="card-header" style="position:relative">
+    <span class="card-title">${d.getDate()} de ${_MESES_ES[d.getMonth()]} ${d.getFullYear()}</span>
+    <button class="icon-btn" style="margin-left:auto" onclick="el('calDayDetail').style.display='none'">✕</button>
+  </div>
+  <div class="card-body" style="padding:0">${dayVenc.map(v=>{
+    const co = (STATE.companies||[]).find(c=>c.nit&&c.nit===v.nit);
+    const mine = v.nit==='all'||!!co;
+    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:1px solid var(--c-border);background:${mine?v.bg:''}">
+      <span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${v.color};margin-top:3px;flex-shrink:0"></span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--c-text)">${v.nombre} <span style="font-weight:400;color:var(--c-text2)">— ${v.label}</span></div>
+        <div style="font-size:11.5px;color:var(--c-text3);margin-top:2px">
+          ${v.nit==='all'?'Aplica a todos los NIT':v.nit===null?`Últimos 2 dígitos NIT: ${v.nitRango}`:`NIT terminado en <strong>${v.nit}</strong>${co?` · <span style="color:${co.color};font-weight:700">${co.name}</span>`:''}`}
+        </div>
+      </div>
+      ${mine&&v.nit!=='all'&&v.nit!==null?`<span style="font-size:10px;background:var(--c-gold-bg);color:var(--c-gold);padding:2px 7px;border-radius:5px;font-weight:700;flex-shrink:0">⚑ Tuyo</span>`:''}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderCalendario() {
+  if (!_CAL_VIEW) _CAL_VIEW = todayStr().slice(0,7);
+  const [y,m] = _CAL_VIEW.split('-').map(Number);
+  if (el('calMonthLabel')) el('calMonthLabel').textContent = `${_MESES_ES[m-1]} ${y}`;
+
+  // Filtros de categorías
+  const filtersEl = el('calFilters');
+  if (filtersEl && !filtersEl.childElementCount) {
+    filtersEl.innerHTML = Object.entries(_CAT_META).map(([cat,meta])=>
+      `<label style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;cursor:pointer;padding:4px 8px;border-radius:12px;border:1px solid ${meta.color}40;background:${meta.bg}">
+        <input type="checkbox" class="cal-cat-cb" value="${cat}" checked onchange="renderCalendario()" style="accent-color:${meta.color}">
+        <span style="color:${meta.color};font-weight:600">${meta.icon} ${meta.nombre}</span>
+      </label>`
+    ).join('');
+  }
+  const activeCats = new Set([...document.querySelectorAll('.cal-cat-cb:checked')].map(cb=>cb.value));
+  const onlyMine = el('calMisEmpresas')&&el('calMisEmpresas').checked;
+  const misNits = new Set((STATE.companies||[]).map(c=>c.nit).filter(Boolean));
+
+  // Filtrar vencimientos del mes actual
+  const mesStr = _CAL_VIEW;
+  let venc = CAL_2026.filter(v => v.ds.startsWith(mesStr) && activeCats.has(v.cat));
+  if (onlyMine && misNits.size>0) {
+    venc = venc.filter(v => v.nit==='all' || v.nit===null || misNits.has(v.nit));
+  }
+
+  // Construir mapa por día: día → array de cats únicas
+  const dayMap = {};
+  venc.forEach(v => {
+    const d = parseInt(v.ds.split('-')[2]);
+    if (!dayMap[d]) dayMap[d] = [];
+    if (!dayMap[d].find(x=>x.cat===v.cat&&x.nit===v.nit)) dayMap[d].push(v);
+  });
+
+  // Grid
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const firstDow = new Date(y, m-1, 1).getDay(); // 0=Dom
+  const offset = firstDow===0 ? 6 : firstDow-1; // Lunes=0
+  const cells = [];
+  for (let i=0;i<offset;i++) cells.push(null);
+  for (let d=1;d<=daysInMonth;d++) cells.push(d);
+  while(cells.length%7!==0) cells.push(null);
+
+  const today = todayStr();
+  const gridEl = el('calGrid'); if (!gridEl) return;
+  gridEl.innerHTML = cells.map(d => {
+    if (d===null) return `<div style="min-height:72px;background:var(--c-bg);border-right:1px solid var(--c-border);border-bottom:1px solid var(--c-border);opacity:.35"></div>`;
+    const ds = `${String(y).padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = ds===today;
+    const dow = new Date(ds+'T12:00:00').getDay(); // 0=Dom,6=Sáb
+    const isWE = dow===0||dow===6;
+    const dayV = dayMap[d]||[];
+    // Puntos únicos por categoría
+    const cats = [...new Set(dayV.map(v=>v.cat))];
+    const dots = cats.map(cat=>{
+      const meta = _CAT_META[cat];
+      const mine = dayV.some(v=>v.cat===cat&&(v.nit==='all'||misNits.has(v.nit)));
+      return `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${meta.color};${mine?'box-shadow:0 0 0 2px white,0 0 0 3px '+meta.color:'opacity:.7'};flex-shrink:0" title="${meta.nombre}"></span>`;
+    }).join('');
+    return `<div onclick="${dayV.length?`_calSelectDay('${ds}')`:''}" style="min-height:72px;padding:6px 5px;border-right:1px solid var(--c-border);border-bottom:1px solid var(--c-border);background:${isToday?'var(--c-gold-bg)':isWE?'#fafafa':'var(--c-surface)'};cursor:${dayV.length?'pointer':'default'};transition:background .1s" onmouseover="${dayV.length?`this.style.background='${isToday?'#fde68a':'#f3f4f6'}'`:''}" onmouseout="this.style.background='${isToday?'var(--c-gold-bg)':isWE?'#fafafa':'var(--c-surface)'}'">
+      <div style="font-size:11px;font-weight:${isToday?700:400};color:${isToday?'var(--c-gold)':isWE?'var(--c-text3)':'var(--c-text)'}${dayV.length?';text-decoration:underline dotted':''}">${d}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:2px;margin-top:4px">${dots}</div>
+    </div>`;
+  }).join('');
+
+  // Lista del mes
+  _renderCalList(venc, misNits);
+}
+
+function _renderCalList(venc, misNits) {
+  const e = el('calListBody'); if (!e) return;
+  if (!venc.length) { e.innerHTML='<div style="padding:14px 16px;color:var(--c-text3);font-size:13px">Sin vencimientos en este mes para los filtros actuales.</div>'; return; }
+  // Agrupar por fecha, luego por categoría
+  const byDate = {};
+  venc.forEach(v => { if(!byDate[v.ds]) byDate[v.ds]=[]; byDate[v.ds].push(v); });
+  e.innerHTML = Object.entries(byDate).sort((a,b)=>a[0].localeCompare(b[0])).map(([ds,items])=>{
+    const d = new Date(ds+'T12:00:00');
+    const isToday = ds===todayStr();
+    const co = ds<todayStr() ? ' style="opacity:.55"' : '';
+    return `<div${co} style="display:flex;gap:12px;padding:10px 16px;border-bottom:1px solid var(--c-border);align-items:flex-start">
+      <div style="min-width:80px;font-size:12px;font-weight:600;color:${isToday?'var(--c-gold)':'var(--c-text)'}">
+        ${_DIAS_ES[d.getDay()]} ${d.getDate()} ${_MESES_ES[d.getMonth()].slice(0,3)}
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;flex:1">
+        ${items.map(v=>{
+          const co=(STATE.companies||[]).find(c=>c.nit&&c.nit===v.nit);
+          const mine=v.nit==='all'||!!co;
+          return `<span style="font-size:11.5px;padding:3px 9px;border-radius:12px;background:${v.bg};color:${v.color};border:1px solid ${v.color}30;font-weight:${mine?600:400}">
+            ${v.icon} ${v.nombre}${co?` · ${co.name}`:''}${v.nit&&v.nit!=='all'&&v.nit!==null&&!co?` NIT●${v.nit}`:''}${v.nit===null?` (${v.nitRango})`:''}
+          </span>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderDashVenc() {
+  const e = el('dashVencBody'); if (!e) return;
+  const today = todayStr();
+  const limitDate = new Date(); limitDate.setDate(limitDate.getDate()+14);
+  const limitStr = limitDate.toISOString().slice(0,10);
+  const misNits = new Set((STATE.companies||[]).map(c=>c.nit).filter(Boolean));
+
+  // Vencimientos únicos por fecha+cat+nit en los próximos 14 días
+  const seen = new Set();
+  const upcoming = CAL_2026.filter(v=>{
+    if (v.ds < today || v.ds > limitStr) return false;
+    const key = `${v.ds}_${v.cat}_${v.nit}`;
+    if (seen.has(key)) return false;
+    seen.add(key); return true;
+  }).sort((a,b)=>a.ds.localeCompare(b.ds));
+
+  if (!upcoming.length) {
+    e.innerHTML='<div style="padding:12px 16px;font-size:12px;color:var(--c-text3)">Sin vencimientos en los próximos 14 días.</div>';
+    return;
+  }
+  const byDate = {};
+  upcoming.forEach(v=>{ if(!byDate[v.ds])byDate[v.ds]=[]; byDate[v.ds].push(v); });
+
+  e.innerHTML = Object.entries(byDate).sort((a,b)=>a[0].localeCompare(b[0])).map(([ds,items])=>{
+    const d = new Date(ds+'T12:00:00');
+    const isToday = ds===today;
+    const lbl = isToday ? 'Hoy' : `${_DIAS_ES[d.getDay()]} ${d.getDate()} ${_MESES_ES[d.getMonth()].slice(0,3)}`;
+    const myItems = items.filter(v=>v.nit==='all'||misNits.has(v.nit));
+    return `<div style="padding:9px 16px;border-bottom:1px solid var(--c-border);background:${isToday?'var(--c-gold-bg)':''}">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
+        <span style="font-size:11.5px;font-weight:700;color:${isToday?'var(--c-gold)':'var(--c-text)'};min-width:100px">${lbl}</span>
+        ${myItems.length?`<span style="font-size:10px;background:var(--c-gold-bg);color:var(--c-gold);padding:1px 7px;border-radius:4px;font-weight:700">⚑ ${myItems.map(v=>{const co=(STATE.companies||[]).find(c=>c.nit===v.nit);return co?co.name:''}).filter(Boolean).join(', ')||myItems.length+' empresa'}</span>`:''}
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">
+        ${items.map(v=>{
+          const co=(STATE.companies||[]).find(c=>c.nit&&c.nit===v.nit);
+          const mine=v.nit==='all'||!!co;
+          return `<span style="font-size:11px;padding:2px 8px;border-radius:11px;background:${v.bg};color:${v.color};border:1px solid ${v.color}30;font-weight:${mine?700:400}" title="${v.nombre} · ${v.label}${v.nit&&v.nit!=='all'?' · NIT '+v.nit:''}${co?' · '+co.name:''}">${v.icon} ${v.nombre}${co?` <span style="opacity:.7">·</span> ${co.name}`:''}${v.nit&&v.nit!=='all'&&v.nit!==null&&!co?` <span style="opacity:.6;font-size:10px">NIT●${v.nit}</span>`:''}</span>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 async function startApp(){
   if(el('loginOverlay'))el('loginOverlay').style.display='none';
@@ -3218,6 +3591,7 @@ async function startApp(){
   }
   VIEW_DATE=todayStr();
   _anaRef=todayStr();
+  _CAL_VIEW=todayStr().slice(0,7);
   _renderTimerCompanies();
   _renderActivityOptions();
   _populateAllSelects();
