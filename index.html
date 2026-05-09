@@ -691,7 +691,7 @@ tr:hover .td-actions{opacity:1}
   <nav class="nav-section">
     <span class="nav-section-label">Análisis</span>
     <button class="nav-link" onclick="navigate('analitica')"><span class="nav-icon">◫</span><span>Métricas</span></button>
-    <button class="nav-link" onclick="navigate('tributario')"><span class="nav-icon">📅</span><span>Tributario</span></button>
+    <button class="nav-link" onclick="navigate('tributario')"><span class="nav-icon">📅</span><span>Calendario</span></button>
   </nav>
   <nav class="nav-section">
     <span class="nav-section-label">Config.</span>
@@ -1213,7 +1213,7 @@ tr:hover .td-actions{opacity:1}
           </div>
           <div class="fg-row-2">
             <div><label class="field-label" for="cDesc">Descripción / NIT / contacto</label><input type="text" class="field-input" id="cDesc" placeholder="Información adicional" autocomplete="off"></div>
-            <div><label class="field-label" for="cNit">Último dígito NIT</label><select class="field-input" id="cNit"><option value="">— Sin NIT —</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+            <div><label class="field-label" for="cNit">NIT</label><input type="text" class="field-input" id="cNit" placeholder="Ej: 900123456-1" autocomplete="off"></div>
           </div>
           <button class="btn btn-primary" onclick="saveCompany()">Agregar empresa</button>
         </div>
@@ -1292,7 +1292,7 @@ tr:hover .td-actions{opacity:1}
   <!-- ═══ TRIBUTARIO ═══ -->
   <section id="page-tributario" class="page" aria-label="Calendario Tributario">
     <div class="topbar">
-      <h1 class="topbar-title">📅 Tributario 2026</h1>
+      <h1 class="topbar-title">📅 Calendario Tributario 2026</h1>
     </div>
     <div class="page-content">
       <!-- Controles -->
@@ -1506,7 +1506,7 @@ tr:hover .td-actions{opacity:1}
     </div>
     <div class="fg-row-2">
       <div><label class="field-label">Descripción</label><input type="text" class="field-input" id="editCoDesc" autocomplete="off"></div>
-      <div><label class="field-label">Último dígito NIT</label><select class="field-input" id="editCoNit"><option value="">— Sin NIT —</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+      <div><label class="field-label">NIT</label><input type="text" class="field-input" id="editCoNit" placeholder="Ej: 900123456-1" autocomplete="off"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modalCo')">Cancelar</button>
@@ -2620,7 +2620,7 @@ function renderCompanyList(){
   e2.innerHTML=STATE.companies.map((co,i)=>`
     <div class="co-card">
       <div class="co-swatch" style="background:${co.color}"></div>
-      <div style="flex:1"><div class="co-name-txt">${co.name}</div><div style="font-size:11px;color:var(--c-text3)">${co.desc?co.desc+' ':''} ${co.nit?`<span style="background:var(--c-gold-bg);color:var(--c-gold);padding:1px 5px;border-radius:4px;font-weight:600">NIT ●${co.nit}</span>`:''}</div></div>
+      <div style="flex:1"><div class="co-name-txt">${co.name}</div><div style="font-size:11px;color:var(--c-text3)">${co.desc?`<span>${co.desc}</span> `:''} ${co.nit?`<span style="background:var(--c-gold-bg);color:var(--c-gold);padding:1px 6px;border-radius:4px;font-weight:600">NIT ${co.nit}</span>`:''}</div></div>
       <button class="icon-btn" onclick="openEditCompany(${i})">✎</button>
       <button class="icon-btn" style="color:var(--c-red)" onclick="deleteCompany(${i})">✕</button>
     </div>`).join('');
@@ -3384,6 +3384,36 @@ function _renderUserPill(){
 const _MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const _DIAS_ES  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 
+// Extrae el último dígito del NIT (ignora DV después del guion)
+function _nitD1(nit) {
+  const main = (nit||'').split('-')[0].replace(/[^0-9]/g,'');
+  return main.slice(-1);
+}
+// Extrae los últimos 2 dígitos del NIT (para Renta PN)
+function _nitD2(nit) {
+  const main = (nit||'').split('-')[0].replace(/[^0-9]/g,'');
+  return main.slice(-2).padStart(2,'0');
+}
+// Verifica si los últimos 2 dígitos de un NIT caen en un rango tipo '35-36' o '99-00'
+function _matchPN(rango, d2) {
+  const [a,b] = rango.split('-');
+  if (a==='99'&&b==='00') return d2==='99'||d2==='00';
+  return d2===a||d2===b;
+}
+// Dado un vencimiento, devuelve la empresa que corresponde
+function _coForVenc(v) {
+  if (!v||!STATE.companies) return null;
+  return STATE.companies.find(co => {
+    if (!co.nit) return false;
+    if (v.nit==='all') return true;
+    if (v.nit===null) return _matchPN(v.nitRango, _nitD2(co.nit));
+    return _nitD1(co.nit)===v.nit;
+  }) || null;
+}
+function _misNitSet() {
+  return new Set((STATE.companies||[]).filter(c=>c.nit).map(c=>_nitD1(c.nit)));
+}
+
 function _calNav(delta) {
   const [y,m] = _CAL_VIEW.split('-').map(Number);
   const d = new Date(y, m-1+delta, 1);
@@ -3394,7 +3424,6 @@ function _calGoToday() { _CAL_VIEW = todayStr().slice(0,7); renderCalendario(); 
 
 function _calSelectDay(ds) {
   const panel = el('calDayDetail'); if (!panel) return;
-  const misNits = new Set((STATE.companies||[]).map(c=>c.nit).filter(Boolean));
   const dayVenc = CAL_2026.filter(v => v.ds === ds);
   if (!dayVenc.length) { panel.style.display='none'; return; }
   const d = new Date(ds+'T12:00:00');
@@ -3404,17 +3433,17 @@ function _calSelectDay(ds) {
     <button class="icon-btn" style="margin-left:auto" onclick="el('calDayDetail').style.display='none'">✕</button>
   </div>
   <div class="card-body" style="padding:0">${dayVenc.map(v=>{
-    const co = (STATE.companies||[]).find(c=>c.nit&&c.nit===v.nit);
+    const co = _coForVenc(v);
     const mine = v.nit==='all'||!!co;
     return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:1px solid var(--c-border);background:${mine?v.bg:''}">
       <span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${v.color};margin-top:3px;flex-shrink:0"></span>
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600;color:var(--c-text)">${v.nombre} <span style="font-weight:400;color:var(--c-text2)">— ${v.label}</span></div>
         <div style="font-size:11.5px;color:var(--c-text3);margin-top:2px">
-          ${v.nit==='all'?'Aplica a todos los NIT':v.nit===null?`Últimos 2 dígitos NIT: ${v.nitRango}`:`NIT terminado en <strong>${v.nit}</strong>${co?` · <span style="color:${co.color};font-weight:700">${co.name}</span>`:''}`}
+          ${v.nit==='all'?'Aplica a todos los NIT':v.nit===null?`NIT (últimos 2 dígitos): ${v.nitRango}${co?` · <span style="color:${co.color};font-weight:700">${co.name}</span>`:''}`:`NIT termina en <strong>${v.nit}</strong>${co?` · <span style="color:${co.color};font-weight:700">${co.name}</span>`:''}`}
         </div>
       </div>
-      ${mine&&v.nit!=='all'&&v.nit!==null?`<span style="font-size:10px;background:var(--c-gold-bg);color:var(--c-gold);padding:2px 7px;border-radius:5px;font-weight:700;flex-shrink:0">⚑ Tuyo</span>`:''}
+      ${mine&&v.nit!=='all'?`<span style="font-size:10px;background:var(--c-gold-bg);color:var(--c-gold);padding:2px 7px;border-radius:5px;font-weight:700;flex-shrink:0">⚑ Tuyo</span>`:''}
     </div>`;
   }).join('')}</div>`;
 }
@@ -3436,13 +3465,13 @@ function renderCalendario() {
   }
   const activeCats = new Set([...document.querySelectorAll('.cal-cat-cb:checked')].map(cb=>cb.value));
   const onlyMine = el('calMisEmpresas')&&el('calMisEmpresas').checked;
-  const misNits = new Set((STATE.companies||[]).map(c=>c.nit).filter(Boolean));
+  const misNits = _misNitSet();
 
   // Filtrar vencimientos del mes actual
   const mesStr = _CAL_VIEW;
   let venc = CAL_2026.filter(v => v.ds.startsWith(mesStr) && activeCats.has(v.cat));
   if (onlyMine && misNits.size>0) {
-    venc = venc.filter(v => v.nit==='all' || v.nit===null || misNits.has(v.nit));
+    venc = venc.filter(v => v.nit==='all' || !!_coForVenc(v));
   }
 
   // Construir mapa por día: día → array de cats únicas
@@ -3475,7 +3504,7 @@ function renderCalendario() {
     const cats = [...new Set(dayV.map(v=>v.cat))];
     const dots = cats.map(cat=>{
       const meta = _CAT_META[cat];
-      const mine = dayV.some(v=>v.cat===cat&&(v.nit==='all'||misNits.has(v.nit)));
+      const mine = dayV.some(v=>v.cat===cat&&(v.nit==='all'||!!_coForVenc(v)));
       return `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${meta.color};${mine?'box-shadow:0 0 0 2px white,0 0 0 3px '+meta.color:'opacity:.7'};flex-shrink:0" title="${meta.nombre}"></span>`;
     }).join('');
     return `<div onclick="${dayV.length?`_calSelectDay('${ds}')`:''}" style="min-height:72px;padding:6px 5px;border-right:1px solid var(--c-border);border-bottom:1px solid var(--c-border);background:${isToday?'var(--c-gold-bg)':isWE?'#fafafa':'var(--c-surface)'};cursor:${dayV.length?'pointer':'default'};transition:background .1s" onmouseover="${dayV.length?`this.style.background='${isToday?'#fde68a':'#f3f4f6'}'`:''}" onmouseout="this.style.background='${isToday?'var(--c-gold-bg)':isWE?'#fafafa':'var(--c-surface)'}'">
@@ -3504,10 +3533,10 @@ function _renderCalList(venc, misNits) {
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:5px;flex:1">
         ${items.map(v=>{
-          const co=(STATE.companies||[]).find(c=>c.nit&&c.nit===v.nit);
+          const co=_coForVenc(v);
           const mine=v.nit==='all'||!!co;
           return `<span style="font-size:11.5px;padding:3px 9px;border-radius:12px;background:${v.bg};color:${v.color};border:1px solid ${v.color}30;font-weight:${mine?600:400}">
-            ${v.icon} ${v.nombre}${co?` · ${co.name}`:''}${v.nit&&v.nit!=='all'&&v.nit!==null&&!co?` NIT●${v.nit}`:''}${v.nit===null?` (${v.nitRango})`:''}
+            ${v.icon} ${v.nombre}${co?` · ${co.name}`:''}${v.nit&&v.nit!=='all'&&v.nit!==null&&!co?` NIT●${v.nit}`:''}${v.nit===null&&!co?` (${v.nitRango})`:''}
           </span>`;
         }).join('')}
       </div>
@@ -3520,8 +3549,6 @@ function renderDashVenc() {
   const today = todayStr();
   const limitDate = new Date(); limitDate.setDate(limitDate.getDate()+14);
   const limitStr = limitDate.toISOString().slice(0,10);
-  const misNits = new Set((STATE.companies||[]).map(c=>c.nit).filter(Boolean));
-
   // Vencimientos únicos por fecha+cat+nit en los próximos 14 días
   const seen = new Set();
   const upcoming = CAL_2026.filter(v=>{
@@ -3542,15 +3569,16 @@ function renderDashVenc() {
     const d = new Date(ds+'T12:00:00');
     const isToday = ds===today;
     const lbl = isToday ? 'Hoy' : `${_DIAS_ES[d.getDay()]} ${d.getDate()} ${_MESES_ES[d.getMonth()].slice(0,3)}`;
-    const myItems = items.filter(v=>v.nit==='all'||misNits.has(v.nit));
+    const myItems = items.filter(v=>v.nit==='all'||!!_coForVenc(v));
+    const myNames = [...new Set(myItems.map(v=>_coForVenc(v)?.name).filter(Boolean))];
     return `<div style="padding:9px 16px;border-bottom:1px solid var(--c-border);background:${isToday?'var(--c-gold-bg)':''}">
       <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
         <span style="font-size:11.5px;font-weight:700;color:${isToday?'var(--c-gold)':'var(--c-text)'};min-width:100px">${lbl}</span>
-        ${myItems.length?`<span style="font-size:10px;background:var(--c-gold-bg);color:var(--c-gold);padding:1px 7px;border-radius:4px;font-weight:700">⚑ ${myItems.map(v=>{const co=(STATE.companies||[]).find(c=>c.nit===v.nit);return co?co.name:''}).filter(Boolean).join(', ')||myItems.length+' empresa'}</span>`:''}
+        ${myNames.length?`<span style="font-size:10px;background:var(--c-gold-bg);color:var(--c-gold);padding:1px 7px;border-radius:4px;font-weight:700">⚑ ${myNames.join(', ')}</span>`:''}
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:4px">
         ${items.map(v=>{
-          const co=(STATE.companies||[]).find(c=>c.nit&&c.nit===v.nit);
+          const co=_coForVenc(v);
           const mine=v.nit==='all'||!!co;
           return `<span style="font-size:11px;padding:2px 8px;border-radius:11px;background:${v.bg};color:${v.color};border:1px solid ${v.color}30;font-weight:${mine?700:400}" title="${v.nombre} · ${v.label}${v.nit&&v.nit!=='all'?' · NIT '+v.nit:''}${co?' · '+co.name:''}">${v.icon} ${v.nombre}${co?` <span style="opacity:.7">·</span> ${co.name}`:''}${v.nit&&v.nit!=='all'&&v.nit!==null&&!co?` <span style="opacity:.6;font-size:10px">NIT●${v.nit}</span>`:''}</span>`;
         }).join('')}
