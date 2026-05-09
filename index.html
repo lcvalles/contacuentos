@@ -3579,12 +3579,14 @@ function renderDashVenc() {
       const d = new Date(ds+'T12:00:00');
       const isToday = ds===today;
       const lbl = isToday?'Hoy':`${_DIAS_ES[d.getDay()]} ${d.getDate()} ${_MESES_ES[d.getMonth()].slice(0,3)}`;
-      return `<div style="padding:8px 12px;border-bottom:1px solid var(--c-border);background:${isToday?'var(--c-gold-bg)':''}">
-        <div style="font-size:11px;font-weight:700;color:${isToday?'var(--c-gold)':'var(--c-text)'};margin-bottom:4px">${lbl}</div>
-        <div style="display:flex;flex-direction:column;gap:3px">
+      return `<div style="padding:7px 10px;border-bottom:1px solid var(--c-border);background:${isToday?'var(--c-gold-bg)':''}">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:${isToday?'var(--c-gold)':'var(--c-text3)'};margin-bottom:5px">${lbl}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">
           ${vs.map(v=>{
             const co=_coForVenc(v);
-            return `<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${v.bg};color:${v.color};border:1px solid ${v.color}25;font-weight:600;display:inline-flex;align-items:center;gap:4px;width:fit-content">${v.icon} ${v.nombre}${co?` · <strong>${co.name}</strong>`:''}${v.nit&&v.nit!=='all'&&!co?` <span style="opacity:.6;font-size:10px">NIT●${v.nit}</span>`:''}</span>`;
+            const nitBadge = v.nit&&v.nit!=='all'&&!co ? `<span style="opacity:.55;font-size:9px;font-weight:400">●${v.nit}</span>` : '';
+            const coName = co ? `<span style="opacity:.7;font-size:9px;font-weight:400"> ${co.name}</span>` : '';
+            return `<span style="font-size:10.5px;padding:2px 7px;border-radius:10px;background:${v.bg};color:${v.color};border:1px solid ${v.color}30;font-weight:600;display:inline-flex;align-items:center;gap:3px;white-space:nowrap">${v.icon} ${v.nombre}${coName}${nitBadge}</span>`;
           }).join('')}
         </div>
       </div>`;
