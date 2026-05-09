@@ -895,7 +895,16 @@ tr:hover .td-actions{opacity:1}
           <span class="card-title">📅 Vencimientos próximos</span>
           <button class="btn btn-secondary btn-xs" onclick="navigate('tributario')">Ver calendario</button>
         </div>
-        <div id="dashVencBody" style="max-height:260px;overflow-y:auto"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;overflow:hidden">
+          <div style="border-right:1px solid var(--c-border)">
+            <div style="padding:7px 14px;background:var(--c-gold-bg);border-bottom:2px solid var(--c-gold-bd)"><span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--c-gold)">⚑ Mis empresas</span></div>
+            <div id="dashVencMias" style="max-height:240px;overflow-y:auto"></div>
+          </div>
+          <div>
+            <div style="padding:7px 14px;background:#f0f9ff;border-bottom:2px solid #bae6fd"><span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#0ea5e9">📋 General / Otros NIT</span></div>
+            <div id="dashVencGeneral" style="max-height:240px;overflow-y:auto"></div>
+          </div>
+        </div>
       </div>
 
       <!-- QUICK ENTRY CARD -->
@@ -3545,11 +3554,12 @@ function _renderCalList(venc, misNits) {
 }
 
 function renderDashVenc() {
-  const e = el('dashVencBody'); if (!e) return;
+  const eMias = el('dashVencMias'), eGen = el('dashVencGeneral');
+  if (!eMias || !eGen) return;
   const today = todayStr();
   const limitDate = new Date(); limitDate.setDate(limitDate.getDate()+14);
   const limitStr = limitDate.toISOString().slice(0,10);
-  // Vencimientos únicos por fecha+cat+nit en los próximos 14 días
+
   const seen = new Set();
   const upcoming = CAL_2026.filter(v=>{
     if (v.ds < today || v.ds > limitStr) return false;
@@ -3558,33 +3568,31 @@ function renderDashVenc() {
     seen.add(key); return true;
   }).sort((a,b)=>a.ds.localeCompare(b.ds));
 
-  if (!upcoming.length) {
-    e.innerHTML='<div style="padding:12px 16px;font-size:12px;color:var(--c-text3)">Sin vencimientos en los próximos 14 días.</div>';
-    return;
-  }
-  const byDate = {};
-  upcoming.forEach(v=>{ if(!byDate[v.ds])byDate[v.ds]=[]; byDate[v.ds].push(v); });
+  const mias    = upcoming.filter(v => v.nit !== 'all' && !!_coForVenc(v));
+  const general = upcoming.filter(v => v.nit === 'all' || !_coForVenc(v));
 
-  e.innerHTML = Object.entries(byDate).sort((a,b)=>a[0].localeCompare(b[0])).map(([ds,items])=>{
-    const d = new Date(ds+'T12:00:00');
-    const isToday = ds===today;
-    const lbl = isToday ? 'Hoy' : `${_DIAS_ES[d.getDay()]} ${d.getDate()} ${_MESES_ES[d.getMonth()].slice(0,3)}`;
-    const myItems = items.filter(v=>v.nit==='all'||!!_coForVenc(v));
-    const myNames = [...new Set(myItems.map(v=>_coForVenc(v)?.name).filter(Boolean))];
-    return `<div style="padding:9px 16px;border-bottom:1px solid var(--c-border);background:${isToday?'var(--c-gold-bg)':''}">
-      <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
-        <span style="font-size:11.5px;font-weight:700;color:${isToday?'var(--c-gold)':'var(--c-text)'};min-width:100px">${lbl}</span>
-        ${myNames.length?`<span style="font-size:10px;background:var(--c-gold-bg);color:var(--c-gold);padding:1px 7px;border-radius:4px;font-weight:700">⚑ ${myNames.join(', ')}</span>`:''}
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px">
-        ${items.map(v=>{
-          const co=_coForVenc(v);
-          const mine=v.nit==='all'||!!co;
-          return `<span style="font-size:11px;padding:2px 8px;border-radius:11px;background:${v.bg};color:${v.color};border:1px solid ${v.color}30;font-weight:${mine?700:400}" title="${v.nombre} · ${v.label}${v.nit&&v.nit!=='all'?' · NIT '+v.nit:''}${co?' · '+co.name:''}">${v.icon} ${v.nombre}${co?` <span style="opacity:.7">·</span> ${co.name}`:''}${v.nit&&v.nit!=='all'&&v.nit!==null&&!co?` <span style="opacity:.6;font-size:10px">NIT●${v.nit}</span>`:''}</span>`;
-        }).join('')}
-      </div>
-    </div>`;
-  }).join('');
+  const _col = (items, empty) => {
+    if (!items.length) return `<div style="padding:12px 14px;font-size:12px;color:var(--c-text3)">${empty}</div>`;
+    const byDate = {};
+    items.forEach(v=>{ if(!byDate[v.ds])byDate[v.ds]=[]; byDate[v.ds].push(v); });
+    return Object.entries(byDate).sort((a,b)=>a[0].localeCompare(b[0])).map(([ds,vs])=>{
+      const d = new Date(ds+'T12:00:00');
+      const isToday = ds===today;
+      const lbl = isToday?'Hoy':`${_DIAS_ES[d.getDay()]} ${d.getDate()} ${_MESES_ES[d.getMonth()].slice(0,3)}`;
+      return `<div style="padding:8px 12px;border-bottom:1px solid var(--c-border);background:${isToday?'var(--c-gold-bg)':''}">
+        <div style="font-size:11px;font-weight:700;color:${isToday?'var(--c-gold)':'var(--c-text)'};margin-bottom:4px">${lbl}</div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          ${vs.map(v=>{
+            const co=_coForVenc(v);
+            return `<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${v.bg};color:${v.color};border:1px solid ${v.color}25;font-weight:600;display:inline-flex;align-items:center;gap:4px;width:fit-content">${v.icon} ${v.nombre}${co?` · <strong>${co.name}</strong>`:''}${v.nit&&v.nit!=='all'&&!co?` <span style="opacity:.6;font-size:10px">NIT●${v.nit}</span>`:''}</span>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  };
+
+  eMias.innerHTML = _col(mias, 'Agrega el NIT a tus empresas para ver sus vencimientos aquí.');
+  eGen.innerHTML  = _col(general, 'Sin vencimientos generales próximos.');
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
