@@ -1304,15 +1304,19 @@ tr:hover .td-actions{opacity:1}
       <h1 class="topbar-title">📅 Calendario Tributario 2026</h1>
     </div>
     <div class="page-content">
+      <!-- Alertas de vencimientos próximos -->
+      <div id="calAlerts" style="margin-bottom:14px"></div>
       <!-- Controles -->
       <div class="card" style="margin-bottom:14px">
         <div style="padding:14px 18px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
             <button onclick="_calNav(-1)" class="btn btn-secondary btn-xs">◀</button>
             <h2 id="calMonthLabel" style="flex:1;text-align:center;font-size:15px;font-weight:700;color:var(--c-text)">—</h2>
             <button onclick="_calNav(1)" class="btn btn-secondary btn-xs">▶</button>
             <button onclick="_calGoToday()" class="btn btn-secondary btn-xs">Hoy</button>
           </div>
+          <!-- Filtro por empresa -->
+          <div id="calCoFilter" style="margin-bottom:10px"></div>
           <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px" id="calFilters"></div>
           <label style="display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;color:var(--c-text2)">
             <input type="checkbox" id="calMisEmpresas" onchange="renderCalendario()" style="accent-color:var(--c-gold)">
@@ -1896,6 +1900,7 @@ const CAL_2026 = [
 let VIEW_DATE = '';
 let _CURRENT_PAGE = 'dashboard';
 let _CAL_VIEW = '';
+let _calCoFilter = '';
 let _timerTick = null, _clockTick = null, _breakMenuOpen = false;
 let _anaView = 'week', _anaRef = '', _anaRangeFrom = '', _anaRangeTo = '';
 
@@ -3470,6 +3475,7 @@ function _misNitSet() {
   return new Set((STATE.companies||[]).filter(c=>c.nit).map(c=>_nitD1(c.nit)));
 }
 
+function _calSetCo(id) { _calCoFilter = id; renderCalendario(); }
 function _calNav(delta) {
   const [y,m] = _CAL_VIEW.split('-').map(Number);
   const d = new Date(y, m-1+delta, 1);
@@ -3509,6 +3515,58 @@ function renderCalendario() {
   const [y,m] = _CAL_VIEW.split('-').map(Number);
   if (el('calMonthLabel')) el('calMonthLabel').textContent = `${_MESES_ES[m-1]} ${y}`;
 
+  // ── Banner de alertas ──────────────────────────────────────────────────────
+  const alertEl = el('calAlerts');
+  if (alertEl) {
+    const today = todayStr();
+    const lim = new Date(); lim.setDate(lim.getDate()+7);
+    const limStr = lim.toISOString().slice(0,10);
+    const seen7 = new Set();
+    const alertItems = CAL_2026.filter(v => {
+      if (v.ds < today || v.ds > limStr) return false;
+      const k = `${v.ds}_${v.cat}_${v.nit??v.nitD2??v.nitRango}`;
+      if (seen7.has(k)) return false; seen7.add(k);
+      return v.nit==='all' || !!_coForVenc(v);
+    }).sort((a,b)=>a.ds.localeCompare(b.ds));
+
+    if (alertItems.length) {
+      const byDs = {};
+      alertItems.forEach(v=>{ if(!byDs[v.ds])byDs[v.ds]=[]; byDs[v.ds].push(v); });
+      const rows = Object.entries(byDs).map(([ds,vs])=>{
+        const d = new Date(ds+'T12:00:00');
+        const diff = Math.round((d-new Date(today+'T12:00:00'))/86400000);
+        const lbl = diff===0?'Hoy':diff===1?'Mañana':`En ${diff} días`;
+        const dot = diff===0?'#ef4444':diff<=2?'#f97316':'#f59e0b';
+        const pills = vs.map(v=>{
+          const co = _coForVenc(v);
+          return `<span style="font-size:10.5px;padding:2px 7px;border-radius:10px;background:${v.bg};color:${v.color};border:1px solid ${v.color}30;font-weight:600;white-space:nowrap">${v.icon} ${v.nombre}${co?` · ${co.name}`:''}</span>`;
+        }).join('');
+        return `<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:5px">
+          <span style="min-width:72px;font-size:10.5px;font-weight:700;color:${dot};padding-top:2px">${lbl}</span>
+          <div style="display:flex;flex-wrap:wrap;gap:4px">${pills}</div>
+        </div>`;
+      }).join('');
+      alertEl.innerHTML = `<div style="background:#fffbeb;border:1.5px solid #f59e0b;border-radius:12px;padding:12px 16px">
+        <div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+          ⚠️ VENCIMIENTOS PRÓXIMOS — <span style="font-weight:400">${alertItems.length} en los próximos 7 días</span>
+        </div>
+        ${rows}
+      </div>`;
+    } else {
+      alertEl.innerHTML = `<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:10px 16px;font-size:12px;color:#166534;font-weight:600">✅ Sin vencimientos en los próximos 7 días</div>`;
+    }
+  }
+
+  // ── Filtro por empresa ─────────────────────────────────────────────────────
+  const coFilterEl = el('calCoFilter');
+  if (coFilterEl) {
+    const cos = (STATE.companies||[]).filter(c=>c.nit);
+    coFilterEl.innerHTML = `<select onchange="_calSetCo(this.value)" style="width:100%;padding:6px 10px;border-radius:8px;border:1px solid var(--c-border);font-size:12.5px;background:var(--c-surface);color:var(--c-text);cursor:pointer">
+      <option value="" ${!_calCoFilter?'selected':''}>🏢 Todas las empresas</option>
+      ${cos.map(c=>`<option value="${c.id}" ${_calCoFilter===c.id?'selected':''}>${c.name} — NIT ${c.nit}</option>`).join('')}
+    </select>`;
+  }
+
   // Filtros de categorías
   const filtersEl = el('calFilters');
   if (filtersEl && !filtersEl.childElementCount) {
@@ -3526,7 +3584,17 @@ function renderCalendario() {
   // Filtrar vencimientos del mes actual
   const mesStr = _CAL_VIEW;
   let venc = CAL_2026.filter(v => v.ds.startsWith(mesStr) && activeCats.has(v.cat));
-  if (onlyMine && misNits.size>0) {
+  if (_calCoFilter) {
+    const selCo = (STATE.companies||[]).find(c=>c.id===_calCoFilter);
+    if (selCo && selCo.nit) {
+      venc = venc.filter(v => {
+        if (v.nit==='all') return true;
+        if (v.nitD2!==undefined) return _nitD2(selCo.nit)===v.nitD2;
+        if (v.nit===null) return _matchPN(v.nitRango, _nitD2(selCo.nit));
+        return _nitD1(selCo.nit)===v.nit;
+      });
+    }
+  } else if (onlyMine && misNits.size>0) {
     venc = venc.filter(v => v.nit==='all' || !!_coForVenc(v));
   }
 
