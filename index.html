@@ -3686,7 +3686,7 @@ function renderCalendario() {
   // ── Filtros de categorías (primarios vs opcionales) ────────────────────────
   const filtersEl = el('calFilters');
   if (filtersEl && !filtersEl.childElementCount) {
-    const specialtyOnly = new Set(['gasolina','carbono']);
+    const specialtyOnly = new Set(['gasolina','carbono','rst','renta_pn']);
     const relevantCats = new Set();
     CAL_2026.forEach(v => {
       if (specialtyOnly.has(v.cat)) return;
