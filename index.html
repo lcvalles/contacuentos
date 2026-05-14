@@ -3731,6 +3731,18 @@ async function startApp(){
       let _tasksMigrated=false;
       STATE.tasks.forEach(t=>{if(!t.urgencia){t.urgencia='media';_tasksMigrated=true;}if(!t.tipo){t.tipo='profesional';_tasksMigrated=true;}});
       if(_tasksMigrated){STATE._savedAt=Date.now();await Sync._push();}
+      // Migración de empresas: actualizar NITs vacíos y agregar empresas nuevas de SEED_COS
+      let _cosMigrated=false;
+      SEED_COS.forEach(seed=>{
+        const existing=STATE.companies.find(c=>c.name.toLowerCase()===seed.name.toLowerCase());
+        if(existing){
+          if(!existing.nit&&seed.nit){existing.nit=seed.nit;_cosMigrated=true;}
+        } else {
+          STATE.companies.push(JSON.parse(JSON.stringify(seed)));
+          _cosMigrated=true;
+        }
+      });
+      if(_cosMigrated){STATE._savedAt=Date.now();await Sync._push();}
       // Marcar _savedAt cargado para que el primer onSnapshot no se aplique como "remoto nuevo"
       Sync._lastPushedAt=STATE._savedAt||0;
       localStorage.setItem(SK(),JSON.stringify(STATE));
