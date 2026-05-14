@@ -1908,6 +1908,7 @@ let _CAL_VIEW = '';
 let _calCoFilter = '';
 let _calNitQuery = '';
 let _calAlertOpen = false;
+let _catPanelOpen = false;
 let _timerTick = null, _clockTick = null, _breakMenuOpen = false;
 let _anaView = 'week', _anaRef = '', _anaRangeFrom = '', _anaRangeTo = '';
 
@@ -3484,6 +3485,27 @@ function _misNitSet() {
 
 function _calSetCo(id) { _calCoFilter = id; renderCalendario(); }
 function _calObligKey(v, co) { return `${v.ds}_${v.cat}_${co?co.id:'all'}`; }
+function _toggleCatPanel(e) {
+  e.stopPropagation(); _catPanelOpen = !_catPanelOpen;
+  const p = el('catFilterPanel'); if (p) p.style.display = _catPanelOpen?'block':'none';
+  _updateCatBtn();
+}
+function _closeCatPanel() {
+  _catPanelOpen = false;
+  const p = el('catFilterPanel'); if (p) p.style.display = 'none';
+  _updateCatBtn();
+}
+function _calSelectAllCats(checked) {
+  document.querySelectorAll('.cal-cat-cb').forEach(cb => cb.checked = checked);
+  _updateCatBtn(); renderCalendario();
+}
+function _updateCatBtn() {
+  const all = [...document.querySelectorAll('.cal-cat-cb')];
+  const n = all.filter(cb=>cb.checked).length;
+  const btn = el('catFilterBtn');
+  if (btn) btn.innerHTML = `Categorías <span style="background:var(--c-gold-bg);color:var(--c-gold);padding:1px 7px;border-radius:8px;font-size:10px;font-weight:700">${n}/${all.length}</span> ${_catPanelOpen?'▲':'▼'}`;
+  const selAll = el('calSelectAll'); if (selAll) selAll.checked = n === all.length;
+}
 function _calToggleDone(key) {
   if (!STATE.calDone) STATE.calDone = {};
   if (STATE.calDone[key]) delete STATE.calDone[key]; else STATE.calDone[key] = true;
@@ -3686,25 +3708,31 @@ function renderCalendario() {
   // ── Filtros de categorías (primarios vs opcionales) ────────────────────────
   const filtersEl = el('calFilters');
   if (filtersEl && !filtersEl.childElementCount) {
-    const specialtyOnly = new Set(['gasolina','carbono','rst','renta_pn']);
-    const relevantCats = new Set();
-    CAL_2026.forEach(v => {
-      if (specialtyOnly.has(v.cat)) return;
-      if (v.nit==='all' || _coForVenc(v)) relevantCats.add(v.cat);
-    });
-    const primaryEntries   = Object.entries(_CAT_META).filter(([cat]) =>  relevantCats.has(cat));
-    const secondaryEntries = Object.entries(_CAT_META).filter(([cat]) => !relevantCats.has(cat));
-    const makeLabel = ([cat, meta], checked) =>
-      `<label style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;cursor:pointer;padding:4px 8px;border-radius:12px;border:1px solid ${meta.color}40;background:${meta.bg}">
-        <input type="checkbox" class="cal-cat-cb" value="${cat}" ${checked?'checked':''} onchange="renderCalendario()" style="accent-color:${meta.color}">
-        <span style="color:${meta.color};font-weight:600">${meta.icon} ${meta.nombre}</span>
-      </label>`;
-    const secHtml = secondaryEntries.length
-      ? `<button id="calMoreCatsBtn" onclick="this.style.display='none';el('calMoreCats').style.display='inline-flex'"
-           style="padding:4px 10px;border-radius:12px;border:1px solid var(--c-border);background:var(--c-surface);font-size:11px;cursor:pointer;color:var(--c-text3)">+ ${secondaryEntries.length} más</button>
-         <span id="calMoreCats" style="display:none;flex-wrap:wrap;gap:6px">${secondaryEntries.map(e=>makeLabel(e,false)).join('')}</span>`
-      : '';
-    filtersEl.innerHTML = primaryEntries.map(e=>makeLabel(e,true)).join('') + secHtml;
+    if (!window._catPanelClickBound) {
+      document.addEventListener('click', _closeCatPanel);
+      window._catPanelClickBound = true;
+    }
+    const allCatEntries = Object.entries(_CAT_META);
+    const rows = allCatEntries.map(([cat,meta]) =>
+      `<label onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:9px;padding:6px 14px;cursor:pointer;border-bottom:1px solid var(--c-border)">
+        <input type="checkbox" class="cal-cat-cb" value="${cat}" checked onchange="_updateCatBtn();renderCalendario()" style="accent-color:${meta.color};flex-shrink:0">
+        <span style="width:9px;height:9px;border-radius:50%;background:${meta.color};flex-shrink:0"></span>
+        <span style="font-size:12px;color:var(--c-text)">${meta.icon} ${meta.nombre}</span>
+      </label>`
+    ).join('');
+    filtersEl.innerHTML = `<div style="position:relative;display:inline-block">
+      <button id="catFilterBtn" onclick="_toggleCatPanel(event)"
+        style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:8px;border:1px solid var(--c-border);background:var(--c-surface);cursor:pointer;font-size:12px;color:var(--c-text);white-space:nowrap">
+        Categorías <span style="background:var(--c-gold-bg);color:var(--c-gold);padding:1px 7px;border-radius:8px;font-size:10px;font-weight:700">${allCatEntries.length}/${allCatEntries.length}</span> ▼
+      </button>
+      <div id="catFilterPanel" onclick="event.stopPropagation()" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:100;background:var(--c-surface);border:1px solid var(--c-border);border-radius:10px;box-shadow:0 4px 20px #0002;min-width:210px;overflow:hidden">
+        <label onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:9px;padding:8px 14px;cursor:pointer;background:var(--c-bg);border-bottom:2px solid var(--c-border)">
+          <input type="checkbox" id="calSelectAll" checked onchange="_calSelectAllCats(this.checked)" style="accent-color:var(--c-gold);flex-shrink:0">
+          <span style="font-size:12px;font-weight:700;color:var(--c-text)">Seleccionar todas</span>
+        </label>
+        ${rows}
+      </div>
+    </div>`;
   }
   const activeCats = new Set([...document.querySelectorAll('.cal-cat-cb:checked')].map(cb=>cb.value));
   const onlyMine = el('calMisEmpresas')&&el('calMisEmpresas').checked;
