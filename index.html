@@ -1315,9 +1315,12 @@ tr:hover .td-actions{opacity:1}
             <button onclick="_calNav(1)" class="btn btn-secondary btn-xs">▶</button>
             <button onclick="_calGoToday()" class="btn btn-secondary btn-xs">Hoy</button>
           </div>
-          <!-- Filtro por empresa -->
-          <div id="calCoFilter" style="margin-bottom:8px"></div>
-          <div id="calNitFilter" style="margin-bottom:10px"></div>
+          <!-- Filtro por empresa + consulta NIT -->
+          <div style="display:flex;gap:8px;margin-bottom:6px;align-items:center">
+            <div id="calCoFilter" style="flex:1;min-width:0"></div>
+            <div id="calNitFilter" style="flex:1;min-width:0"></div>
+          </div>
+          <div id="calNitResult" style="margin-bottom:10px"></div>
           <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px" id="calFilters"></div>
           <label style="display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;color:var(--c-text2)">
             <input type="checkbox" id="calMisEmpresas" onchange="renderCalendario()" style="accent-color:var(--c-gold)">
@@ -3648,12 +3651,11 @@ function renderCalendario() {
   if (nitFilterEl && !nitFilterEl.childElementCount) {
     nitFilterEl.innerHTML = `<div style="display:flex;gap:6px">
       <input id="calNitInput" type="text" placeholder="🔍 Consultar NIT..." value="${_calNitQuery}"
-        style="flex:1;padding:5px 10px;border-radius:8px;border:1px solid var(--c-border);font-size:12px;background:var(--c-surface);color:var(--c-text)"
+        style="flex:1;min-width:0;padding:6px 10px;border-radius:8px;border:1px solid var(--c-border);font-size:12.5px;background:var(--c-surface);color:var(--c-text)"
         onkeydown="if(event.key==='Enter')_calLookupNit(this.value)">
       <button onclick="_calLookupNit(el('calNitInput').value)"
-        style="padding:5px 13px;border-radius:8px;border:1px solid var(--c-border);background:var(--c-surface);color:var(--c-text2);cursor:pointer;font-size:12px">Consultar</button>
-    </div>
-    <div id="calNitResult" style="margin-top:6px"></div>`;
+        style="padding:6px 13px;border-radius:8px;border:1px solid var(--c-border);background:var(--c-surface);color:var(--c-text2);cursor:pointer;font-size:12.5px;white-space:nowrap">Consultar</button>
+    </div>`;
     if (_calNitQuery) _calLookupNit(_calNitQuery);
   }
 
