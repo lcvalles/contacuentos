@@ -1695,12 +1695,26 @@ const _EMOJI_MIGRATION = {
 };
 
 const SEED_COS = [
-  { id:'co1', name:'Podenza',   color:'#2e5c8a', desc:'', nit:'' },
-  { id:'co2', name:'IAC',       color:'#1a6b5e', desc:'', nit:'' },
-  { id:'co3', name:'Crispetas', color:'#8a5e0a', desc:'', nit:'' },
-  { id:'co4', name:'Wlabel',    color:'#5e3a98', desc:'', nit:'' },
-  { id:'co5', name:'Dinafik',   color:'#8b2020', desc:'', nit:'' },
-  { id:'co6', name:'Afl',       color:'#1a4a8a', desc:'', nit:'' },
+  { id:'co1',  name:'Podenza',         color:'#2e5c8a', desc:'', nit:'901.867.521' },
+  { id:'co2',  name:'IAC',             color:'#1a6b5e', desc:'', nit:'811.004.721' },
+  { id:'co3',  name:'Crispetas',       color:'#8a5e0a', desc:'', nit:'902.046.704' },
+  { id:'co4',  name:'Wlabel',          color:'#5e3a98', desc:'', nit:'901.950.257' },
+  { id:'co5',  name:'Dinafik',         color:'#8b2020', desc:'', nit:'901.867.074' },
+  { id:'co6',  name:'Afl',             color:'#1a4a8a', desc:'', nit:'901.836.860' },
+  { id:'co7',  name:'4:44 Design',     color:'#b91c1c', desc:'', nit:'901.551.312' },
+  { id:'co8',  name:'PS Latam',        color:'#15803d', desc:'', nit:'901.539.035' },
+  { id:'co9',  name:'DCS',             color:'#7e22ce', desc:'', nit:'901.666.535' },
+  { id:'co10', name:'MITS',            color:'#1d4ed8', desc:'', nit:'901.834.985' },
+  { id:'co11', name:'47 Bauman',       color:'#c2410c', desc:'', nit:'901.650.407' },
+  { id:'co12', name:'DD&C',            color:'#0f766e', desc:'', nit:'901.346.537' },
+  { id:'co13', name:'Red Ya',          color:'#be123c', desc:'', nit:'901.293.978' },
+  { id:'co14', name:'No Workin',       color:'#0369a1', desc:'', nit:'901.552.418' },
+  { id:'co15', name:'Cinco 21',        color:'#6d28d9', desc:'', nit:'901.090.610' },
+  { id:'co16', name:'Grapez Studio',   color:'#166534', desc:'', nit:'901.872.150' },
+  { id:'co17', name:'Luis E. Cano',    color:'#312e81', desc:'', nit:'1.001.880.434' },
+  { id:'co18', name:'Forttac',         color:'#9a3412', desc:'', nit:'901.302.038' },
+  { id:'co19', name:'XLUP',            color:'#374151', desc:'', nit:'901.979.053' },
+  { id:'co20', name:'Uncomfortable',   color:'#831843', desc:'', nit:'901.919.481' },
 ];
 let STATE = { companies:[], tasks:[], days:{}, settings:{ dailyGoal:8, breakAlert:90 }, activeSession:null };
 
@@ -1732,6 +1746,9 @@ const _CAT_META = {
   patrimonio: { color:'#a855f7', bg:'#faf5ff', nombre:'Patrimonio',        icon:'🏛️' },
   gasolina:   { color:'#f97316', bg:'#fff7ed', nombre:'Gasolina/ACPM',     icon:'⛽' },
   carbono:    { color:'#64748b', bg:'#f8fafc', nombre:'Carbono',           icon:'🌱' },
+  exogena:    { color:'#0891b2', bg:'#ecfeff', nombre:'Medios Magnéticos', icon:'💾' },
+  camara:     { color:'#65a30d', bg:'#f7fee7', nombre:'Cámara de Comercio',icon:'🏛️' },
+  eeff:       { color:'#0369a1', bg:'#e0f2fe', nombre:'EEFF',              icon:'📋' },
 };
 function _bv(cat, periodos) {
   const { color, bg, nombre, icon } = _CAT_META[cat];
@@ -1758,6 +1775,29 @@ const _F07 = {'1':9,'2':10,'3':13,'4':14,'5':15,'6':16,'7':17,'8':21,'9':22,'0':
 const _F09 = {'1':9,'2':10,'3':11,'4':14,'5':15,'6':16,'7':17,'8':18,'9':21,'0':22};
 const _F11 = {'1':11,'2':12,'3':13,'4':17,'5':18,'6':19,'7':20,'8':23,'9':24,'0':25};
 const _F27 = {'1':13,'2':14,'3':15,'4':18,'5':19,'6':20,'7':21,'8':22,'9':25,'0':26};
+// Exógena Nacional por últimos 2 dígitos NIT (grupos de 5, Res. 000227/2025)
+const _FExo = {
+  '01':'2026-05-14','02':'2026-05-14','03':'2026-05-14','04':'2026-05-14','05':'2026-05-14',
+  '06':'2026-05-15','07':'2026-05-15','08':'2026-05-15','09':'2026-05-15','10':'2026-05-15',
+  '11':'2026-05-19','12':'2026-05-19','13':'2026-05-19','14':'2026-05-19','15':'2026-05-19',
+  '16':'2026-05-20','17':'2026-05-20','18':'2026-05-20','19':'2026-05-20','20':'2026-05-20',
+  '21':'2026-05-21','22':'2026-05-21','23':'2026-05-21','24':'2026-05-21','25':'2026-05-21',
+  '26':'2026-05-22','27':'2026-05-22','28':'2026-05-22','29':'2026-05-22','30':'2026-05-22',
+  '31':'2026-05-25','32':'2026-05-25','33':'2026-05-25','34':'2026-05-25','35':'2026-05-25',
+  '36':'2026-05-26','37':'2026-05-26','38':'2026-05-26','39':'2026-05-26','40':'2026-05-26',
+  '41':'2026-05-27','42':'2026-05-27','43':'2026-05-27','44':'2026-05-27','45':'2026-05-27',
+  '46':'2026-05-28','47':'2026-05-28','48':'2026-05-28','49':'2026-05-28','50':'2026-05-28',
+  '51':'2026-05-29','52':'2026-05-29','53':'2026-05-29','54':'2026-05-29','55':'2026-05-29',
+  '56':'2026-06-01','57':'2026-06-01','58':'2026-06-01','59':'2026-06-01','60':'2026-06-01',
+  '61':'2026-06-02','62':'2026-06-02','63':'2026-06-02','64':'2026-06-02','65':'2026-06-02',
+  '66':'2026-06-03','67':'2026-06-03','68':'2026-06-03','69':'2026-06-03','70':'2026-06-03',
+  '71':'2026-06-04','72':'2026-06-04','73':'2026-06-04','74':'2026-06-04','75':'2026-06-04',
+  '76':'2026-06-05','77':'2026-06-05','78':'2026-06-05','79':'2026-06-05','80':'2026-06-05',
+  '81':'2026-06-09','82':'2026-06-09','83':'2026-06-09','84':'2026-06-09','85':'2026-06-09',
+  '86':'2026-06-10','87':'2026-06-10','88':'2026-06-10','89':'2026-06-10','90':'2026-06-10',
+  '91':'2026-06-11','92':'2026-06-11','93':'2026-06-11','94':'2026-06-11','95':'2026-06-11',
+  '96':'2026-06-12','97':'2026-06-12','98':'2026-06-12','99':'2026-06-12','00':'2026-06-12',
+};
 const CAL_2026 = [
   // ── Renta Grandes Contribuyentes ──
   ..._bv('renta_gc',[
@@ -1844,6 +1884,12 @@ const CAL_2026 = [
     {label:'Sep-Oct',mes:'2026-11',f:{'all':17}},
     {label:'Nov-Dic',mes:'2027-01',f:{'all':18}},
   ]),
+  // ── Cámara de Comercio (fecha fija, aplica a todos) ──
+  { cat:'camara',  ...{color:'#65a30d',bg:'#f7fee7',nombre:'Cámara de Comercio',icon:'🏛️'}, label:'Renovación anual',   ds:'2026-03-31', nit:'all' },
+  // ── Estados Financieros Finales (fecha fija, aplica a todos) ──
+  { cat:'eeff',    ...{color:'#0369a1',bg:'#e0f2fe',nombre:'EEFF',icon:'📋'},               label:'Presentación EEFF', ds:'2026-03-31', nit:'all' },
+  // ── Exógena Nacional / Medios Magnéticos (últimos 2 dígitos NIT) ──
+  ...Object.entries(_FExo).map(([d2,ds])=>({ cat:'exogena', color:'#0891b2', bg:'#ecfeff', nombre:'Medios Magnéticos', icon:'💾', label:'Información Exógena Nacional', ds, nit:null, nitD2:d2 })),
 ];
 
 // ── App State ─────────────────────────────────────────────────────────────────
@@ -3415,6 +3461,7 @@ function _coForVenc(v) {
   return STATE.companies.find(co => {
     if (!co.nit) return false;
     if (v.nit==='all') return true;
+    if (v.nitD2!==undefined) return _nitD2(co.nit)===v.nitD2;
     if (v.nit===null) return _matchPN(v.nitRango, _nitD2(co.nit));
     return _nitD1(co.nit)===v.nit;
   }) || null;
@@ -3449,7 +3496,7 @@ function _calSelectDay(ds) {
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600;color:var(--c-text)">${v.nombre} <span style="font-weight:400;color:var(--c-text2)">— ${v.label}</span></div>
         <div style="font-size:11.5px;color:var(--c-text3);margin-top:2px">
-          ${v.nit==='all'?'Aplica a todos los NIT':v.nit===null?`NIT (últimos 2 dígitos): ${v.nitRango}${co?` · <span style="color:${co.color};font-weight:700">${co.name}</span>`:''}`:`NIT termina en <strong>${v.nit}</strong>${co?` · <span style="color:${co.color};font-weight:700">${co.name}</span>`:''}`}
+          ${v.nit==='all'?'Aplica a todos los NIT':v.nitD2!==undefined?`NIT termina en <strong>${v.nitD2}</strong> (últimos 2 dígitos)${co?` · <span style="color:${co.color};font-weight:700">${co.name}</span>`:''}`:v.nit===null?`NIT (últimos 2 dígitos): ${v.nitRango}${co?` · <span style="color:${co.color};font-weight:700">${co.name}</span>`:''}` :`NIT termina en <strong>${v.nit}</strong>${co?` · <span style="color:${co.color};font-weight:700">${co.name}</span>`:''}`}
         </div>
       </div>
       ${mine&&v.nit!=='all'?`<span style="font-size:10px;background:var(--c-gold-bg);color:var(--c-gold);padding:2px 7px;border-radius:5px;font-weight:700;flex-shrink:0">⚑ Tuyo</span>`:''}
@@ -3545,7 +3592,7 @@ function _renderCalList(venc, misNits) {
           const co=_coForVenc(v);
           const mine=v.nit==='all'||!!co;
           return `<span style="font-size:11.5px;padding:3px 9px;border-radius:12px;background:${v.bg};color:${v.color};border:1px solid ${v.color}30;font-weight:${mine?600:400}">
-            ${v.icon} ${v.nombre}${co?` · ${co.name}`:''}${v.nit&&v.nit!=='all'&&v.nit!==null&&!co?` NIT●${v.nit}`:''}${v.nit===null&&!co?` (${v.nitRango})`:''}
+            ${v.icon} ${v.nombre}${co?` · ${co.name}`:''}${v.nit&&v.nit!=='all'&&v.nit!==null&&!co?` NIT●${v.nit}`:''}${v.nitD2!==undefined&&!co?` NN●${v.nitD2}`:''}${v.nit===null&&v.nitD2===undefined&&!co?` (${v.nitRango})`:''}
           </span>`;
         }).join('')}
       </div>
@@ -3563,7 +3610,7 @@ function renderDashVenc() {
   const seen = new Set();
   const upcoming = CAL_2026.filter(v=>{
     if (v.ds < today || v.ds > limitStr) return false;
-    const key = `${v.ds}_${v.cat}_${v.nit}`;
+    const key = `${v.ds}_${v.cat}_${v.nit??v.nitD2??v.nitRango}`;
     if (seen.has(key)) return false;
     seen.add(key); return true;
   }).sort((a,b)=>a.ds.localeCompare(b.ds));
