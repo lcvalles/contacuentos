@@ -3541,47 +3541,55 @@ function renderCalendario() {
     }).sort((a,b)=>a.ds.localeCompare(b.ds));
 
     if (alertItems.length) {
-      const byDs = {};
-      alertItems.forEach(v=>{ if(!byDs[v.ds])byDs[v.ds]=[]; byDs[v.ds].push(v); });
-      const rows = Object.entries(byDs).map(([ds,vs])=>{
-        const d = new Date(ds+'T12:00:00');
-        const diff = Math.round((d-todayDate)/86400000);
-        const lbl = diff===0?'Hoy':diff===1?'Mañana':`En ${diff} días`;
-        const dot = diff===0?'#ef4444':diff<=2?'#f97316':'#f59e0b';
+      // Group by company
+      const byCo = {};
+      const universal = [];
+      alertItems.forEach(v => {
+        if (v.nit === 'all') { universal.push(v); return; }
+        const co = _coForVenc(v);
+        if (!co) return;
+        if (!byCo[co.id]) byCo[co.id] = { co, byDs:{} };
+        if (!byCo[co.id].byDs[v.ds]) byCo[co.id].byDs[v.ds] = [];
+        byCo[co.id].byDs[v.ds].push(v);
+      });
 
-        // Universal obligations (nit:'all') — one pill each
-        const uniPills = vs.filter(v=>v.nit==='all').map(v=>
-          `<span style="font-size:11px;padding:3px 9px;border-radius:10px;background:${v.bg};color:${v.color};border:1px solid ${v.color}40;font-weight:600;white-space:nowrap">${v.icon} ${v.nombre}</span>`
-        ).join('');
-
-        // Company-specific — group by company
-        const byCo = {};
-        vs.filter(v=>v.nit!=='all').forEach(v=>{
-          const co = _coForVenc(v);
-          if (!co) return;
-          if (!byCo[co.id]) byCo[co.id] = { co, n:0 };
-          byCo[co.id].n++;
-        });
-        const coChips = Object.values(byCo).map(({co,n})=>{
-          const c = co.color||'#6366f1';
-          return `<span style="font-size:11px;padding:3px 9px;border-radius:10px;background:${c}18;border:1px solid ${c}50;color:${c};font-weight:600;display:inline-flex;align-items:center;gap:5px;white-space:nowrap">
-            <span style="width:7px;height:7px;border-radius:50%;background:${c};flex-shrink:0;display:inline-block"></span>
-            ${co.name}${n>1?` <span style="background:${c};color:#fff;border-radius:5px;padding:0 5px;font-size:9px;font-weight:700;line-height:1.5">${n}</span>`:''}
-          </span>`;
+      const coCards = Object.values(byCo).sort((a,b)=>{
+        return Object.keys(a.byDs).sort()[0].localeCompare(Object.keys(b.byDs).sort()[0]);
+      }).map(({co, byDs}) => {
+        const c = co.color || '#6366f1';
+        const total = Object.values(byDs).reduce((s,a)=>s+a.length, 0);
+        const dateRows = Object.entries(byDs).sort(([a],[b])=>a.localeCompare(b)).map(([ds,vs])=>{
+          const diff = Math.round((new Date(ds+'T12:00:00')-todayDate)/86400000);
+          const emo = diff===0?'🔴':diff<=2?'🟠':'🟡';
+          const lbl = diff===0?'Hoy':diff===1?'Mañana':`${diff}d`;
+          const tags = vs.map(v=>`<span style="font-size:9.5px;padding:1px 7px;border-radius:6px;background:${v.bg};color:${v.color};font-weight:600;white-space:nowrap">${v.icon} ${v.label||v.nombre}</span>`).join('');
+          return `<div style="margin-bottom:5px;last-child:margin-bottom:0">
+            <div style="font-size:10px;font-weight:700;color:${diff===0?'#ef4444':diff<=2?'#f97316':'#ca8a04'};margin-bottom:3px">${emo} ${lbl}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:3px">${tags}</div>
+          </div>`;
         }).join('');
-
-        return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">
-          <span style="min-width:70px;font-size:10.5px;font-weight:700;color:${dot};flex-shrink:0">${lbl}</span>
-          <div style="display:flex;flex-wrap:wrap;gap:4px">${coChips}${uniPills}</div>
+        return `<div style="border:1px solid ${c}40;border-radius:11px;padding:10px 12px;background:${c}08;min-width:140px;flex:1;max-width:240px;box-sizing:border-box">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+            <span style="width:9px;height:9px;border-radius:50%;background:${c};flex-shrink:0;display:inline-block"></span>
+            <span style="font-size:11.5px;font-weight:700;color:${c};flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${co.name}</span>
+            <span style="background:${c};color:#fff;border-radius:6px;padding:1px 7px;font-size:9.5px;font-weight:700;flex-shrink:0">${total}</span>
+          </div>
+          ${dateRows}
         </div>`;
       }).join('');
 
-      const totalCos = new Set(alertItems.filter(v=>v.nit!=='all').map(v=>{ const co=_coForVenc(v); return co?co.id:null; }).filter(Boolean)).size;
+      const uniStrip = universal.length ? `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:10px;padding-top:10px;border-top:1px solid #f59e0b30">
+        <span style="font-size:10px;color:#92400e;font-weight:600;margin-right:2px">Todos los NIT:</span>
+        ${universal.map(v=>`<span style="font-size:10.5px;padding:2px 9px;border-radius:8px;background:${v.bg};color:${v.color};border:1px solid ${v.color}30;font-weight:600">${v.icon} ${v.nombre}</span>`).join('')}
+      </div>` : '';
+
+      const totalCos = Object.keys(byCo).length;
       alertEl.innerHTML = `<div style="background:#fffbeb;border:1.5px solid #f59e0b;border-radius:12px;padding:12px 16px">
-        <div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:8px;display:flex;align-items:center;gap:6px">
-          ⚠️ VENCIMIENTOS PRÓXIMOS — <span style="font-weight:400">${alertItems.length} obligaciones · ${totalCos} empresa${totalCos!==1?'s':''} en los próximos 7 días</span>
+        <div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+          ⚠️ VENCIMIENTOS PRÓXIMOS — <span style="font-weight:400">${alertItems.length} obligaciones · ${totalCos} empresa${totalCos!==1?'s':''} esta semana</span>
         </div>
-        ${rows}
+        <div style="display:flex;flex-wrap:wrap;gap:8px">${coCards}</div>
+        ${uniStrip}
       </div>`;
     } else {
       alertEl.innerHTML = `<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:10px 16px;font-size:12px;color:#166534;font-weight:600">✅ Sin vencimientos en los próximos 7 días</div>`;
