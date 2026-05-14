@@ -3494,20 +3494,30 @@ function _calSelectDay(ds) {
     <span class="card-title">${d.getDate()} de ${_MESES_ES[d.getMonth()]} ${d.getFullYear()}</span>
     <button class="icon-btn" style="margin-left:auto" onclick="el('calDayDetail').style.display='none'">✕</button>
   </div>
-  <div class="card-body" style="padding:0">${dayVenc.map(v=>{
-    const co = _coForVenc(v);
-    const mine = v.nit==='all'||!!co;
-    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:1px solid var(--c-border);background:${mine?v.bg:''}">
-      <span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${v.color};margin-top:3px;flex-shrink:0"></span>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:600;color:var(--c-text)">${v.nombre} <span style="font-weight:400;color:var(--c-text2)">— ${v.label}</span></div>
-        <div style="font-size:11.5px;color:var(--c-text3);margin-top:2px">
-          ${v.nit==='all'?'Aplica a todos los NIT':v.nitD2!==undefined?`NIT termina en <strong>${v.nitD2}</strong> (últimos 2 dígitos)${co?` · <span style="color:${co.color};font-weight:700">${co.name}</span>`:''}`:v.nit===null?`NIT (últimos 2 dígitos): ${v.nitRango}${co?` · <span style="color:${co.color};font-weight:700">${co.name}</span>`:''}` :`NIT termina en <strong>${v.nit}</strong>${co?` · <span style="color:${co.color};font-weight:700">${co.name}</span>`:''}`}
+  <div class="card-body" style="padding:0">${(()=>{
+    const matched = dayVenc.filter(v=>v.nit==='all'||!!_coForVenc(v));
+    const unmByCat = {};
+    dayVenc.filter(v=>v.nit!=='all'&&!_coForVenc(v)).forEach(v=>{ if(!unmByCat[v.cat])unmByCat[v.cat]={n:0,v}; unmByCat[v.cat].n++; });
+    const display = [...matched, ...Object.values(unmByCat).map(({n,v})=>({...v,_extra:n}))];
+    return display.map(v=>{
+      const co = _coForVenc(v);
+      const mine = v.nit==='all'||!!co;
+      if(v._extra) return `<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--c-border);opacity:.6">
+        <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${v.color};flex-shrink:0"></span>
+        <div style="font-size:12px;color:var(--c-text3)">${v.nombre} — ${v._extra} NIT sin empresa registrada</div>
+      </div>`;
+      return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:1px solid var(--c-border);background:${mine?v.bg:''}">
+        <span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${v.color};margin-top:3px;flex-shrink:0"></span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;color:var(--c-text)">${v.nombre} <span style="font-weight:400;color:var(--c-text2)">— ${v.label}</span></div>
+          <div style="font-size:11.5px;color:var(--c-text3);margin-top:2px">
+            ${v.nit==='all'?'Aplica a todos los NIT':v.nitD2!==undefined?`NIT termina en <strong>${v.nitD2}</strong>${co?` · <span style="color:${co.color};font-weight:700">${co.name}</span>`:''}`:v.nit===null?`NIT rango: ${v.nitRango}${co?` · <span style="color:${co.color};font-weight:700">${co.name}</span>`:''}` :`NIT termina en <strong>${v.nit}</strong>${co?` · <span style="color:${co.color};font-weight:700">${co.name}</span>`:''}`}
+          </div>
         </div>
-      </div>
-      ${mine&&v.nit!=='all'?`<span style="font-size:10px;background:var(--c-gold-bg);color:var(--c-gold);padding:2px 7px;border-radius:5px;font-weight:700;flex-shrink:0">⚑ Tuyo</span>`:''}
-    </div>`;
-  }).join('')}</div>`;
+        ${mine&&v.nit!=='all'?`<span style="font-size:10px;background:var(--c-gold-bg);color:var(--c-gold);padding:2px 7px;border-radius:5px;font-weight:700;flex-shrink:0">⚑ Tuyo</span>`:''}
+      </div>`;
+    }).join('');
+  })()}</div>`;
 }
 
 function renderCalendario() {
@@ -3650,17 +3660,25 @@ function _renderCalList(venc, misNits) {
   e.innerHTML = Object.entries(byDate).sort((a,b)=>a[0].localeCompare(b[0])).map(([ds,items])=>{
     const d = new Date(ds+'T12:00:00');
     const isToday = ds===todayStr();
-    const co = ds<todayStr() ? ' style="opacity:.55"' : '';
-    return `<div${co} style="display:flex;gap:12px;padding:10px 16px;border-bottom:1px solid var(--c-border);align-items:flex-start">
+    const past = ds<todayStr() ? ' style="opacity:.55"' : '';
+    // Separar matched (con empresa) vs sin empresa, colapsando sin empresa por categoría
+    const matched = items.filter(v=>v.nit==='all'||!!_coForVenc(v));
+    const unmByCat = {};
+    items.filter(v=>v.nit!=='all'&&!_coForVenc(v)).forEach(v=>{ if(!unmByCat[v.cat])unmByCat[v.cat]={n:0,v}; unmByCat[v.cat].n++; });
+    const display = [...matched, ...Object.values(unmByCat).map(({n,v})=>({...v,_extra:n}))];
+    return `<div${past} style="display:flex;gap:12px;padding:10px 16px;border-bottom:1px solid var(--c-border);align-items:flex-start">
       <div style="min-width:80px;font-size:12px;font-weight:600;color:${isToday?'var(--c-gold)':'var(--c-text)'}">
         ${_DIAS_ES[d.getDay()]} ${d.getDate()} ${_MESES_ES[d.getMonth()].slice(0,3)}
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:5px;flex:1">
-        ${items.map(v=>{
+        ${display.map(v=>{
           const co=_coForVenc(v);
+          if(v._extra){
+            return `<span style="font-size:11px;padding:3px 9px;border-radius:12px;background:var(--c-bg);color:var(--c-text3);border:1px solid var(--c-border);font-weight:400">${v.icon} ${v.nombre} <span style="font-size:10px">(${v._extra} NIT sin empresa)</span></span>`;
+          }
           const mine=v.nit==='all'||!!co;
           return `<span style="font-size:11.5px;padding:3px 9px;border-radius:12px;background:${v.bg};color:${v.color};border:1px solid ${v.color}30;font-weight:${mine?600:400}">
-            ${v.icon} ${v.nombre}${co?` · ${co.name}`:''}${v.nit&&v.nit!=='all'&&v.nit!==null&&!co?` NIT●${v.nit}`:''}${v.nitD2!==undefined&&!co?` NN●${v.nitD2}`:''}${v.nit===null&&v.nitD2===undefined&&!co?` (${v.nitRango})`:''}
+            ${v.icon} ${v.nombre}${co?` · ${co.name}`:''}${v.nit&&v.nit!=='all'&&v.nit!==null&&!co?` NIT●${v.nit}`:''}
           </span>`;
         }).join('')}
       </div>
@@ -3697,12 +3715,19 @@ function renderDashVenc() {
       return `<div style="padding:7px 10px;border-bottom:1px solid var(--c-border);background:${isToday?'var(--c-gold-bg)':''}">
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:${isToday?'var(--c-gold)':'var(--c-text3)'};margin-bottom:5px">${lbl}</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px">
-          ${vs.map(v=>{
-            const co=_coForVenc(v);
-            const nitBadge = v.nit&&v.nit!=='all'&&!co ? `<span style="opacity:.9;font-size:11.5px;font-weight:600"> ·${v.nit}</span>` : '';
-            const coName = co ? `<span style="opacity:.7;font-size:9px;font-weight:400"> ${co.name}</span>` : '';
-            return `<span style="font-size:10.5px;padding:2px 7px;border-radius:10px;background:${v.bg};color:${v.color};border:1px solid ${v.color}30;font-weight:600;display:inline-flex;align-items:center;gap:3px;white-space:nowrap">${v.icon} ${v.nombre}${coName}${nitBadge}</span>`;
-          }).join('')}
+          ${(()=>{
+            const matched2=vs.filter(v=>v.nit==='all'||!!_coForVenc(v));
+            const unm2={};
+            vs.filter(v=>v.nit!=='all'&&!_coForVenc(v)).forEach(v=>{if(!unm2[v.cat])unm2[v.cat]={n:0,v};unm2[v.cat].n++;});
+            const disp2=[...matched2,...Object.values(unm2).map(({n,v})=>({...v,_extra:n}))];
+            return disp2.map(v=>{
+              if(v._extra) return `<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--c-bg);color:var(--c-text3);border:1px solid var(--c-border);white-space:nowrap">${v.icon} ${v.nombre} +${v._extra}</span>`;
+              const co=_coForVenc(v);
+              const nitBadge=v.nit&&v.nit!=='all'&&!co?`<span style="opacity:.9;font-size:11.5px;font-weight:600"> ·${v.nit}</span>`:'';
+              const coName=co?`<span style="opacity:.7;font-size:9px;font-weight:400"> ${co.name}</span>`:'';
+              return `<span style="font-size:10.5px;padding:2px 7px;border-radius:10px;background:${v.bg};color:${v.color};border:1px solid ${v.color}30;font-weight:600;display:inline-flex;align-items:center;gap:3px;white-space:nowrap">${v.icon} ${v.nombre}${coName}${nitBadge}</span>`;
+            }).join('');
+          })()}
         </div>
       </div>`;
     }).join('');
