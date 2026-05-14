@@ -3591,36 +3591,37 @@ function renderCalendario() {
     }).sort((a,b)=>a.ds.localeCompare(b.ds));
 
     if (alertItems.length) {
-      // Agrupar en 3 buckets: hoy / mañana / próximos (2-7d)
-      const buckets = { hoy:{ cos:{}, unis:[], label:'Hoy', color:'#ef4444', emo:'🔴' },
-                        manana:{ cos:{}, unis:[], label:'Mañana', color:'#f97316', emo:'🟠' },
-                        pronto:{ cos:{}, unis:[], label:'Próximos', color:'#ca8a04', emo:'🟡' } };
-      alertItems.forEach(v => {
-        const diff = Math.round((new Date(v.ds+'T12:00:00')-todayDate)/86400000);
-        const bk = diff===0?'hoy':diff===1?'manana':'pronto';
-        if (v.nit==='all') { buckets[bk].unis.push(v); return; }
-        const co = _coForVenc(v);
-        if (!co) return;
-        if (!buckets[bk].cos[co.id]) buckets[bk].cos[co.id] = { co, n:0 };
-        buckets[bk].cos[co.id].n++;
-      });
-
-      const rows = Object.values(buckets).map(({cos, unis, label, color, emo}) => {
-        const coList = Object.values(cos);
-        if (!coList.length && !unis.length) return '';
-        const chips = [
-          ...coList.map(({co,n}) => {
-            const c = co.color||'#6366f1';
-            return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 11px;border-radius:20px;background:${c}14;border:1px solid ${c}40;color:${c};font-size:11.5px;font-weight:600;white-space:nowrap">
-              <span style="width:7px;height:7px;border-radius:50%;background:${c};flex-shrink:0"></span>
-              ${co.name}${n>1?` <span style="background:${c};color:#fff;border-radius:8px;padding:0 6px;font-size:9.5px;font-weight:700;line-height:1.6">${n}</span>`:''}
-            </span>`;
-          }),
-          ...unis.map(v=>`<span style="padding:3px 10px;border-radius:20px;background:${v.bg};color:${v.color};border:1px solid ${v.color}35;font-size:11px;font-weight:600;white-space:nowrap">${v.icon} ${v.nombre}</span>`)
-        ].join('');
-        return `<div style="display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:1px solid #f59e0b20">
-          <span style="font-size:11px;font-weight:700;color:${color};min-width:72px;flex-shrink:0;padding-top:4px">${emo} ${label}</span>
-          <div style="display:flex;flex-wrap:wrap;gap:5px">${chips}</div>
+      // 3 buckets de urgencia
+      const BUCKETS = [
+        { id:'hoy',    label:'Hoy',      color:'#ef4444', emo:'🔴', fn: d => d===0 },
+        { id:'manana', label:'Mañana',   color:'#f97316', emo:'🟠', fn: d => d===1 },
+        { id:'pronto', label:'Próximos', color:'#ca8a04', emo:'🟡', fn: d => d>=2  },
+      ];
+      const rows = BUCKETS.map(({label, color, emo, fn}) => {
+        const bItems = alertItems.filter(v => fn(Math.round((new Date(v.ds+'T12:00:00')-todayDate)/86400000)));
+        if (!bItems.length) return '';
+        // Agrupar por tipo de obligación (cat + label específico)
+        const byOblig = {};
+        bItems.forEach(v => {
+          const key = `${v.cat}||${v.label||''}`;
+          if (!byOblig[key]) byOblig[key] = { v, cos: new Map(), isAll: false };
+          if (v.nit==='all') { byOblig[key].isAll = true; return; }
+          const co = _coForVenc(v);
+          if (co) byOblig[key].cos.set(co.id, co);
+        });
+        const obligRows = Object.values(byOblig).map(({v, cos, isAll}) => {
+          const coList = [...cos.values()];
+          const coTags = isAll
+            ? `<span style="font-size:10.5px;color:#92400e;font-style:italic">Todos los NIT</span>`
+            : coList.map(co => `<span style="font-size:10.5px;font-weight:600;color:${co.color||'var(--c-text)'}">${co.name}</span>`).join('<span style="color:var(--c-border);padding:0 3px">·</span>');
+          return `<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-height:22px">
+            <span style="font-size:10.5px;padding:2px 9px;border-radius:6px;background:${v.bg};color:${v.color};font-weight:700;white-space:nowrap;flex-shrink:0">${v.icon} ${v.nombre}</span>
+            <span style="line-height:1.4">${coTags}</span>
+          </div>`;
+        }).join('');
+        return `<div style="display:flex;gap:12px;padding:6px 0;border-bottom:1px solid #f59e0b20;align-items:flex-start">
+          <span style="font-size:11px;font-weight:700;color:${color};min-width:70px;flex-shrink:0;padding-top:3px">${emo} ${label}</span>
+          <div style="display:flex;flex-direction:column;gap:5px;flex:1">${obligRows}</div>
         </div>`;
       }).filter(Boolean).join('');
 
