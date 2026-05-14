@@ -1306,7 +1306,7 @@ tr:hover .td-actions{opacity:1}
       <!-- Alertas de vencimientos próximos -->
       <div id="calAlerts" style="margin-bottom:14px"></div>
       <!-- Controles -->
-      <div class="card" style="margin-bottom:14px">
+      <div class="card" style="margin-bottom:14px;overflow:visible">
         <div style="padding:14px 18px">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
             <button onclick="_calNav(-1)" class="btn btn-secondary btn-xs">◀</button>
@@ -1314,13 +1314,13 @@ tr:hover .td-actions{opacity:1}
             <button onclick="_calNav(1)" class="btn btn-secondary btn-xs">▶</button>
             <button onclick="_calGoToday()" class="btn btn-secondary btn-xs">Hoy</button>
           </div>
-          <!-- Filtro por empresa + consulta NIT -->
+          <!-- Empresa + NIT + Categorías en una fila -->
           <div style="display:flex;gap:8px;margin-bottom:6px;align-items:center">
-            <div id="calCoFilter" style="flex:1;min-width:0"></div>
-            <div id="calNitFilter" style="flex:1;min-width:0"></div>
+            <div id="calCoFilter" style="flex:2;min-width:0"></div>
+            <div id="calNitFilter" style="flex:2;min-width:0"></div>
+            <div id="calFilters" style="flex-shrink:0"></div>
           </div>
-          <div id="calNitResult" style="margin-bottom:10px"></div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px" id="calFilters"></div>
+          <div id="calNitResult" style="margin-bottom:6px"></div>
           <label style="display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;color:var(--c-text2)">
             <input type="checkbox" id="calMisEmpresas" onchange="renderCalendario()" style="accent-color:var(--c-gold)">
             <span>Resaltar solo mis empresas (por NIT)</span>
@@ -3725,7 +3725,7 @@ function renderCalendario() {
         style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:8px;border:1px solid var(--c-border);background:var(--c-surface);cursor:pointer;font-size:12px;color:var(--c-text);white-space:nowrap">
         Categorías <span style="background:var(--c-gold-bg);color:var(--c-gold);padding:1px 7px;border-radius:8px;font-size:10px;font-weight:700">${allCatEntries.length}/${allCatEntries.length}</span> ▼
       </button>
-      <div id="catFilterPanel" onclick="event.stopPropagation()" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:100;background:var(--c-surface);border:1px solid var(--c-border);border-radius:10px;box-shadow:0 4px 20px #0002;min-width:210px;overflow:hidden">
+      <div id="catFilterPanel" onclick="event.stopPropagation()" style="display:none;position:absolute;top:calc(100% + 4px);right:0;z-index:200;background:var(--c-surface);border:1px solid var(--c-border);border-radius:10px;box-shadow:0 4px 20px #0003;min-width:210px;max-height:320px;overflow-y:auto">
         <label onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:9px;padding:8px 14px;cursor:pointer;background:var(--c-bg);border-bottom:2px solid var(--c-border)">
           <input type="checkbox" id="calSelectAll" checked onchange="_calSelectAllCats(this.checked)" style="accent-color:var(--c-gold);flex-shrink:0">
           <span style="font-size:12px;font-weight:700;color:var(--c-text)">Seleccionar todas</span>
