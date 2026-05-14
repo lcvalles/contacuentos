@@ -1734,6 +1734,8 @@ function loadState() {
   if (!STATE.activities||!STATE.activities.length) STATE.activities=JSON.parse(JSON.stringify(SEED_ACTIVITIES));
   else STATE.activities.forEach(a=>{if(_EMOJI_MIGRATION[a.name])a.name=_EMOJI_MIGRATION[a.name];});
   if (!STATE.activeSession) STATE.activeSession = null;
+  if (!STATE.calDone) STATE.calDone = {};
+  if (!STATE.calSkip) STATE.calSkip = {};
 }
 function save() { STATE._savedAt = Date.now(); localStorage.setItem(SK(), JSON.stringify(STATE)); Sync.schedule(); }
 function getDay(ds) {
@@ -3481,6 +3483,17 @@ function _misNitSet() {
 }
 
 function _calSetCo(id) { _calCoFilter = id; renderCalendario(); }
+function _calObligKey(v, co) { return `${v.ds}_${v.cat}_${co?co.id:'all'}`; }
+function _calToggleDone(key) {
+  if (!STATE.calDone) STATE.calDone = {};
+  if (STATE.calDone[key]) delete STATE.calDone[key]; else STATE.calDone[key] = true;
+  save(); renderCalendario();
+}
+function _calSkipOblig(key) {
+  if (!STATE.calSkip) STATE.calSkip = {};
+  STATE.calSkip[key] = true;
+  save(); renderCalendario();
+}
 
 function _calLookupNit(rawNit) {
   _calNitQuery = rawNit;
@@ -3760,27 +3773,44 @@ function renderCalendario() {
 function _renderCalList(venc, misNits) {
   const e = el('calListBody'); if (!e) return;
   if (!venc.length) { e.innerHTML='<div style="padding:14px 16px;color:var(--c-text3);font-size:13px">Sin vencimientos en este mes para los filtros actuales.</div>'; return; }
-  // Agrupar por fecha, luego por categoría
+  const today = todayStr();
+  const calDone = STATE.calDone||{};
+  const calSkip = STATE.calSkip||{};
   const byDate = {};
   venc.forEach(v => { if(!byDate[v.ds]) byDate[v.ds]=[]; byDate[v.ds].push(v); });
   e.innerHTML = Object.entries(byDate).sort((a,b)=>a[0].localeCompare(b[0])).map(([ds,items])=>{
     const d = new Date(ds+'T12:00:00');
-    const isToday = ds===todayStr();
-    const past = ds<todayStr() ? ' style="opacity:.55"' : '';
-    const display = items.filter(v=>v.nit==='all'||!!_coForVenc(v));
+    const isToday = ds===today;
+    const isPast = ds < today;
+    // Filtrar: solo los que tienen empresa y no están descartados
+    const display = items.filter(v=>(v.nit==='all'||!!_coForVenc(v))&&!calSkip[_calObligKey(v,_coForVenc(v))]);
     if (!display.length) return '';
-    return `<div${past} style="display:flex;gap:12px;padding:10px 16px;border-bottom:1px solid var(--c-border);align-items:flex-start">
-      <div style="min-width:80px;font-size:12px;font-weight:600;color:${isToday?'var(--c-gold)':'var(--c-text)'}">
-        ${_DIAS_ES[d.getDay()]} ${d.getDate()} ${_MESES_ES[d.getMonth()].slice(0,3)}
+    const pendingCount = display.filter(v=>!calDone[_calObligKey(v,_coForVenc(v))]).length;
+    const allDone = pendingCount === 0;
+    // Estilo del row según estado
+    let rowBg = 'var(--c-surface)';
+    let dateColor = 'var(--c-text)';
+    let rowOpacity = '1';
+    if (isToday) { rowBg='var(--c-gold-bg)'; dateColor='var(--c-gold)'; }
+    else if (isPast && allDone) { rowOpacity='.35'; }
+    else if (isPast && !allDone) { rowBg='#fef2f2'; dateColor='#dc2626'; }
+    const badge = isPast && !allDone
+      ? `<span style="font-size:9px;background:#fee2e2;color:#dc2626;padding:1px 6px;border-radius:5px;font-weight:700;margin-left:5px;vertical-align:middle">PENDIENTE</span>` : '';
+    const pills = display.map(v=>{
+      const co=_coForVenc(v);
+      const key=_calObligKey(v,co);
+      const done=!!calDone[key];
+      return `<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:3px 5px 3px 9px;border-radius:12px;background:${done?'#f0fdf4':v.bg};color:${done?'#15803d':v.color};border:1px solid ${done?'#86efac':v.color+'30'};font-weight:600;${done?'text-decoration:line-through;opacity:.75':''}">
+        ${v.icon} ${v.nombre}${co?` · ${co.name}`:''}
+        <button onclick="_calToggleDone('${key}')" title="${done?'Quitar':'Marcar como realizado'}" style="background:${done?'#16a34a':'transparent'};border:1px solid ${done?'#16a34a':v.color+'60'};border-radius:50%;width:15px;height:15px;cursor:pointer;font-size:8px;color:${done?'#fff':v.color};display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;margin-left:2px">✓</button>
+        <button onclick="_calSkipOblig('${key}')" title="No aplica" style="background:transparent;border:none;cursor:pointer;font-size:13px;color:var(--c-text3);padding:0;line-height:1;flex-shrink:0;margin-left:1px">×</button>
+      </span>`;
+    }).join('');
+    return `<div style="display:flex;gap:12px;padding:9px 16px;border-bottom:1px solid var(--c-border);align-items:flex-start;background:${rowBg};opacity:${rowOpacity}">
+      <div style="min-width:84px;font-size:12px;font-weight:600;color:${dateColor};flex-shrink:0">
+        ${_DIAS_ES[d.getDay()]} ${d.getDate()} ${_MESES_ES[d.getMonth()].slice(0,3)}${badge}
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:5px;flex:1">
-        ${display.map(v=>{
-          const co=_coForVenc(v);
-          return `<span style="font-size:11.5px;padding:3px 9px;border-radius:12px;background:${v.bg};color:${v.color};border:1px solid ${v.color}30;font-weight:600">
-            ${v.icon} ${v.nombre}${co?` · ${co.name}`:''}
-          </span>`;
-        }).join('')}
-      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;flex:1">${pills}</div>
     </div>`;
   }).filter(Boolean).join('');
 }
