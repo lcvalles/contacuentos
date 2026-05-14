@@ -1906,6 +1906,7 @@ let _CURRENT_PAGE = 'dashboard';
 let _CAL_VIEW = '';
 let _calCoFilter = '';
 let _calNitQuery = '';
+let _calAlertOpen = false;
 let _timerTick = null, _clockTick = null, _breakMenuOpen = false;
 let _anaView = 'week', _anaRef = '', _anaRangeFrom = '', _anaRangeTo = '';
 
@@ -3626,11 +3627,21 @@ function renderCalendario() {
       }).filter(Boolean).join('');
 
       const uniqueCos = new Set(alertItems.filter(v=>v.nit!=='all').map(v=>{ const co=_coForVenc(v); return co?co.id:null; }).filter(Boolean));
-      alertEl.innerHTML = `<div style="background:#fffbeb;border:1.5px solid #f59e0b;border-radius:12px;padding:11px 16px">
-        <div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:7px;display:flex;align-items:center;gap:6px">
-          ⚠️ VENCIMIENTOS PRÓXIMOS — <span style="font-weight:400">${alertItems.length} obligaciones · ${uniqueCos.size} empresa${uniqueCos.size!==1?'s':''} esta semana</span>
+      // Resumen compacto por bucket para la vista colapsada
+      const summaryChips = BUCKETS.map(({label, color, emo, fn}) => {
+        const n = alertItems.filter(v => fn(Math.round((new Date(v.ds+'T12:00:00')-todayDate)/86400000))).length;
+        if (!n) return '';
+        return `<span style="font-size:11px;font-weight:600;color:${color}">${emo} ${label} <span style="background:${color}20;padding:1px 6px;border-radius:8px;font-size:10.5px">${n}</span></span>`;
+      }).filter(Boolean).join('<span style="color:#f59e0b;padding:0 4px">·</span>');
+      alertEl.innerHTML = `<div style="background:#fffbeb;border:1.5px solid #f59e0b;border-radius:12px;overflow:hidden">
+        <div onclick="_calAlertOpen=!_calAlertOpen;renderCalendario()" style="padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span style="font-size:11px;font-weight:700;color:#92400e">⚠️ VENCIMIENTOS PRÓXIMOS</span>
+            <span style="display:flex;align-items:center;gap:8px">${summaryChips}</span>
+          </div>
+          <span style="font-size:13px;color:#92400e;flex-shrink:0;margin-left:8px">${_calAlertOpen?'▲':'▼'}</span>
         </div>
-        ${rows}
+        ${_calAlertOpen ? `<div style="padding:4px 14px 12px;border-top:1px solid #f59e0b30">${rows}</div>` : ''}
       </div>`;
     } else {
       alertEl.innerHTML = `<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:10px 16px;font-size:12px;color:#166534;font-weight:600">✅ Sin vencimientos en los próximos 7 días</div>`;
