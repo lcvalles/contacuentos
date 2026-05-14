@@ -842,7 +842,6 @@ tr:hover .td-actions{opacity:1}
         <div class="card" style="overflow:hidden">
           <div class="card-header">
             <span class="card-title">Tareas</span>
-            <button class="btn btn-secondary btn-xs" onclick="movePendingToday()">↓ Traer pendientes</button>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr">
             <!-- Laboral (izquierda) -->
@@ -3847,6 +3846,9 @@ async function startApp(){
       else STATE.activities.forEach(a=>{if(_EMOJI_MIGRATION[a.name])a.name=_EMOJI_MIGRATION[a.name];});
       let _tasksMigrated=false;
       STATE.tasks.forEach(t=>{if(!t.urgencia){t.urgencia='media';_tasksMigrated=true;}if(!t.tipo){t.tipo='profesional';_tasksMigrated=true;}});
+      // Auto-traer tareas pendientes de días anteriores al día actual
+      const _today=todayStr();
+      STATE.tasks.forEach(t=>{if(!t.done&&t.estado!=='done'&&t.fecha&&t.fecha<_today){t.fecha=_today;_tasksMigrated=true;}});
       if(_tasksMigrated){STATE._savedAt=Date.now();await Sync._push();}
       // Migración de empresas: actualizar NITs vacíos y agregar empresas nuevas de SEED_COS
       let _cosMigrated=false;
