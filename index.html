@@ -3529,8 +3529,9 @@ function renderCalendario() {
   const alertEl = el('calAlerts');
   if (alertEl) {
     const today = todayStr();
-    const lim = new Date(); lim.setDate(lim.getDate()+7);
-    const limStr = lim.toISOString().slice(0,10);
+    const todayDate = new Date(today + 'T12:00:00');
+    const limDate = new Date(todayDate.getTime() + 7*86400000);
+    const limStr = limDate.toISOString().slice(0,10);
     const seen7 = new Set();
     const alertItems = CAL_2026.filter(v => {
       if (v.ds < today || v.ds > limStr) return false;
@@ -3544,21 +3545,41 @@ function renderCalendario() {
       alertItems.forEach(v=>{ if(!byDs[v.ds])byDs[v.ds]=[]; byDs[v.ds].push(v); });
       const rows = Object.entries(byDs).map(([ds,vs])=>{
         const d = new Date(ds+'T12:00:00');
-        const diff = Math.round((d-new Date(today+'T12:00:00'))/86400000);
+        const diff = Math.round((d-todayDate)/86400000);
         const lbl = diff===0?'Hoy':diff===1?'Mañana':`En ${diff} días`;
         const dot = diff===0?'#ef4444':diff<=2?'#f97316':'#f59e0b';
-        const pills = vs.map(v=>{
+
+        // Universal obligations (nit:'all') — one pill each
+        const uniPills = vs.filter(v=>v.nit==='all').map(v=>
+          `<span style="font-size:11px;padding:3px 9px;border-radius:10px;background:${v.bg};color:${v.color};border:1px solid ${v.color}40;font-weight:600;white-space:nowrap">${v.icon} ${v.nombre}</span>`
+        ).join('');
+
+        // Company-specific — group by company
+        const byCo = {};
+        vs.filter(v=>v.nit!=='all').forEach(v=>{
           const co = _coForVenc(v);
-          return `<span style="font-size:10.5px;padding:2px 7px;border-radius:10px;background:${v.bg};color:${v.color};border:1px solid ${v.color}30;font-weight:600;white-space:nowrap">${v.icon} ${v.nombre}${co?` · ${co.name}`:''}</span>`;
+          if (!co) return;
+          if (!byCo[co.id]) byCo[co.id] = { co, n:0 };
+          byCo[co.id].n++;
+        });
+        const coChips = Object.values(byCo).map(({co,n})=>{
+          const c = co.color||'#6366f1';
+          return `<span style="font-size:11px;padding:3px 9px;border-radius:10px;background:${c}18;border:1px solid ${c}50;color:${c};font-weight:600;display:inline-flex;align-items:center;gap:5px;white-space:nowrap">
+            <span style="width:7px;height:7px;border-radius:50%;background:${c};flex-shrink:0;display:inline-block"></span>
+            ${co.name}${n>1?` <span style="background:${c};color:#fff;border-radius:5px;padding:0 5px;font-size:9px;font-weight:700;line-height:1.5">${n}</span>`:''}
+          </span>`;
         }).join('');
-        return `<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:5px">
-          <span style="min-width:72px;font-size:10.5px;font-weight:700;color:${dot};padding-top:2px">${lbl}</span>
-          <div style="display:flex;flex-wrap:wrap;gap:4px">${pills}</div>
+
+        return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">
+          <span style="min-width:70px;font-size:10.5px;font-weight:700;color:${dot};flex-shrink:0">${lbl}</span>
+          <div style="display:flex;flex-wrap:wrap;gap:4px">${coChips}${uniPills}</div>
         </div>`;
       }).join('');
+
+      const totalCos = new Set(alertItems.filter(v=>v.nit!=='all').map(v=>{ const co=_coForVenc(v); return co?co.id:null; }).filter(Boolean)).size;
       alertEl.innerHTML = `<div style="background:#fffbeb;border:1.5px solid #f59e0b;border-radius:12px;padding:12px 16px">
         <div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:8px;display:flex;align-items:center;gap:6px">
-          ⚠️ VENCIMIENTOS PRÓXIMOS — <span style="font-weight:400">${alertItems.length} en los próximos 7 días</span>
+          ⚠️ VENCIMIENTOS PRÓXIMOS — <span style="font-weight:400">${alertItems.length} obligaciones · ${totalCos} empresa${totalCos!==1?'s':''} en los próximos 7 días</span>
         </div>
         ${rows}
       </div>`;
