@@ -1344,7 +1344,13 @@ tr:hover .td-actions{opacity:1}
       <div id="calDayDetail" class="card" style="display:none;margin-bottom:14px"></div>
       <!-- Lista del mes -->
       <div class="card">
-        <div class="card-header"><span class="card-title">Resumen del mes</span></div>
+        <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+          <span class="card-title">Resumen del mes</span>
+          <div style="display:flex;gap:6px">
+            <button onclick="_calCollapseAllPast()" title="Ocultar días pasados" style="font-size:10px;padding:3px 10px;border-radius:6px;background:var(--c-surface-2);border:1px solid var(--c-border);color:var(--c-text2);cursor:pointer;font-weight:600">▲ Ocultar pasados</button>
+            <button onclick="_calExpandAllPast()" title="Mostrar todos los días" style="font-size:10px;padding:3px 10px;border-radius:6px;background:var(--c-surface-2);border:1px solid var(--c-border);color:var(--c-text2);cursor:pointer;font-weight:600">▼ Mostrar todos</button>
+          </div>
+        </div>
         <div id="calListBody" style="font-size:13px"></div>
       </div>
     </div>
@@ -1906,6 +1912,7 @@ let VIEW_DATE = '';
 let _CURRENT_PAGE = 'dashboard';
 let _CAL_VIEW = '';
 let _calCoFilter = '';
+let _calHiddenDays = new Set();
 let _calNitQuery = '';
 let _calAlertOpen = false;
 let _calBucketOpen = {hoy:true, manana:false, pronto:false};
@@ -3556,6 +3563,10 @@ function _calPickDoneDate(key, currentDate) {
   document.getElementById('calDoneDateVal').focus();
   setTimeout(()=>document.addEventListener('click',function h(){document.getElementById('calDoneDatePicker')?.remove();document.removeEventListener('click',h);},{ once:true }),100);
 }
+function _calToggleDay(ds) { _calHiddenDays.has(ds)?_calHiddenDays.delete(ds):_calHiddenDays.add(ds); _renderCalList(_lastVenc,_lastMisNits); }
+function _calCollapseAllPast() { const today=todayStr(); Object.keys((STATE.calDone||{})).forEach(()=>{}); _lastVenc&&_lastVenc.forEach(v=>{if(v.ds<today)_calHiddenDays.add(v.ds);}); _renderCalList(_lastVenc,_lastMisNits); }
+function _calExpandAllPast() { _calHiddenDays.clear(); _renderCalList(_lastVenc,_lastMisNits); }
+let _lastVenc=[], _lastMisNits=null;
 function _calSkipOblig(key) {
   if (!STATE.calSkip) STATE.calSkip = {};
   STATE.calSkip[key] = true;
@@ -3884,6 +3895,7 @@ function renderCalendario() {
 }
 
 function _renderCalList(venc, misNits) {
+  _lastVenc=venc; _lastMisNits=misNits;
   const e = el('calListBody'); if (!e) return;
   if (!venc.length) { e.innerHTML='<div style="padding:14px 16px;color:var(--c-text3);font-size:13px">Sin vencimientos en este mes para los filtros actuales.</div>'; return; }
   const today = todayStr();
@@ -3906,13 +3918,24 @@ function _renderCalList(venc, misNits) {
     if (!display.length) return '';
     const pendingCount = display.filter(({v,co})=>!calDone[_calObligKey(v,co)]).length;
     const allDone = pendingCount === 0;
+    const isHidden = isPast && _calHiddenDays.has(ds);
     let rowBg = 'var(--c-surface)', dateColor = 'var(--c-text)', rowOpacity = '1';
     if (isToday) { rowBg='var(--c-gold-bg)'; dateColor='var(--c-gold)'; }
-    else if (isPast && allDone) { rowOpacity='.35'; }
+    else if (isPast && allDone) { rowOpacity='.4'; }
     else if (isPast && !allDone) { rowBg='#fef2f2'; dateColor='#dc2626'; }
     const badge = isPast && !allDone
-      ? `<span style="font-size:9px;background:#fee2e2;color:#dc2626;padding:1px 6px;border-radius:5px;font-weight:700;margin-left:5px;vertical-align:middle">PENDIENTE</span>` : '';
+      ? `<span style="font-size:9px;background:#fee2e2;color:#dc2626;padding:1px 6px;border-radius:5px;font-weight:700;margin-left:4px;vertical-align:middle">PENDIENTE (${pendingCount} de ${display.length})</span>` : '';
+    const doneAllBadge = isPast && allDone
+      ? `<span style="font-size:9px;background:#dcfce7;color:#16a34a;padding:1px 6px;border-radius:5px;font-weight:700;margin-left:4px;vertical-align:middle">✓ Listo</span>` : '';
+    const collapseBtn = isPast
+      ? `<span onclick="event.stopPropagation();_calToggleDay('${ds}')" style="font-size:10px;color:${allDone?'#16a34a':'#dc2626'};opacity:.6;cursor:pointer;margin-left:6px;vertical-align:middle">${isHidden?'▼':'▲'}</span>`
+      : '';
     const _MMES_SH=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    if (isHidden) {
+      return `<div onclick="_calToggleDay('${ds}')" style="display:flex;gap:8px;padding:6px 16px;border-bottom:1px solid var(--c-border);align-items:center;background:${rowBg};opacity:${rowOpacity};cursor:pointer">
+        <div style="min-width:84px;font-size:12px;font-weight:600;color:${dateColor};flex-shrink:0">${_DIAS_ES[d.getDay()]} ${d.getDate()} ${_MESES_ES[d.getMonth()].slice(0,3)}${badge}${doneAllBadge}${collapseBtn}</div>
+      </div>`;
+    }
     const pills = display.map(({v,co})=>{
       const key=_calObligKey(v,co);
       const doneVal=calDone[key];
@@ -3930,8 +3953,8 @@ function _renderCalList(venc, misNits) {
       </span>`;
     }).join('');
     return `<div style="display:flex;gap:12px;padding:9px 16px;border-bottom:1px solid var(--c-border);align-items:flex-start;background:${rowBg};opacity:${rowOpacity}">
-      <div style="min-width:84px;font-size:12px;font-weight:600;color:${dateColor};flex-shrink:0">
-        ${_DIAS_ES[d.getDay()]} ${d.getDate()} ${_MESES_ES[d.getMonth()].slice(0,3)}${badge}
+      <div style="min-width:84px;font-size:12px;font-weight:600;color:${dateColor};flex-shrink:0;padding-top:2px">
+        ${_DIAS_ES[d.getDay()]} ${d.getDate()} ${_MESES_ES[d.getMonth()].slice(0,3)}${badge}${doneAllBadge}${collapseBtn}
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:5px;flex:1">${pills}</div>
     </div>`;
