@@ -3479,6 +3479,17 @@ function _coForVenc(v) {
     return _nitD1(co.nit)===v.nit;
   }) || null;
 }
+// Devuelve TODAS las empresas que coinciden con una obligación (no solo la primera)
+function _cosForVenc(v) {
+  if (!v||!STATE.companies) return [];
+  return STATE.companies.filter(co=>{
+    if (!co.nit) return false;
+    if (v.nit==='all') return true;
+    if (v.nitD2!==undefined) return _nitD2(co.nit)===v.nitD2;
+    if (v.nit===null) return _matchPN(v.nitRango,_nitD2(co.nit));
+    return _nitD1(co.nit)===v.nit;
+  });
+}
 function _misNitSet() {
   return new Set((STATE.companies||[]).filter(c=>c.nit).map(c=>_nitD1(c.nit)));
 }
@@ -3652,8 +3663,7 @@ function renderCalendario() {
           const key = `${v.cat}||${v.label||''}`;
           if (!byOblig[key]) byOblig[key] = { v, cos: new Map(), isAll: false };
           if (v.nit==='all') { byOblig[key].isAll = true; return; }
-          const co = _coForVenc(v);
-          if (co) byOblig[key].cos.set(co.id, co);
+          _cosForVenc(v).forEach(co => byOblig[key].cos.set(co.id, co));
         });
         const obligRows = Object.values(byOblig).map(({v, cos, isAll}) => {
           const coList = [...cos.values()];
@@ -3821,26 +3831,28 @@ function _renderCalList(venc, misNits) {
     const d = new Date(ds+'T12:00:00');
     const isToday = ds===today;
     const isPast = ds < today;
-    // Filtrar: solo los que tienen empresa y no están descartados
-    const display = items.filter(v=>(v.nit==='all'||!!_coForVenc(v))&&!calSkip[_calObligKey(v,_coForDisplay(v))]);
+    // Expandir cada obligación a una entrada por empresa coincidente
+    const expanded = [];
+    items.forEach(v => {
+      if (v.nit==='all') { expanded.push({v, co:null}); return; }
+      const cos = _calCoFilter ? [_coForDisplay(v)].filter(Boolean) : _cosForVenc(v);
+      cos.forEach(co => expanded.push({v, co}));
+    });
+    const display = expanded.filter(({v,co})=>!calSkip[_calObligKey(v,co)]);
     if (!display.length) return '';
-    const pendingCount = display.filter(v=>!calDone[_calObligKey(v,_coForDisplay(v))]).length;
+    const pendingCount = display.filter(({v,co})=>!calDone[_calObligKey(v,co)]).length;
     const allDone = pendingCount === 0;
-    // Estilo del row según estado
-    let rowBg = 'var(--c-surface)';
-    let dateColor = 'var(--c-text)';
-    let rowOpacity = '1';
+    let rowBg = 'var(--c-surface)', dateColor = 'var(--c-text)', rowOpacity = '1';
     if (isToday) { rowBg='var(--c-gold-bg)'; dateColor='var(--c-gold)'; }
     else if (isPast && allDone) { rowOpacity='.35'; }
     else if (isPast && !allDone) { rowBg='#fef2f2'; dateColor='#dc2626'; }
     const badge = isPast && !allDone
       ? `<span style="font-size:9px;background:#fee2e2;color:#dc2626;padding:1px 6px;border-radius:5px;font-weight:700;margin-left:5px;vertical-align:middle">PENDIENTE</span>` : '';
-    const pills = display.map(v=>{
-      const co=_coForDisplay(v);
+    const pills = display.map(({v,co})=>{
       const key=_calObligKey(v,co);
       const done=!!calDone[key];
       return `<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:3px 5px 3px 9px;border-radius:12px;background:${done?'#f0fdf4':v.bg};color:${done?'#15803d':v.color};border:1px solid ${done?'#86efac':v.color+'30'};font-weight:600;${done?'text-decoration:line-through;opacity:.75':''}">
-        ${v.icon} ${v.nombre}${co?` · ${co.name}`:''}
+        ${v.icon} ${v.nombre}${co?` · <span style="color:${co.color}">${co.name}</span>`:''}
         <button onclick="_calToggleDone('${key}')" title="${done?'Quitar':'Marcar como realizado'}" style="background:${done?'#16a34a':'transparent'};border:1px solid ${done?'#16a34a':v.color+'60'};border-radius:50%;width:15px;height:15px;cursor:pointer;font-size:8px;color:${done?'#fff':v.color};display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;margin-left:2px">✓</button>
         <button onclick="_calSkipOblig('${key}')" title="No aplica" style="background:transparent;border:none;cursor:pointer;font-size:13px;color:var(--c-text3);padding:0;line-height:1;flex-shrink:0;margin-left:1px">×</button>
       </span>`;
