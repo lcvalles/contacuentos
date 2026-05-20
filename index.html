@@ -3529,10 +3529,32 @@ function _updateCatBtn() {
   if (btn) btn.innerHTML = `Categorías <span style="background:var(--c-gold-bg);color:var(--c-gold);padding:1px 7px;border-radius:8px;font-size:10px;font-weight:700">${n}/${all.length}</span> ${_catPanelOpen?'▲':'▼'}`;
   const selAll = el('calSelectAll'); if (selAll) selAll.checked = n === all.length;
 }
-function _calToggleDone(key) {
+function _calToggleDone(key, defaultDate) {
   if (!STATE.calDone) STATE.calDone = {};
-  if (STATE.calDone[key]) delete STATE.calDone[key]; else STATE.calDone[key] = true;
+  if (STATE.calDone[key]) delete STATE.calDone[key];
+  else STATE.calDone[key] = defaultDate || todayStr();
   save(); renderCalendario();
+}
+function _calSetDoneDate(key, date) {
+  if (!STATE.calDone) STATE.calDone = {};
+  if (date) STATE.calDone[key] = date;
+  save(); renderCalendario();
+}
+function _calPickDoneDate(key, currentDate) {
+  const existing = document.getElementById('calDoneDatePicker');
+  if (existing) existing.remove();
+  const div = document.createElement('div');
+  div.id = 'calDoneDatePicker';
+  div.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border:1.5px solid #86efac;border-radius:12px;padding:16px 20px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15);min-width:220px';
+  div.innerHTML = `<div style="font-size:12px;font-weight:700;color:#15803d;margin-bottom:10px">Fecha de realización</div>
+    <input type="date" id="calDoneDateVal" value="${currentDate}" style="width:100%;border:1px solid #86efac;border-radius:8px;padding:6px 10px;font-size:13px;color:#166534;outline:none">
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button onclick="event.stopPropagation();_calSetDoneDate('${key}',document.getElementById('calDoneDateVal').value);document.getElementById('calDoneDatePicker').remove()" style="flex:1;background:#16a34a;color:#fff;border:none;border-radius:8px;padding:7px;font-size:12px;font-weight:700;cursor:pointer">Guardar</button>
+      <button onclick="document.getElementById('calDoneDatePicker').remove()" style="flex:1;background:#f3f4f6;color:#374151;border:none;border-radius:8px;padding:7px;font-size:12px;cursor:pointer">Cancelar</button>
+    </div>`;
+  document.body.appendChild(div);
+  document.getElementById('calDoneDateVal').focus();
+  setTimeout(()=>document.addEventListener('click',function h(){document.getElementById('calDoneDatePicker')?.remove();document.removeEventListener('click',h);},{ once:true }),100);
 }
 function _calSkipOblig(key) {
   if (!STATE.calSkip) STATE.calSkip = {};
@@ -3890,12 +3912,20 @@ function _renderCalList(venc, misNits) {
     else if (isPast && !allDone) { rowBg='#fef2f2'; dateColor='#dc2626'; }
     const badge = isPast && !allDone
       ? `<span style="font-size:9px;background:#fee2e2;color:#dc2626;padding:1px 6px;border-radius:5px;font-weight:700;margin-left:5px;vertical-align:middle">PENDIENTE</span>` : '';
+    const _MMES_SH=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
     const pills = display.map(({v,co})=>{
       const key=_calObligKey(v,co);
-      const done=!!calDone[key];
-      return `<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:3px 5px 3px 9px;border-radius:12px;background:${done?'#f0fdf4':v.bg};color:${done?'#15803d':v.color};border:1px solid ${done?'#86efac':v.color+'30'};font-weight:600;${done?'text-decoration:line-through;opacity:.75':''}">
-        ${v.icon} ${v.nombre}${co?` · <span style="color:${co.color}">${co.name}</span>`:''}
-        <button onclick="_calToggleDone('${key}')" title="${done?'Quitar':'Marcar como realizado'}" style="background:${done?'#16a34a':'transparent'};border:1px solid ${done?'#16a34a':v.color+'60'};border-radius:50%;width:15px;height:15px;cursor:pointer;font-size:8px;color:${done?'#fff':v.color};display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;margin-left:2px">✓</button>
+      const doneVal=calDone[key];
+      const done=!!doneVal;
+      const doneDate=(done&&doneVal!==true)?doneVal:'';
+      const fmtDate=d=>d?`${parseInt(d.slice(8,10))} ${_MMES_SH[parseInt(d.slice(5,7))-1]}`:'';
+      const dateLbl=done
+        ? `<span onclick="event.stopPropagation();_calPickDoneDate('${key}','${doneDate||ds}')" title="Cambiar fecha de realización" style="font-size:9px;color:#15803d;font-weight:600;cursor:pointer;text-decoration:underline dotted;margin-left:1px">${doneDate?fmtDate(doneDate):'✓'}</span>`
+        : '';
+      return `<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:3px 5px 3px 9px;border-radius:12px;background:${done?'#f0fdf4':v.bg};color:${done?'#15803d':v.color};border:1px solid ${done?'#86efac':v.color+'30'};font-weight:600;${done?'opacity:.8':''}">
+        <span style="${done?'text-decoration:line-through':''}">${v.icon} ${v.nombre}${co?` · <span style="color:${co.color||'inherit'}">${co.name}</span>`:''}</span>
+        ${dateLbl}
+        <button onclick="_calToggleDone('${key}','${ds}')" title="${done?'Quitar realizado':'Marcar como realizado'}" style="background:${done?'#16a34a':'transparent'};border:1px solid ${done?'#16a34a':v.color+'60'};border-radius:50%;width:15px;height:15px;cursor:pointer;font-size:8px;color:${done?'#fff':v.color};display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;margin-left:2px">✓</button>
         <button onclick="_calSkipOblig('${key}')" title="No aplica" style="background:transparent;border:none;cursor:pointer;font-size:13px;color:var(--c-text3);padding:0;line-height:1;flex-shrink:0;margin-left:1px">×</button>
       </span>`;
     }).join('');
