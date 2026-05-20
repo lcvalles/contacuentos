@@ -3485,6 +3485,17 @@ function _misNitSet() {
 
 function _calSetCo(id) { _calCoFilter = id; renderCalendario(); }
 function _calObligKey(v, co) { return `${v.ds}_${v.cat}_${co?co.id:'all'}`; }
+// Cuando hay filtro activo, prioriza la empresa seleccionada en vez de la primera coincidencia
+function _coForDisplay(v) {
+  if (_calCoFilter) {
+    const sel = (STATE.companies||[]).find(c=>c.id===_calCoFilter);
+    if (sel&&sel.nit&&v.nit!=='all') {
+      const ok = v.nitD2!==undefined?_nitD2(sel.nit)===v.nitD2:v.nit===null?_matchPN(v.nitRango,_nitD2(sel.nit)):_nitD1(sel.nit)===v.nit;
+      if (ok) return sel;
+    }
+  }
+  return _coForVenc(v);
+}
 function _toggleCatPanel(e) {
   e.stopPropagation(); _catPanelOpen = !_catPanelOpen;
   const p = el('catFilterPanel'); if (p) p.style.display = _catPanelOpen?'block':'none';
@@ -3571,38 +3582,38 @@ function _calGoToday() { _CAL_VIEW = todayStr().slice(0,7); renderCalendario(); 
 
 function _calSelectDay(ds) {
   const panel = el('calDayDetail'); if (!panel) return;
-  const dayVenc = CAL_2026.filter(v => v.ds === ds);
-  if (!dayVenc.length) { panel.style.display='none'; return; }
+  // Respetar filtro de empresa y categorías activas
+  const activeCats = new Set([...document.querySelectorAll('.cal-cat-cb:checked')].map(cb=>cb.value));
+  let dayVenc = CAL_2026.filter(v => v.ds===ds && activeCats.has(v.cat));
+  if (_calCoFilter) {
+    const sel = (STATE.companies||[]).find(c=>c.id===_calCoFilter);
+    if (sel&&sel.nit) dayVenc = dayVenc.filter(v => {
+      if (v.nit==='all') return true;
+      if (v.nitD2!==undefined) return _nitD2(sel.nit)===v.nitD2;
+      if (v.nit===null) return _matchPN(v.nitRango,_nitD2(sel.nit));
+      return _nitD1(sel.nit)===v.nit;
+    });
+  }
+  const display = dayVenc.filter(v=>v.nit==='all'||!!_coForVenc(v));
+  if (!display.length) { panel.style.display='none'; return; }
   const d = new Date(ds+'T12:00:00');
   panel.style.display = 'block';
   panel.innerHTML = `<div class="card-header" style="position:relative">
     <span class="card-title">${d.getDate()} de ${_MESES_ES[d.getMonth()]} ${d.getFullYear()}</span>
     <button class="icon-btn" style="margin-left:auto" onclick="el('calDayDetail').style.display='none'">✕</button>
   </div>
-  <div class="card-body" style="padding:0">${(()=>{
-    const matched = dayVenc.filter(v=>v.nit==='all'||!!_coForVenc(v));
-    const unmByCat = {};
-    dayVenc.filter(v=>v.nit!=='all'&&!_coForVenc(v)).forEach(v=>{ if(!unmByCat[v.cat])unmByCat[v.cat]={n:0,v}; unmByCat[v.cat].n++; });
-    const display = [...matched, ...Object.values(unmByCat).map(({n,v})=>({...v,_extra:n}))];
-    return display.map(v=>{
-      const co = _coForVenc(v);
-      const mine = v.nit==='all'||!!co;
-      if(v._extra) return `<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--c-border);opacity:.6">
-        <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${v.color};flex-shrink:0"></span>
-        <div style="font-size:12px;color:var(--c-text3)">${v.nombre} — ${v._extra} NIT sin empresa registrada</div>
-      </div>`;
-      return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:1px solid var(--c-border);background:${mine?v.bg:''}">
-        <span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${v.color};margin-top:3px;flex-shrink:0"></span>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:600;color:var(--c-text)">${v.nombre} <span style="font-weight:400;color:var(--c-text2)">— ${v.label}</span></div>
-          <div style="font-size:11.5px;color:var(--c-text3);margin-top:2px">
-            ${v.nit==='all'?'Aplica a todos los NIT':v.nitD2!==undefined?`NIT termina en <strong>${v.nitD2}</strong>${co?` · <span style="color:${co.color};font-weight:700">${co.name}</span>`:''}`:v.nit===null?`NIT rango: ${v.nitRango}${co?` · <span style="color:${co.color};font-weight:700">${co.name}</span>`:''}` :`NIT termina en <strong>${v.nit}</strong>${co?` · <span style="color:${co.color};font-weight:700">${co.name}</span>`:''}`}
-          </div>
+  <div class="card-body" style="padding:0">${display.map(v=>{
+    const co = _coForDisplay(v);
+    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:1px solid var(--c-border);background:${v.bg}">
+      <span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${v.color};margin-top:3px;flex-shrink:0"></span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--c-text)">${v.nombre} <span style="font-weight:400;color:var(--c-text2)">— ${v.label}</span></div>
+        <div style="font-size:11.5px;color:var(--c-text3);margin-top:2px">
+          ${v.nit==='all'?'Aplica a todos los NIT':co?`<span style="color:${co.color};font-weight:700">${co.name}</span>`:''}
         </div>
-        ${mine&&v.nit!=='all'?`<span style="font-size:10px;background:var(--c-gold-bg);color:var(--c-gold);padding:2px 7px;border-radius:5px;font-weight:700;flex-shrink:0">⚑ Tuyo</span>`:''}
-      </div>`;
-    }).join('');
-  })()}</div>`;
+      </div>
+    </div>`;
+  }).join('')}</div>`;
 }
 
 function renderCalendario() {
@@ -3811,9 +3822,9 @@ function _renderCalList(venc, misNits) {
     const isToday = ds===today;
     const isPast = ds < today;
     // Filtrar: solo los que tienen empresa y no están descartados
-    const display = items.filter(v=>(v.nit==='all'||!!_coForVenc(v))&&!calSkip[_calObligKey(v,_coForVenc(v))]);
+    const display = items.filter(v=>(v.nit==='all'||!!_coForVenc(v))&&!calSkip[_calObligKey(v,_coForDisplay(v))]);
     if (!display.length) return '';
-    const pendingCount = display.filter(v=>!calDone[_calObligKey(v,_coForVenc(v))]).length;
+    const pendingCount = display.filter(v=>!calDone[_calObligKey(v,_coForDisplay(v))]).length;
     const allDone = pendingCount === 0;
     // Estilo del row según estado
     let rowBg = 'var(--c-surface)';
@@ -3825,7 +3836,7 @@ function _renderCalList(venc, misNits) {
     const badge = isPast && !allDone
       ? `<span style="font-size:9px;background:#fee2e2;color:#dc2626;padding:1px 6px;border-radius:5px;font-weight:700;margin-left:5px;vertical-align:middle">PENDIENTE</span>` : '';
     const pills = display.map(v=>{
-      const co=_coForVenc(v);
+      const co=_coForDisplay(v);
       const key=_calObligKey(v,co);
       const done=!!calDone[key];
       return `<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:3px 5px 3px 9px;border-radius:12px;background:${done?'#f0fdf4':v.bg};color:${done?'#15803d':v.color};border:1px solid ${done?'#86efac':v.color+'30'};font-weight:600;${done?'text-decoration:line-through;opacity:.75':''}">
