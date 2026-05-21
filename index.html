@@ -1742,6 +1742,7 @@ function loadState() {
   if (!STATE.activeSession) STATE.activeSession = null;
   if (!STATE.calDone) STATE.calDone = {};
   if (!STATE.calSkip) STATE.calSkip = {};
+  if (!STATE.calActiveCats) STATE.calActiveCats = null;
 }
 function save() { STATE._savedAt = Date.now(); localStorage.setItem(SK(), JSON.stringify(STATE)); Sync.schedule(); }
 function getDay(ds) {
@@ -3526,9 +3527,14 @@ function _closeCatPanel() {
   const p = el('catFilterPanel'); if (p) p.style.display = 'none';
   _updateCatBtn();
 }
+function _saveCatState() {
+  const checked = [...document.querySelectorAll('.cal-cat-cb:checked')].map(cb=>cb.value);
+  STATE.calActiveCats = checked;
+  save();
+}
 function _calSelectAllCats(checked) {
   document.querySelectorAll('.cal-cat-cb').forEach(cb => cb.checked = checked);
-  _updateCatBtn(); renderCalendario();
+  _saveCatState(); _updateCatBtn(); renderCalendario();
 }
 function _updateCatBtn() {
   const all = [...document.querySelectorAll('.cal-cat-cb')];
@@ -3824,13 +3830,15 @@ function renderCalendario() {
       window._catPanelClickBound = true;
     }
     const allCatEntries = Object.entries(_CAT_META).filter(([cat])=>!_CAL_HIDDEN_DEFAULT.has(cat));
-    const rows = allCatEntries.map(([cat,meta]) =>
-      `<label onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:9px;padding:6px 14px;cursor:pointer;border-bottom:1px solid var(--c-border)">
-        <input type="checkbox" class="cal-cat-cb" value="${cat}" checked onchange="_updateCatBtn();renderCalendario()" style="accent-color:${meta.color};flex-shrink:0">
+    const savedCats = STATE.calActiveCats;
+    const rows = allCatEntries.map(([cat,meta]) => {
+      const isChecked = savedCats ? savedCats.includes(cat) : true;
+      return `<label onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:9px;padding:6px 14px;cursor:pointer;border-bottom:1px solid var(--c-border)">
+        <input type="checkbox" class="cal-cat-cb" value="${cat}" ${isChecked?'checked':''} onchange="_saveCatState();_updateCatBtn();renderCalendario()" style="accent-color:${meta.color};flex-shrink:0">
         <span style="width:9px;height:9px;border-radius:50%;background:${meta.color};flex-shrink:0"></span>
         <span style="font-size:12px;color:var(--c-text)">${meta.icon} ${meta.nombre}</span>
-      </label>`
-    ).join('');
+      </label>`;
+    }).join('');
     filtersEl.innerHTML = `<div style="position:relative;display:inline-block">
       <button id="catFilterBtn" onclick="_toggleCatPanel(event)"
         style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:8px;border:1px solid var(--c-border);background:var(--c-surface);cursor:pointer;font-size:12px;color:var(--c-text);white-space:nowrap">
