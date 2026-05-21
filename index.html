@@ -2024,6 +2024,26 @@ function toggleTransit() {
   if (STATE.activeSession && STATE.activeSession.mode === 'transit') _stopActive(false);
   else startTransit();
 }
+function _splitAtMidnight(s, oldDay, newDay) {
+  // Calcular medianoche exacta en Colombia (UTC-5)
+  const midnightIso = new Date(newDay + 'T05:00:00.000Z').toISOString(); // 00:00 Bogotá = 05:00 UTC
+  const minsOld = Math.round((new Date(midnightIso) - new Date(s.startIso)) / 60000);
+  if (minsOld >= 1) {
+    const activity = s.nota || '';
+    getDay(oldDay).sessions.push({
+      mode: s.mode, companyId: s.companyId||'', breakType: s.breakType||'',
+      startIso: s.startIso, endIso: midnightIso,
+      startDisplay: s.startDisplay, endDisplay: '00:00',
+      mins: minsOld, nota: activity, billable: s.mode==='productive', manual: false
+    });
+  }
+  // Continuar la sesión desde medianoche en el nuevo día
+  STATE.activeSession = { ...s, startIso: midnightIso, startDisplay: '00:00' };
+  save();
+  _updateTimerUI();
+  _renderBanner();
+  if (VIEW_DATE === oldDay) renderDashboard();
+}
 function _updateTimerUI() {
   clearInterval(_timerTick);
   const s = STATE.activeSession;
@@ -2065,8 +2085,18 @@ function _updateTimerUI() {
   if(el('mTimerMainBtn')){el('mTimerMainBtn').textContent=s.mode==='productive'?'⏹ Detener':'▶ Iniciar';el('mTimerMainBtn').classList.toggle('stop',s.mode==='productive');}
   if(el('mTransitBtn')){el('mTransitBtn').classList.toggle('active',s.mode==='transit');el('mTransitBtn').textContent=s.mode==='transit'?'⏹ Detener traslado':'🚗 Traslado / Movilización';}
   if(el('mnTimerDot'))    el('mnTimerDot').className='mn-timer-dot '+(s.mode==='productive'?'on':s.mode==='transit'?'transit':'brk');
+  const _fmt = new Intl.DateTimeFormat('en-CA', {timeZone:'America/Bogota'});
+  const sessionDay = _fmt.format(new Date(s.startIso));
   function tick() {
-    const sec = Math.floor((Date.now() - new Date(s.startIso).getTime()) / 1000);
+    const now = Date.now();
+    // Detectar cambio de día Colombia
+    const currentDay = _fmt.format(new Date(now));
+    if (currentDay !== sessionDay) {
+      clearInterval(_timerTick);
+      _splitAtMidnight(s, sessionDay, currentDay);
+      return;
+    }
+    const sec = Math.floor((now - new Date(s.startIso).getTime()) / 1000);
     const h = String(Math.floor(sec / 3600)).padStart(2, '0');
     const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
     const sc = String(sec % 60).padStart(2, '0');
