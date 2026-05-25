@@ -1973,8 +1973,8 @@ function toggleTimer() {
     const actSel = el('timerActivity') || el('mTimerActivity');
     const actCustom = el('timerCustomAct') || el('mTimerCustomAct');
     const act = actSel ? (actSel.value === '__custom__' ? ((actCustom||{}).value||'').trim() : actSel.value) : '';
-    if (!act) { showToast('Selecciona la actividad antes de iniciar'); return; }
-    startWork(coId, act);
+    if (!act && coId !== 'personal') { showToast('Selecciona la actividad antes de iniciar'); return; }
+    startWork(coId, act || 'Personal');
   }
 }
 function toggleBreakMenu() {
@@ -2076,7 +2076,7 @@ function _updateTimerUI() {
   if (digits)     digits.classList.add(modeClass);
   const co = STATE.companies.find(c => c.id === s.companyId);
   const transitDest = s.mode==='transit' ? (s.companyId==='personal' ? '→ Personal' : co ? `→ ${co.name}` : 'En traslado') : null;
-  if (coName) coName.textContent = transitDest || (co ? co.name : (s.mode === 'break' ? (s.breakType || 'Descanso') : '—'));
+  if (coName) coName.textContent = transitDest || (s.companyId==='personal' ? '🏠 Personal' : co ? co.name : (s.mode === 'break' ? (s.breakType || 'Descanso') : '—'));
   if (mainBtn) { mainBtn.textContent = s.mode === 'productive' ? '⏹ Detener' : '▶ Iniciar'; mainBtn.classList.toggle('stop', s.mode === 'productive'); }
   if (breakBtn) breakBtn.classList.toggle('active', s.mode === 'break');
   if (transitBtn) { transitBtn.classList.toggle('active', s.mode === 'transit'); transitBtn.textContent = s.mode === 'transit' ? '⏹ Detener traslado' : '🚗 Traslado / Movilización'; }
@@ -3468,7 +3468,7 @@ function deleteActivity(i){
   STATE.activities.splice(i,1);save();renderActivityList();_renderActivityOptions();
 }
 function _renderTimerCompanies(){
-  const opts='<option value="">— Empresa —</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
+  const opts='<option value="">— Empresa —</option><option value="personal">🏠 Personal</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
   if(el('timerSel'))  el('timerSel').innerHTML=opts;
   if(el('mTimerSel')) el('mTimerSel').innerHTML=opts;
   const tOpts='<option value="">— ¿A dónde vas? —</option><option value="personal">🏠 Personal</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
