@@ -4429,17 +4429,27 @@ function renderFacturacion() {
   const horasTotales = grandTotalMins / 60;
   const valorHoraNeto = (ingresoNeto > 0 && horasTotales > 0) ? Math.round(ingresoNeto / horasTotales) : 0;
 
+  const dedNombres = new Set(deds.map(d=>d.nombre));
+  const presets = ['Salud (EPS)','Pensión (AFP)','ARL','Retención en la Fuente','Fondo de Solidaridad','Caja de Compensación','Pago Auxiliar'];
+  const presetsRow = presets.map(p => {
+    const ya = dedNombres.has(p);
+    const esc = p.replace(/'/g,"\\'");
+    const onclick = ya ? '' : ("_facAddDeduccionNamed('" + esc + "')");
+    const border = ya ? 'var(--c-border)' : 'var(--c-teal)';
+    const bg = ya ? 'var(--c-surface2)' : '#f0fdfa';
+    const color = ya ? 'var(--c-text3)' : 'var(--c-teal)';
+    const cursor = ya ? 'default' : 'pointer';
+    const extra = ya ? 'opacity:.5;' : '';
+    return '<button onclick="' + onclick + '" style="font-size:10px;padding:2px 9px;border-radius:20px;border:1px solid ' + border + ';background:' + bg + ';color:' + color + ';cursor:' + cursor + ';white-space:nowrap;font-weight:600;' + extra + '">' + (ya?'✓ ':'+ ') + p + '</button>';
+  }).join('');
+
   const deduccionesSection = `
-  <div class="card" style="margin-bottom:14px;overflow:visible">
-    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;overflow:visible">
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
       <span class="card-title">Deducciones del mes</span>
-      <div style="display:flex;align-items:center;gap:6px">
-        <button onclick="_facToggleDedMenu(this)"
-          style="font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid var(--c-border);background:var(--c-surface);color:var(--c-text);cursor:pointer;display:flex;align-items:center;gap:5px;font-weight:600">
-          + Agregar deducción <span style="font-size:9px;opacity:.6">▾</span>
-        </button>
-      </div>
+      <button onclick="_facAddDeduccion()" style="font-size:10px;padding:2px 9px;border-radius:20px;border:1px dashed var(--c-border);background:transparent;color:var(--c-text3);cursor:pointer">+ Otra</button>
     </div>
+    <div style="padding:8px 14px 6px;display:flex;flex-wrap:wrap;gap:5px;border-bottom:1px solid var(--c-border)">${presetsRow}</div>
     ${deds.length === 0 ? `<div style="padding:12px 16px;font-size:12px;color:var(--c-text3)">Sin deducciones. Agrega seguridad social, retención u otros descuentos.</div>` :
     `<table style="width:100%;border-collapse:collapse">
       ${deds.map(d => `<tr style="border-bottom:1px solid var(--c-border)">
@@ -4528,8 +4538,8 @@ function renderFacturacion() {
     </table>
   </div>` : `<div class="card" style="margin-bottom:14px"><div style="padding:20px 16px;font-size:13px;color:var(--c-text3)">Sin horas registradas ni sueldos configurados este mes.</div></div>`}
 
-  ${metricasSection}
   ${deduccionesSection}
+  ${metricasSection}
   ${groupMgmt}`;
 }
 
