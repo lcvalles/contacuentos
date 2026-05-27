@@ -4214,7 +4214,9 @@ function renderFacturacion() {
       const available = allCos.filter(co => !grp.coIds.includes(co.id));
       return `<div style="padding:12px 16px;border-bottom:1px solid var(--c-border)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <span style="font-weight:700;font-size:13px;color:#4f46e5">${grp.nombre}</span>
+          <input value="${grp.nombre}" placeholder="Nombre del grupo…"
+            onchange="_facRenameGroup('${grp.id}',this.value)" onblur="save()"
+            style="font-weight:700;font-size:13px;color:#4f46e5;border:none;border-bottom:2px solid #c7d2fe;background:transparent;outline:none;padding:2px 4px;width:200px">
           <button onclick="_facDeleteGroup('${grp.id}')" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--c-text3);padding:2px 6px">✕ Eliminar</button>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:5px">
