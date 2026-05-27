@@ -2876,11 +2876,12 @@ function renderAnalytics() {
     });
     const vhCo={};
     (STATE.billingGroups||[]).forEach(g=>{
+      const gs=((g.sueldos||{})[refM]!=null?(g.sueldos||{})[refM]:(g.sueldo||0));
       const gm=(g.coIds||[]).reduce((a,id)=>a+(mbyCo[id]||0),0);
-      if((g.sueldo||0)>0&&gm>0){const vh=Math.round(g.sueldo/(gm/60));(g.coIds||[]).forEach(id=>vhCo[id]=vh);}
+      if(gs>0&&gm>0){const vh=Math.round(gs/(gm/60));(g.coIds||[]).forEach(id=>vhCo[id]=vh);}
     });
     (STATE.companies||[]).forEach(co=>{
-      if(!vhCo[co.id]){const sl=((STATE.billing||{})[co.id]||{}).sueldo||0,mm=mbyCo[co.id]||0;if(sl>0&&mm>0)vhCo[co.id]=Math.round(sl/(mm/60));}
+      if(!vhCo[co.id]){const b=(STATE.billing||{})[co.id]||{};const sl=((b.sueldos||{})[refM]!=null?(b.sueldos||{})[refM]:(b.sueldo||0));const mm=mbyCo[co.id]||0;if(sl>0&&mm>0)vhCo[co.id]=Math.round(sl/(mm/60));}
     });
     dates.forEach(ds=>{
       ((STATE.days[ds]&&STATE.days[ds].sessions)||[]).forEach(s=>{
@@ -4158,8 +4159,10 @@ function _facRenameGroup(id, nombre) {
 }
 function _facSetGroupSueldo(id, sueldo) {
   const g = (STATE.billingGroups||[]).find(g => g.id === id);
-  if (g) { g.sueldo = sueldo; save(); renderFacturacion(); }
+  if (g) { if(!g.sueldos)g.sueldos={}; g.sueldos[_facMes]=sueldo; save(); renderFacturacion(); }
 }
+function _facGetGrpSueldo(grp) { return ((grp.sueldos||{})[_facMes]!=null?(grp.sueldos||{})[_facMes]:(grp.sueldo||0)); }
+function _facGetCoSueldo(coId) { const b=(STATE.billing||{})[coId]||{}; return ((b.sueldos||{})[_facMes]!=null?(b.sueldos||{})[_facMes]:(b.sueldo||0)); }
 
 function renderFacturacion() {
   if (!_facMes) _facMes = todayStr().slice(0,7);
@@ -4201,10 +4204,11 @@ function renderFacturacion() {
     const grpCos = allCos.filter(co => grp.coIds.includes(co.id));
     const grpMins = grpCos.reduce((s, co) => s + (minsByCo[co.id]||0), 0);
     const grpHoras = grpMins / 60;
-    const grpValorH = (grp.sueldo > 0 && grpHoras > 0) ? Math.round(grp.sueldo / grpHoras) : 0;
-    grandTotalSueldo += grp.sueldo || 0;
+    const grpSueldo = _facGetGrpSueldo(grp);
+    const grpValorH = (grpSueldo > 0 && grpHoras > 0) ? Math.round(grpSueldo / grpHoras) : 0;
+    grandTotalSueldo += grpSueldo;
     grandTotalMins   += grpMins;
-    metricsData.push({ name: grp.nombre, color: null, mins: grpMins, sueldo: grp.sueldo||0, valorH: grpValorH });
+    metricsData.push({ name: grp.nombre, color: null, mins: grpMins, sueldo: grpSueldo, valorH: grpValorH });
 
     const subRows = grpCos.map(co => {
       const mins = minsByCo[co.id] || 0;
@@ -4225,17 +4229,17 @@ function renderFacturacion() {
             style="border:none;background:transparent;font-weight:800;font-size:13px;color:var(--c-text);width:160px;outline:none;cursor:text"
             onblur="save()">
         </td>
-        <td style="padding:7px 10px"><input type="text" inputmode="numeric" value="${_facFmtInput(grp.sueldo)}" placeholder="Sueldo…" oninput="_facInputKey(this)" onchange="_facSetGroupSueldo('${grp.id}',_facParseCOP(this.value))" style="width:130px;border:1px solid var(--c-border);border-radius:6px;padding:4px 8px;font-size:12px;background:var(--c-surface);color:var(--c-text)"></td>
+        <td style="padding:7px 10px"><input type="text" inputmode="numeric" value="${_facFmtInput(grpSueldo)}" placeholder="Sueldo…" oninput="_facInputKey(this)" onchange="_facSetGroupSueldo('${grp.id}',_facParseCOP(this.value))" style="width:130px;border:1px solid var(--c-border);border-radius:6px;padding:4px 8px;font-size:12px;background:var(--c-surface);color:var(--c-text)"></td>
         <td style="padding:10px 10px;font-size:14px;font-weight:700;color:var(--c-text)">${grpMins>0?fmtH(grpMins):'—'}</td>
         <td style="padding:8px 10px">${grpValorH>0?`<span style="background:#dcfce7;color:#14532d;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:800;display:inline-block;white-space:nowrap">${fmtCOP(grpValorH)}/h</span>`:'<span style="color:var(--c-text3)">—</span>'}</td>
-        <td style="padding:10px 16px;font-size:13px;font-weight:700;color:${grp.sueldo>0?'#16a34a':'var(--c-text3)'};text-align:right">${grp.sueldo>0?fmtCOP(grp.sueldo):'—'}</td>
+        <td style="padding:10px 16px;font-size:13px;font-weight:700;color:${grpSueldo>0?'#16a34a':'var(--c-text3)'};text-align:right">${grpSueldo>0?fmtCOP(grpSueldo):'—'}</td>
       </tr>
       ${subRows}`;
   }).join('');
 
   // ── Filas de empresas sueltas ──────────────────────────────────────────────
   const soloRows = soloCos.map(co => {
-    const sueldo = (STATE.billing[co.id]||{}).sueldo || 0;
+    const sueldo = _facGetCoSueldo(co.id);
     const mins   = minsByCo[co.id] || 0;
     const valorH = (sueldo > 0 && mins > 0) ? Math.round(sueldo / (mins/60)) : 0;
     grandTotalSueldo += sueldo;
@@ -4243,7 +4247,7 @@ function renderFacturacion() {
     metricsData.push({ name: co.name, color: co.color||null, mins, sueldo, valorH });
     return `<tr style="border-bottom:1px solid var(--c-border)">
       <td style="padding:11px 16px;font-weight:700;font-size:13px;color:${co.color||'var(--c-text)'}">${co.name}</td>
-      <td style="padding:7px 10px"><input type="text" inputmode="numeric" value="${_facFmtInput(sueldo)}" placeholder="Ingresar…" oninput="_facInputKey(this)" onchange="if(!STATE.billing['${co.id}'])STATE.billing['${co.id}']={};STATE.billing['${co.id}'].sueldo=_facParseCOP(this.value);save();renderFacturacion()" style="width:130px;border:1px solid var(--c-border);border-radius:6px;padding:4px 8px;font-size:12px;background:var(--c-surface);color:var(--c-text)"></td>
+      <td style="padding:7px 10px"><input type="text" inputmode="numeric" value="${_facFmtInput(sueldo)}" placeholder="Ingresar…" oninput="_facInputKey(this)" onchange="(function(v){const b=STATE.billing['${co.id}']||(STATE.billing['${co.id}']={});if(!b.sueldos)b.sueldos={};b.sueldos['${_facMes}']=v;save();renderFacturacion();})(_facParseCOP(this.value))" style="width:130px;border:1px solid var(--c-border);border-radius:6px;padding:4px 8px;font-size:12px;background:var(--c-surface);color:var(--c-text)"></td>
       <td style="padding:11px 10px;font-size:14px;font-weight:700;color:var(--c-text)">${mins>0?fmtH(mins):'—'}</td>
       <td style="padding:8px 10px">${valorH>0?`<span style="background:#dcfce7;color:#14532d;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:800;display:inline-block;white-space:nowrap">${fmtCOP(valorH)}/h</span>`:'<span style="color:var(--c-text3)">—</span>'}</td>
       <td style="padding:11px 16px;font-size:13px;font-weight:700;color:${sueldo>0?'#16a34a':'var(--c-text3)'};text-align:right">${sueldo>0?fmtCOP(sueldo):'—'}</td>
@@ -4288,26 +4292,16 @@ function renderFacturacion() {
 
     return `<div class="card" style="margin-bottom:14px">
       <div class="card-header"><span class="card-title">Métricas</span></div>
-      <div style="padding:14px 16px 4px">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3);font-weight:700;margin-bottom:12px">Distribución de tiempo · ${fmtH(grandTotalMins)} total</div>
-        ${barChart(items,
-          m => m.mins,
-          m => fmtH(m.mins),
-          m => Math.round(m.mins/grandTotalMins*100)+'%',
-          m => m.color||'#16a34a',
-          null
-        )}
+      <div style="display:grid;grid-template-columns:${efItems.length>0?'1fr 1fr':'1fr'};gap:0">
+        <div style="padding:14px 16px 14px;${efItems.length>0?'border-right:1px solid var(--c-border)':''}">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3);font-weight:700;margin-bottom:12px">Distribución de tiempo · ${fmtH(grandTotalMins)} total</div>
+          ${barChart(items, m=>m.mins, m=>fmtH(m.mins), m=>Math.round(m.mins/grandTotalMins*100)+'%', m=>m.color||'#16a34a', null)}
+        </div>
+        ${efItems.length>0?`<div style="padding:14px 16px 14px">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3);font-weight:700;margin-bottom:12px">Eficiencia — valor hora</div>
+          ${barChart(efItems, m=>m.valorH, m=>fmtCOP(m.valorH)+'/h', m=>fmtH(m.mins), m=>m.color||'#16a34a', null)}
+        </div>`:''}
       </div>
-      ${efItems.length > 0 ? `<div style="padding:14px 16px 14px;border-top:1px solid var(--c-border)">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3);font-weight:700;margin-bottom:12px">Eficiencia — valor hora</div>
-        ${barChart(efItems,
-          m => m.valorH,
-          m => fmtCOP(m.valorH)+'/h',
-          m => fmtH(m.mins),
-          m => m.color||'#16a34a',
-          null
-        )}
-      </div>` : ''}
     </div>`;
   })() : '';
 
