@@ -4492,10 +4492,10 @@ function renderFacturacion() {
       <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3);font-weight:600;margin-bottom:4px">Ingreso neto</div>
       <div style="font-size:16px;font-weight:800;color:${ingresoNeto>0?'#16a34a':'#dc2626'}">${fmtCOP(ingresoNeto)}</div>
     </div>
-    <div class="card" style="padding:16px 20px;margin:0;background:linear-gradient(135deg,#166534,#16a34a);border-color:#16a34a">
-      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#bbf7d0;font-weight:700;margin-bottom:4px">Valor hora neto</div>
-      <div style="font-size:46px;font-weight:900;color:#fff;letter-spacing:-2px;line-height:1">${valorHoraNeto>0?fmtCOP(valorHoraNeto):'—'}<span style="font-size:18px;font-weight:600;color:#86efac;margin-left:3px">/h</span></div>
-      <div style="font-size:11px;color:#bbf7d0;margin-top:6px">${grandTotalMins>0?fmtH(grandTotalMins)+' facturadas':''}</div>
+    <div class="card" style="padding:14px 16px;margin:0">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3);font-weight:600;margin-bottom:4px">Valor hora neto</div>
+      <div style="font-size:22px;font-weight:800;color:#16a34a;line-height:1">${valorHoraNeto>0?fmtCOP(valorHoraNeto):'—'}<span style="font-size:13px;font-weight:600;color:var(--c-text3);margin-left:2px">/h</span></div>
+      <div style="font-size:11px;color:var(--c-text3);margin-top:4px">${grandTotalMins>0?fmtH(grandTotalMins)+' facturadas':''}</div>
     </div>
   </div>` : '';
 
