@@ -1755,6 +1755,7 @@ function loadState() {
   if (!STATE.calSkip) STATE.calSkip = {};
   if (!STATE.calActiveCats) STATE.calActiveCats = null;
   if (!STATE.billing) STATE.billing = {};
+  if (!STATE.billingGroups) STATE.billingGroups = [];
 }
 function save() { STATE._savedAt = Date.now(); localStorage.setItem(SK(), JSON.stringify(STATE)); Sync.schedule(); }
 function getDay(ds) {
@@ -4073,10 +4074,42 @@ function renderDashVenc() {
 
 // ── Facturación ───────────────────────────────────────────────────────────────
 let _facMes = '';
+
+function _facSaveGroup(grp) {
+  if (!STATE.billingGroups) STATE.billingGroups = [];
+  const i = STATE.billingGroups.findIndex(g => g.id === grp.id);
+  if (i >= 0) STATE.billingGroups[i] = grp; else STATE.billingGroups.push(grp);
+  save(); renderFacturacion();
+}
+function _facDeleteGroup(id) {
+  STATE.billingGroups = (STATE.billingGroups||[]).filter(g => g.id !== id);
+  save(); renderFacturacion();
+}
+function _facToggleCoInGroup(grpId, coId) {
+  const g = (STATE.billingGroups||[]).find(g => g.id === grpId);
+  if (!g) return;
+  const i = g.coIds.indexOf(coId);
+  if (i >= 0) g.coIds.splice(i,1); else g.coIds.push(coId);
+  save(); renderFacturacion();
+}
+function _facNewGroup() {
+  const id = 'grp_' + Date.now();
+  _facSaveGroup({ id, nombre: 'Nuevo grupo', sueldo: 0, coIds: [] });
+}
+function _facRenameGroup(id, nombre) {
+  const g = (STATE.billingGroups||[]).find(g => g.id === id);
+  if (g) { g.nombre = nombre; save(); }
+}
+function _facSetGroupSueldo(id, sueldo) {
+  const g = (STATE.billingGroups||[]).find(g => g.id === id);
+  if (g) { g.sueldo = sueldo; save(); renderFacturacion(); }
+}
+
 function renderFacturacion() {
   if (!_facMes) _facMes = todayStr().slice(0,7);
   const e = el('facturacionBody'); if (!e) return;
   if (!STATE.billing) STATE.billing = {};
+  if (!STATE.billingGroups) STATE.billingGroups = [];
 
   const [y, m] = _facMes.split('-').map(Number);
   const firstDay = `${_facMes}-01`;
@@ -4092,26 +4125,69 @@ function renderFacturacion() {
     });
   });
 
-  // Mostrar empresas que tienen sueldo configurado O tienen horas este mes
-  const companies = (STATE.companies||[]).filter(co => (STATE.billing[co.id]||{}).sueldo || minsByCo[co.id]);
   const fmtCOP = v => v ? new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',minimumFractionDigits:0,maximumFractionDigits:0}).format(v) : '—';
   const fmtH = mins => { const h=Math.floor(mins/60), mn=mins%60; return h+'h'+(mn?` ${mn}m`:''); };
-
-  const prevMes = () => { const d=new Date(_facMes+'-15'); d.setMonth(d.getMonth()-1); _facMes=d.toISOString().slice(0,7); renderFacturacion(); };
-  const nextMes = () => { const d=new Date(_facMes+'-15'); d.setMonth(d.getMonth()+1); _facMes=d.toISOString().slice(0,7); renderFacturacion(); };
   const mesLabel = new Date(_facMes+'-15').toLocaleDateString('es-CO',{month:'long',year:'numeric'}).replace(/^\w/,c=>c.toUpperCase());
+  const allCos = STATE.companies || [];
+  const groups = STATE.billingGroups || [];
 
-  let totalSueldo=0, totalMins=0;
+  // IDs de empresas ya en algún grupo
+  const groupedCoIds = new Set(groups.flatMap(g => g.coIds));
 
-  const rows = companies.map(co => {
+  // Empresas sueltas (no en ningún grupo)
+  const soloCos = allCos.filter(co => !groupedCoIds.has(co.id) && ((STATE.billing[co.id]||{}).sueldo || minsByCo[co.id]));
+
+  let grandTotalSueldo = 0, grandTotalMins = 0;
+
+  // ── Filas de grupos ────────────────────────────────────────────────────────
+  const groupRows = groups.map(grp => {
+    const grpCos = allCos.filter(co => grp.coIds.includes(co.id));
+    const grpMins = grpCos.reduce((s, co) => s + (minsByCo[co.id]||0), 0);
+    const grpHoras = grpMins / 60;
+    const valorH = (grp.sueldo > 0 && grpHoras > 0) ? Math.round(grp.sueldo / grpHoras) : 0;
+    grandTotalSueldo += grp.sueldo || 0;
+    grandTotalMins   += grpMins;
+
+    const subRows = grpCos.map(co => {
+      const mins = minsByCo[co.id] || 0;
+      return `<tr style="border-bottom:1px solid var(--c-border)">
+        <td style="padding:7px 16px 7px 32px;font-size:12px;color:${co.color||'var(--c-text2)'}">↳ ${co.name}</td>
+        <td></td>
+        <td style="padding:7px 10px;font-size:12px;font-weight:600;color:var(--c-text)">${mins>0?fmtH(mins):'—'}</td>
+        <td></td><td></td>
+      </tr>`;
+    }).join('');
+
+    return `
+      <tr style="background:var(--c-surface2);border-top:2px solid var(--c-border);border-bottom:1px solid var(--c-border)">
+        <td style="padding:10px 16px;font-weight:800;font-size:13px;color:var(--c-text)">
+          <span style="font-size:10px;background:#e0e7ff;color:#4f46e5;padding:1px 6px;border-radius:4px;margin-right:6px;font-weight:700">GRUPO</span>
+          <input value="${grp.nombre}" onchange="_facRenameGroup('${grp.id}',this.value)"
+            style="border:none;background:transparent;font-weight:800;font-size:13px;color:var(--c-text);width:160px;outline:none;cursor:text"
+            onblur="save()">
+        </td>
+        <td style="padding:10px 10px">
+          <input type="number" value="${grp.sueldo||''}" placeholder="Sueldo compartido…" min="0" step="10000"
+            onchange="_facSetGroupSueldo('${grp.id}',+this.value)"
+            style="width:140px;border:1px solid var(--c-border);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--c-surface);color:var(--c-text)">
+        </td>
+        <td style="padding:10px 10px;font-size:14px;font-weight:700;color:var(--c-text)">${grpMins>0?fmtH(grpMins):'—'}</td>
+        <td style="padding:10px 10px;font-size:12px;color:var(--c-text3)">${valorH>0?fmtCOP(valorH)+'/h':'—'}</td>
+        <td style="padding:10px 16px;font-size:14px;font-weight:800;color:${grp.sueldo>0?'#16a34a':'var(--c-text3)'};text-align:right">${grp.sueldo>0?fmtCOP(grp.sueldo):'—'}</td>
+      </tr>
+      ${subRows}`;
+  }).join('');
+
+  // ── Filas de empresas sueltas ──────────────────────────────────────────────
+  const soloRows = soloCos.map(co => {
     const sueldo = (STATE.billing[co.id]||{}).sueldo || 0;
     const mins   = minsByCo[co.id] || 0;
     const horas  = mins / 60;
     const valorH = (sueldo > 0 && horas > 0) ? Math.round(sueldo / horas) : 0;
-    totalSueldo += sueldo;
-    totalMins   += mins;
+    grandTotalSueldo += sueldo;
+    grandTotalMins   += mins;
     return `<tr style="border-bottom:1px solid var(--c-border)">
-      <td style="padding:11px 16px;font-weight:700;font-size:13px;color:${co.color||'var(--c-text)'};">${co.name}</td>
+      <td style="padding:11px 16px;font-weight:700;font-size:13px;color:${co.color||'var(--c-text)'}">${co.name}</td>
       <td style="padding:11px 10px">
         <input type="number" value="${sueldo||''}" placeholder="Ingresar…" min="0" step="10000"
           onchange="if(!STATE.billing['${co.id}'])STATE.billing['${co.id}']={};STATE.billing['${co.id}'].sueldo=+this.value;save();renderFacturacion()"
@@ -4123,60 +4199,75 @@ function renderFacturacion() {
     </tr>`;
   }).join('');
 
-  const noData = companies.length === 0;
+  const hasRows = groups.length > 0 || soloCos.length > 0;
+
+  // ── Panel de gestión de grupos ─────────────────────────────────────────────
+  const groupMgmt = `
+  <div class="card" style="margin-top:14px">
+    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+      <span class="card-title">Grupos de facturación</span>
+      <button onclick="_facNewGroup()" style="font-size:11px;padding:4px 12px;border-radius:6px;background:var(--c-gold);color:#fff;border:none;cursor:pointer;font-weight:700">+ Nuevo grupo</button>
+    </div>
+    ${groups.length === 0 ? `<div style="padding:14px 16px;font-size:12px;color:var(--c-text3)">Sin grupos aún. Crea uno para agrupar empresas que comparten sueldo.</div>` :
+    groups.map(grp => {
+      const grpCos = allCos.filter(co => grp.coIds.includes(co.id));
+      const available = allCos.filter(co => !grp.coIds.includes(co.id));
+      return `<div style="padding:12px 16px;border-bottom:1px solid var(--c-border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="font-weight:700;font-size:13px;color:#4f46e5">${grp.nombre}</span>
+          <button onclick="_facDeleteGroup('${grp.id}')" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--c-text3);padding:2px 6px">✕ Eliminar</button>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          ${grpCos.map(co => `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;background:${co.color||'#6366f1'}20;border:1px solid ${co.color||'#6366f1'}40;font-size:11px;font-weight:600;color:${co.color||'var(--c-text)'}">
+            ${co.name}
+            <button onclick="_facToggleCoInGroup('${grp.id}','${co.id}')" style="background:none;border:none;cursor:pointer;color:var(--c-text3);font-size:12px;line-height:1;padding:0">×</button>
+          </span>`).join('')}
+          ${available.length ? `<select onchange="if(this.value)_facToggleCoInGroup('${grp.id}',this.value);this.value=''"
+            style="font-size:11px;border:1px dashed var(--c-border);border-radius:6px;padding:3px 6px;background:var(--c-surface);color:var(--c-text3);cursor:pointer">
+            <option value="">+ Agregar empresa…</option>
+            ${available.map(co=>`<option value="${co.id}">${co.name}</option>`).join('')}
+          </select>` : ''}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
 
   e.innerHTML = `
   <div class="card" style="margin-bottom:14px">
     <div style="padding:14px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <button onclick="(${prevMes.toString()})()" style="background:none;border:1px solid var(--c-border);border-radius:6px;padding:4px 12px;cursor:pointer;font-size:15px;color:var(--c-text2)">‹</button>
+      <button onclick="_facMes=(()=>{const d=new Date(_facMes+'-15');d.setMonth(d.getMonth()-1);return d.toISOString().slice(0,7)})();renderFacturacion()"
+        style="background:none;border:1px solid var(--c-border);border-radius:6px;padding:4px 12px;cursor:pointer;font-size:15px;color:var(--c-text2)">‹</button>
       <span style="font-size:15px;font-weight:700;color:var(--c-text);min-width:160px;text-align:center">${mesLabel}</span>
-      <button onclick="(${nextMes.toString()})()" style="background:none;border:1px solid var(--c-border);border-radius:6px;padding:4px 12px;cursor:pointer;font-size:15px;color:var(--c-text2)">›</button>
+      <button onclick="_facMes=(()=>{const d=new Date(_facMes+'-15');d.setMonth(d.getMonth()+1);return d.toISOString().slice(0,7)})();renderFacturacion()"
+        style="background:none;border:1px solid var(--c-border);border-radius:6px;padding:4px 12px;cursor:pointer;font-size:15px;color:var(--c-text2)">›</button>
     </div>
   </div>
 
-  ${noData ? `<div class="card"><div style="padding:24px 18px;color:var(--c-text3);font-size:13px">Sin horas registradas ni sueldos configurados para este mes.<br>Empieza ingresando el sueldo de cada empresa.</div></div>` : `
-  <div class="card" style="margin-bottom:14px;overflow-x:auto">
+  ${hasRows ? `<div class="card" style="margin-bottom:14px;overflow-x:auto">
     <table style="width:100%;border-collapse:collapse">
       <thead>
         <tr style="background:var(--c-surface2);font-size:11px;color:var(--c-text3);text-transform:uppercase;letter-spacing:.5px">
-          <th style="padding:9px 16px;text-align:left;font-weight:600">Empresa</th>
+          <th style="padding:9px 16px;text-align:left;font-weight:600">Empresa / Grupo</th>
           <th style="padding:9px 10px;text-align:left;font-weight:600">Sueldo mensual</th>
           <th style="padding:9px 10px;text-align:left;font-weight:600">Horas facturadas</th>
           <th style="padding:9px 10px;text-align:left;font-weight:600">Valor hora efectivo</th>
           <th style="padding:9px 16px;text-align:right;font-weight:600">Total mes</th>
         </tr>
       </thead>
-      <tbody>${rows}</tbody>
+      <tbody>${groupRows}${soloRows}</tbody>
       <tfoot>
         <tr style="background:var(--c-surface2);border-top:2px solid var(--c-border)">
           <td style="padding:12px 16px;font-weight:800;font-size:13px;color:var(--c-text)">Total</td>
-          <td style="padding:12px 10px;font-size:13px;font-weight:700;color:var(--c-text)">${totalSueldo>0?fmtCOP(totalSueldo):'—'}</td>
-          <td style="padding:12px 10px;font-size:13px;font-weight:700;color:var(--c-text)">${totalMins>0?fmtH(totalMins):'—'}</td>
+          <td style="padding:12px 10px;font-size:13px;font-weight:700;color:var(--c-text)">${grandTotalSueldo>0?fmtCOP(grandTotalSueldo):'—'}</td>
+          <td style="padding:12px 10px;font-size:13px;font-weight:700;color:var(--c-text)">${grandTotalMins>0?fmtH(grandTotalMins):'—'}</td>
           <td></td>
-          <td style="padding:12px 16px;font-size:16px;font-weight:800;color:${totalSueldo>0?'#16a34a':'var(--c-text3)'};text-align:right">${totalSueldo>0?fmtCOP(totalSueldo):'—'}</td>
+          <td style="padding:12px 16px;font-size:16px;font-weight:800;color:${grandTotalSueldo>0?'#16a34a':'var(--c-text3)'};text-align:right">${grandTotalSueldo>0?fmtCOP(grandTotalSueldo):'—'}</td>
         </tr>
       </tfoot>
     </table>
-  </div>
-  <div style="padding:2px 2px;font-size:11px;color:var(--c-text3)">Valor hora efectivo = sueldo ÷ horas facturadas del mes (referencia, no afecta el total).</div>`}`;
+  </div>` : `<div class="card" style="margin-bottom:14px"><div style="padding:20px 16px;font-size:13px;color:var(--c-text3)">Sin horas registradas ni sueldos configurados este mes.</div></div>`}
 
-  // Mostrar todas las empresas con campo de sueldo aunque no tengan horas
-  if (!noData) return;
-  const allCos = STATE.companies||[];
-  if (!allCos.length) return;
-  e.innerHTML += `<div class="card" style="margin-top:8px;overflow-x:auto">
-    <div class="card-header"><span class="card-title">Configurar sueldos</span></div>
-    <table style="width:100%;border-collapse:collapse">
-      ${allCos.map(co=>`<tr style="border-bottom:1px solid var(--c-border)">
-        <td style="padding:9px 16px;font-weight:600;color:${co.color||'var(--c-text)'};font-size:13px">${co.name}</td>
-        <td style="padding:9px 10px">
-          <input type="number" value="${(STATE.billing[co.id]||{}).sueldo||''}" placeholder="Sueldo mensual…" min="0" step="10000"
-            onchange="if(!STATE.billing['${co.id}'])STATE.billing['${co.id}']={};STATE.billing['${co.id}'].sueldo=+this.value;save()"
-            style="width:160px;border:1px solid var(--c-border);border-radius:6px;padding:5px 10px;font-size:12px;background:var(--c-surface);color:var(--c-text)">
-        </td>
-      </tr>`).join('')}
-    </table>
-  </div>`;
+  ${groupMgmt}`;
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
