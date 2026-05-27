@@ -3743,6 +3743,39 @@ function _calSelectDay(ds) {
   }).join('')}</div>`;
 }
 
+function _colombiaFestivos(year) {
+  const fest = new Map();
+  const pad = n => String(n).padStart(2,'0');
+  const key = (y,mo,dy) => `${y}-${pad(mo)}-${pad(dy)}`;
+  const fijo = (mo,dy,nombre) => fest.set(key(year,mo,dy), nombre);
+  const nextMon = d => { const x=new Date(d); const dow=x.getDay(); if(dow!==1) x.setDate(x.getDate()+(8-dow)%7); return x; };
+  const emiliani = (mo,dy,nombre) => { const d=nextMon(new Date(year,mo-1,dy)); fest.set(d.toISOString().slice(0,10), nombre); };
+  const addDays = (d,n) => { const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+  // Easter (Meeus/Jones/Butcher)
+  const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4;
+  const f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30;
+  const i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,mn=Math.floor((a+11*h+22*l)/451);
+  const easter=new Date(year,Math.floor((h+l-7*mn+114)/31)-1,(h+l-7*mn+114)%31+1);
+  // Fijos
+  fijo(1,1,'Año Nuevo'); fijo(5,1,'Día del Trabajo');
+  fijo(7,20,'Independencia'); fijo(8,7,'Batalla de Boyacá');
+  fijo(12,8,'Inmaculada Concepción'); fijo(12,25,'Navidad');
+  // Semana Santa
+  fest.set(addDays(easter,-3).toISOString().slice(0,10),'Jueves Santo');
+  fest.set(addDays(easter,-2).toISOString().slice(0,10),'Viernes Santo');
+  // Emiliani base
+  emiliani(1,6,'Reyes Magos'); emiliani(3,19,'San José');
+  emiliani(6,29,'San Pedro y Pablo'); emiliani(8,15,'Asunción');
+  emiliani(10,12,'Día de la Raza'); emiliani(11,1,'Todos los Santos');
+  emiliani(11,11,'Independencia Cartagena');
+  // Emiliani pascuales
+  const nextMonDate = d => { const x=new Date(d); const dow=x.getDay(); if(dow!==1) x.setDate(x.getDate()+(8-dow)%7); return x; };
+  fest.set(nextMonDate(addDays(easter,39)).toISOString().slice(0,10),'Ascensión');
+  fest.set(nextMonDate(addDays(easter,60)).toISOString().slice(0,10),'Corpus Christi');
+  fest.set(nextMonDate(addDays(easter,68)).toISOString().slice(0,10),'Sagrado Corazón');
+  return fest;
+}
+
 function renderCalendario() {
   if (!_CAL_VIEW) _CAL_VIEW = todayStr().slice(0,7);
   const [y,m] = _CAL_VIEW.split('-').map(Number);
@@ -3967,24 +4000,30 @@ function renderCalendario() {
   while(cells.length%7!==0) cells.push(null);
 
   const today = todayStr();
+  const festivosMap = _colombiaFestivos(y);
   const gridEl = el('calGrid'); if (!gridEl) return;
   gridEl.innerHTML = cells.map(d => {
     if (d===null) return `<div style="min-height:72px;background:var(--c-bg);border-right:1px solid var(--c-border);border-bottom:1px solid var(--c-border);opacity:.35"></div>`;
     const ds = `${String(y).padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const isToday = ds===today;
-    const dow = new Date(ds+'T12:00:00').getDay(); // 0=Dom,6=Sáb
+    const dow = new Date(ds+'T12:00:00').getDay();
     const isWE = dow===0||dow===6;
+    const isFestivo = festivosMap.has(ds);
+    const festivoName = isFestivo ? festivosMap.get(ds) : '';
     const dayV = dayMap[d]||[];
-    // Puntos únicos por categoría
     const cats = [...new Set(dayV.map(v=>v.cat))];
     const dots = cats.map(cat=>{
       const meta = _CAT_META[cat];
       const mine = dayV.some(v=>v.cat===cat&&(v.nit==='all'||!!_coForVenc(v)));
       return `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${meta.color};${mine?'box-shadow:0 0 0 2px white,0 0 0 3px '+meta.color:'opacity:.7'};flex-shrink:0" title="${meta.nombre}"></span>`;
     }).join('');
-    return `<div onclick="${dayV.length?`_calSelectDay('${ds}')`:''}" style="min-height:72px;padding:6px 5px;border-right:1px solid var(--c-border);border-bottom:1px solid var(--c-border);background:${isToday?'var(--c-gold-bg)':isWE?'#fafafa':'var(--c-surface)'};cursor:${dayV.length?'pointer':'default'};transition:background .1s" onmouseover="${dayV.length?`this.style.background='${isToday?'#fde68a':'#f3f4f6'}'`:''}" onmouseout="this.style.background='${isToday?'var(--c-gold-bg)':isWE?'#fafafa':'var(--c-surface)'}'">
-      <div style="font-size:11px;font-weight:${isToday?700:400};color:${isToday?'var(--c-gold)':isWE?'var(--c-text3)':'var(--c-text)'}${dayV.length?';text-decoration:underline dotted':''}">${d}</div>
-      <div style="display:flex;flex-wrap:wrap;gap:2px;margin-top:4px">${dots}</div>
+    const bg = isToday ? 'var(--c-gold-bg)' : isFestivo ? '#fff1f2' : isWE ? '#fafafa' : 'var(--c-surface)';
+    const bgHover = isToday ? '#fde68a' : isFestivo ? '#ffe4e6' : '#f3f4f6';
+    const numColor = isToday ? 'var(--c-gold)' : isFestivo ? '#dc2626' : isWE ? 'var(--c-text3)' : 'var(--c-text)';
+    return `<div onclick="${dayV.length?`_calSelectDay('${ds}')`:''}" style="min-height:72px;padding:6px 5px;border-right:1px solid var(--c-border);border-bottom:1px solid var(--c-border);background:${bg};cursor:${dayV.length?'pointer':'default'};transition:background .1s" onmouseover="${dayV.length?`this.style.background='${bgHover}'`:''}" onmouseout="this.style.background='${bg}'">
+      <div style="font-size:11px;font-weight:${isToday||isFestivo?700:400};color:${numColor}${dayV.length?';text-decoration:underline dotted':''}">${d}</div>
+      ${isFestivo?`<div style="font-size:7.5px;color:#dc2626;font-weight:600;line-height:1.2;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${festivoName}">🇨🇴 ${festivoName}</div>`:''}
+      <div style="display:flex;flex-wrap:wrap;gap:2px;margin-top:${isFestivo?2:4}px">${dots}</div>
     </div>`;
   }).join('');
 
@@ -4310,27 +4349,20 @@ function renderFacturacion() {
     const maxVH   = Math.max(...items.map(m => m.valorH).filter(v => v > 0), 0);
     const efItems = items.filter(m => m.valorH > 0).sort((a,b) => b.valorH - a.valorH);
 
-    const barChart = (dataItems, valFn, labelFn, subFn, colorFn, topBadgeFn) => {
+    const barChart = (dataItems, valFn, labelFn, subFn, colorFn) => {
       const maxVal = Math.max(...dataItems.map(valFn), 1);
-      return `<div style="display:flex;gap:8px;align-items:flex-end;height:110px">
+      return `<div style="display:flex;gap:5px;align-items:stretch;overflow-x:auto;padding:0 2px 4px">
         ${dataItems.map(m => {
-          const bh = Math.max(4, Math.round(valFn(m) / maxVal * 96));
+          const pp = Math.max(3, Math.round(valFn(m) / maxVal * 100));
           const color = colorFn(m);
-          const badge = topBadgeFn ? topBadgeFn(m) : '';
-          return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;min-width:0;justify-content:flex-end">
-            <div style="font-size:10px;font-weight:800;color:var(--c-text);margin-bottom:2px;text-align:center;white-space:nowrap">${labelFn(m)}</div>
-            ${badge?`<div style="margin-bottom:3px">${badge}</div>`:'<div style="height:16px"></div>'}
-            <div style="width:min(32px,100%);height:${bh}px;background:${color};border-radius:4px 4px 0 0"></div>
-          </div>`;
-        }).join('')}
-      </div>
-      <div style="height:2px;background:var(--c-border);margin-bottom:8px"></div>
-      <div style="display:flex;gap:8px">
-        ${dataItems.map(m => {
-          const color = colorFn(m);
-          return `<div style="flex:1;text-align:center;min-width:0">
-            <div style="font-size:10px;font-weight:700;color:${color};white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${m.name}">${m.name}</div>
-            <div style="font-size:9px;color:var(--c-text3)">${subFn(m)}</div>
+          return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-width:30px;max-width:64px">
+            <div style="font-size:9px;font-weight:800;color:var(--c-text);text-align:center;min-height:13px;line-height:1.3;white-space:nowrap">${labelFn(m)}</div>
+            <div style="width:100%;height:80px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center">
+              <div style="width:78%;border-radius:5px 5px 0 0;min-height:3px;height:${pp}%;background:${color};transition:height .35s ease"></div>
+            </div>
+            <div style="height:1px;width:100%;background:var(--c-border)"></div>
+            <div style="font-size:8.5px;color:${color};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center;font-weight:700;letter-spacing:.1px" title="${m.name}">${m.name}</div>
+            <div style="font-size:8px;color:var(--c-text3);text-align:center">${subFn(m)}</div>
           </div>`;
         }).join('')}
       </div>`;
@@ -4341,11 +4373,11 @@ function renderFacturacion() {
       <div style="display:grid;grid-template-columns:${efItems.length>0?'1fr 1fr':'1fr'};gap:0">
         <div style="padding:14px 16px 14px;${efItems.length>0?'border-right:1px solid var(--c-border)':''}">
           <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3);font-weight:700;margin-bottom:12px">Distribución de tiempo · ${fmtH(grandTotalMins)} total</div>
-          ${barChart(items, m=>m.mins, m=>fmtH(m.mins), m=>Math.round(m.mins/grandTotalMins*100)+'%', m=>m.color||'#16a34a', null)}
+          ${barChart(items, m=>m.mins, m=>fmtH(m.mins), m=>Math.round(m.mins/grandTotalMins*100)+'%', m=>m.color||'#16a34a')}
         </div>
         ${efItems.length>0?`<div style="padding:14px 16px 14px">
           <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3);font-weight:700;margin-bottom:12px">Eficiencia — valor hora</div>
-          ${barChart(efItems, m=>m.valorH, m=>fmtCOP(m.valorH)+'/h', m=>fmtH(m.mins), m=>m.color||'#16a34a', null)}
+          ${barChart(efItems, m=>m.valorH, m=>fmtCOP(m.valorH)+'/h', m=>fmtH(m.mins), m=>m.color||'#16a34a')}
         </div>`:''}
       </div>
     </div>`;
