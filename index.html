@@ -4182,7 +4182,7 @@ function renderFacturacion() {
         <td style="padding:7px 16px 7px 32px;font-size:12px;color:${co.color||'var(--c-text2)'}">↳ ${co.name}</td>
         <td></td>
         <td style="padding:7px 10px;font-size:12px;font-weight:600;color:var(--c-text)">${mins>0?fmtH(mins):'—'}</td>
-        <td style="background:#dcfce7;border-left:2px solid #16a34a"></td><td></td>
+        <td></td><td></td>
       </tr>`;
     }).join('');
 
@@ -4196,7 +4196,7 @@ function renderFacturacion() {
         </td>
         <td style="padding:10px 10px;font-size:13px;color:var(--c-text2)">${grp.sueldo>0?fmtCOP(grp.sueldo):'<span style="color:var(--c-text3);font-style:italic;font-size:12px">Sin configurar</span>'}</td>
         <td style="padding:10px 10px;font-size:14px;font-weight:700;color:var(--c-text)">${grpMins>0?fmtH(grpMins):'—'}</td>
-        <td style="padding:10px 12px;font-size:14px;font-weight:900;color:#14532d;background:#dcfce7;border-left:2px solid #16a34a">${grpValorH>0?fmtCOP(grpValorH)+'/h':'—'}</td>
+        <td style="padding:8px 10px">${grpValorH>0?`<span style="background:#dcfce7;color:#14532d;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:800;display:inline-block;white-space:nowrap">${fmtCOP(grpValorH)}/h</span>`:'<span style="color:var(--c-text3)">—</span>'}</td>
         <td style="padding:10px 16px;font-size:13px;font-weight:700;color:${grp.sueldo>0?'#16a34a':'var(--c-text3)'};text-align:right">${grp.sueldo>0?fmtCOP(grp.sueldo):'—'}</td>
       </tr>
       ${subRows}`;
@@ -4213,7 +4213,7 @@ function renderFacturacion() {
       <td style="padding:11px 16px;font-weight:700;font-size:13px;color:${co.color||'var(--c-text)'}">${co.name}</td>
       <td style="padding:11px 10px;font-size:13px;color:var(--c-text2)">${sueldo>0?fmtCOP(sueldo):'<span style="color:var(--c-text3);font-style:italic;font-size:12px">Sin configurar</span>'}</td>
       <td style="padding:11px 10px;font-size:14px;font-weight:700;color:var(--c-text)">${mins>0?fmtH(mins):'—'}</td>
-      <td style="padding:11px 12px;font-size:14px;font-weight:900;color:#14532d;background:#dcfce7;border-left:2px solid #16a34a">${valorH>0?fmtCOP(valorH)+'/h':'—'}</td>
+      <td style="padding:8px 10px">${valorH>0?`<span style="background:#dcfce7;color:#14532d;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:800;display:inline-block;white-space:nowrap">${fmtCOP(valorH)}/h</span>`:'<span style="color:var(--c-text3)">—</span>'}</td>
       <td style="padding:11px 16px;font-size:13px;font-weight:700;color:${sueldo>0?'#16a34a':'var(--c-text3)'};text-align:right">${sueldo>0?fmtCOP(sueldo):'—'}</td>
     </tr>`;
   }).join('');
@@ -4378,7 +4378,7 @@ function renderFacturacion() {
           <th style="padding:9px 16px;text-align:left;font-weight:600">Empresa / Grupo</th>
           <th style="padding:9px 10px;text-align:left;font-weight:600">Sueldo mensual</th>
           <th style="padding:9px 10px;text-align:left;font-weight:600">Horas</th>
-          <th style="padding:9px 12px;text-align:left;font-weight:700;background:#dcfce7;color:#14532d;border-left:2px solid #16a34a">Valor hora</th>
+          <th style="padding:9px 12px;text-align:left;font-weight:600">Valor hora</th>
           <th style="padding:9px 16px;text-align:right;font-weight:600">Total mes</th>
         </tr>
       </thead>
@@ -4388,7 +4388,7 @@ function renderFacturacion() {
           <td style="padding:12px 16px;font-weight:800;font-size:13px;color:var(--c-text)">Total bruto</td>
           <td style="padding:12px 10px;font-size:13px;font-weight:700;color:var(--c-text)">${grandTotalSueldo>0?fmtCOP(grandTotalSueldo):'—'}</td>
           <td style="padding:12px 10px;font-size:13px;font-weight:700;color:var(--c-text)">${grandTotalMins>0?fmtH(grandTotalMins):'—'}</td>
-          <td style="background:#dcfce7;border-left:2px solid #16a34a"></td>
+          <td></td>
           <td style="padding:12px 16px;font-size:16px;font-weight:800;color:${grandTotalSueldo>0?'#16a34a':'var(--c-text3)'};text-align:right">${grandTotalSueldo>0?fmtCOP(grandTotalSueldo):'—'}</td>
         </tr>
       </tfoot>
