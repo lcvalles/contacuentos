@@ -4166,6 +4166,7 @@ function renderFacturacion() {
   const soloCos = allCos.filter(co => !groupedCoIds.has(co.id) && ((STATE.billing[co.id]||{}).sueldo || minsByCo[co.id]));
 
   let grandTotalSueldo = 0, grandTotalMins = 0;
+  const metricsData = [];
 
   // ── Filas de grupos ────────────────────────────────────────────────────────
   const groupRows = groups.map(grp => {
@@ -4175,13 +4176,15 @@ function renderFacturacion() {
     const grpValorH = (grp.sueldo > 0 && grpHoras > 0) ? Math.round(grp.sueldo / grpHoras) : 0;
     grandTotalSueldo += grp.sueldo || 0;
     grandTotalMins   += grpMins;
+    metricsData.push({ name: grp.nombre, color: null, mins: grpMins, sueldo: grp.sueldo||0, valorH: grpValorH });
 
     const subRows = grpCos.map(co => {
       const mins = minsByCo[co.id] || 0;
+      const pct = grpMins > 0 ? Math.round(mins / grpMins * 100) : 0;
       return `<tr style="border-bottom:1px solid var(--c-border)">
         <td style="padding:7px 16px 7px 32px;font-size:12px;color:${co.color||'var(--c-text2)'}">↳ ${co.name}</td>
         <td></td>
-        <td style="padding:7px 10px;font-size:12px;font-weight:600;color:var(--c-text)">${mins>0?fmtH(mins):'—'}</td>
+        <td style="padding:7px 10px;font-size:12px;color:var(--c-text3)">${mins>0?`${fmtH(mins)}&nbsp;<span style="font-size:10px;background:var(--c-surface2);color:var(--c-text3);border-radius:999px;padding:1px 7px;font-weight:600">${pct}%</span>`:'—'}</td>
         <td></td><td></td>
       </tr>`;
     }).join('');
@@ -4209,6 +4212,7 @@ function renderFacturacion() {
     const valorH = (sueldo > 0 && mins > 0) ? Math.round(sueldo / (mins/60)) : 0;
     grandTotalSueldo += sueldo;
     grandTotalMins   += mins;
+    metricsData.push({ name: co.name, color: co.color||null, mins, sueldo, valorH });
     return `<tr style="border-bottom:1px solid var(--c-border)">
       <td style="padding:11px 16px;font-weight:700;font-size:13px;color:${co.color||'var(--c-text)'}">${co.name}</td>
       <td style="padding:11px 10px;font-size:13px;color:var(--c-text2)">${sueldo>0?fmtCOP(sueldo):'<span style="color:var(--c-text3);font-style:italic;font-size:12px">Sin configurar</span>'}</td>
@@ -4219,6 +4223,50 @@ function renderFacturacion() {
   }).join('');
 
   const hasRows = groups.length > 0 || soloCos.length > 0;
+
+  // ── Métricas ──────────────────────────────────────────────────────────────
+  const metricasSection = grandTotalMins > 0 ? (() => {
+    const items = metricsData.filter(m => m.mins > 0);
+    if (!items.length) return '';
+    const maxVH = Math.max(...items.map(m => m.valorH).filter(v => v > 0));
+    return `<div class="card" style="margin-bottom:14px">
+      <div class="card-header"><span class="card-title">Métricas</span></div>
+      <div style="padding:6px 16px 14px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3);font-weight:700;padding:10px 0 8px">Distribución de tiempo · ${fmtH(grandTotalMins)} total</div>
+        ${items.map(m => {
+          const pct = Math.round(m.mins / grandTotalMins * 100);
+          const color = m.color || '#16a34a';
+          return `<div style="margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <span style="font-size:12px;font-weight:700;color:${color}">${m.name}</span>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:11px;color:var(--c-text2)">${fmtH(m.mins)}</span>
+                ${m.valorH>0?`<span style="background:#dcfce7;color:#14532d;border-radius:999px;padding:1px 8px;font-size:10px;font-weight:700">${fmtCOP(m.valorH)}/h</span>`:''}
+                <span style="font-size:11px;font-weight:700;color:var(--c-text3);min-width:30px;text-align:right">${pct}%</span>
+              </div>
+            </div>
+            <div style="height:6px;background:var(--c-border);border-radius:3px;overflow:hidden">
+              <div style="height:100%;width:${pct}%;background:${color};border-radius:3px"></div>
+            </div>
+          </div>`;
+        }).join('')}
+        ${maxVH > 0 ? `<div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3);font-weight:700;padding:14px 0 8px;border-top:1px solid var(--c-border);margin-top:4px">Eficiencia — valor hora</div>
+        ${items.filter(m=>m.valorH>0).sort((a,b)=>b.valorH-a.valorH).map(m => {
+          const barPct = Math.round(m.valorH / maxVH * 100);
+          const color = m.color || '#16a34a';
+          return `<div style="margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <span style="font-size:12px;font-weight:700;color:${color}">${m.name}</span>
+              <span style="background:#dcfce7;color:#14532d;border-radius:999px;padding:1px 8px;font-size:10px;font-weight:700">${fmtCOP(m.valorH)}/h</span>
+            </div>
+            <div style="height:6px;background:var(--c-border);border-radius:3px;overflow:hidden">
+              <div style="height:100%;width:${barPct}%;background:${color};border-radius:3px"></div>
+            </div>
+          </div>`;
+        }).join('')}` : ''}
+      </div>
+    </div>`;
+  })() : '';
 
   // ── Configuración de sueldos ──────────────────────────────────────────────
   const sueldosConfig = (groups.length > 0 || soloCos.length > 0) ? `
@@ -4395,6 +4443,7 @@ function renderFacturacion() {
     </table>
   </div>` : `<div class="card" style="margin-bottom:14px"><div style="padding:20px 16px;font-size:13px;color:var(--c-text3)">Sin horas registradas ni sueldos configurados este mes.</div></div>`}
 
+  ${metricasSection}
   ${deduccionesSection}
   ${sueldosConfig}
   ${groupMgmt}`;
