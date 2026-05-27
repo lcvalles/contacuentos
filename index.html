@@ -4168,30 +4168,30 @@ function renderFacturacion() {
     const subRows = grpCos.map(co => {
       const mins = minsByCo[co.id] || 0;
       return `<tr style="border-bottom:1px solid var(--c-border)">
-        <td style="padding:5px 14px 5px 28px;font-size:11px;color:${co.color||'var(--c-text2)'}">↳ ${co.name}</td>
+        <td style="padding:7px 16px 7px 32px;font-size:12px;color:${co.color||'var(--c-text2)'}">↳ ${co.name}</td>
         <td></td>
-        <td style="padding:5px 10px;font-size:11px;font-weight:600;color:var(--c-text)">${mins>0?fmtH(mins):'—'}</td>
+        <td style="padding:7px 10px;font-size:12px;font-weight:600;color:var(--c-text)">${mins>0?fmtH(mins):'—'}</td>
         <td></td><td></td>
       </tr>`;
     }).join('');
 
     return `
       <tr style="background:var(--c-surface2);border-top:2px solid var(--c-border);border-bottom:1px solid var(--c-border)">
-        <td style="padding:7px 14px;font-weight:800;font-size:12px;color:var(--c-text)">
-          <span style="font-size:9px;background:#e0e7ff;color:#4f46e5;padding:1px 5px;border-radius:4px;margin-right:5px;font-weight:700">GRUPO</span>
+        <td style="padding:10px 16px;font-weight:800;font-size:13px;color:var(--c-text)">
+          <span style="font-size:10px;background:#e0e7ff;color:#4f46e5;padding:1px 6px;border-radius:4px;margin-right:6px;font-weight:700">GRUPO</span>
           <input value="${grp.nombre}" onchange="_facRenameGroup('${grp.id}',this.value)"
-            style="border:none;background:transparent;font-weight:800;font-size:12px;color:var(--c-text);width:150px;outline:none;cursor:text"
+            style="border:none;background:transparent;font-weight:800;font-size:13px;color:var(--c-text);width:160px;outline:none;cursor:text"
             onblur="save()">
         </td>
-        <td style="padding:7px 10px">
+        <td style="padding:10px 10px">
           <input type="text" inputmode="numeric" value="${_facFmtInput(grp.sueldo)}" placeholder="Sueldo compartido…"
             oninput="_facInputKey(this)"
             onchange="_facSetGroupSueldo('${grp.id}',_facParseCOP(this.value))"
-            style="width:130px;border:1px solid var(--c-border);border-radius:6px;padding:4px 8px;font-size:12px;background:var(--c-surface);color:var(--c-text)">
+            style="width:140px;border:1px solid var(--c-border);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--c-surface);color:var(--c-text)">
         </td>
-        <td style="padding:7px 10px;font-size:13px;font-weight:700;color:var(--c-text)">${grpMins>0?fmtH(grpMins):'—'}</td>
-        <td style="padding:7px 10px;font-size:11px;color:var(--c-text3)">${grpValorH>0?fmtCOP(grpValorH)+'/h':'—'}</td>
-        <td style="padding:7px 14px;font-size:13px;font-weight:800;color:${grp.sueldo>0?'#16a34a':'var(--c-text3)'};text-align:right">${grp.sueldo>0?fmtCOP(grp.sueldo):'—'}</td>
+        <td style="padding:10px 10px;font-size:14px;font-weight:700;color:var(--c-text)">${grpMins>0?fmtH(grpMins):'—'}</td>
+        <td style="padding:10px 10px;font-size:12px;color:var(--c-text3)">${grpValorH>0?fmtCOP(grpValorH)+'/h':'—'}</td>
+        <td style="padding:10px 16px;font-size:14px;font-weight:800;color:${grp.sueldo>0?'#16a34a':'var(--c-text3)'};text-align:right">${grp.sueldo>0?fmtCOP(grp.sueldo):'—'}</td>
       </tr>
       ${subRows}`;
   }).join('');
@@ -4204,16 +4204,16 @@ function renderFacturacion() {
     grandTotalSueldo += sueldo;
     grandTotalMins   += mins;
     return `<tr style="border-bottom:1px solid var(--c-border)">
-      <td style="padding:7px 14px;font-weight:700;font-size:12px;color:${co.color||'var(--c-text)'}">${co.name}</td>
-      <td style="padding:7px 10px">
+      <td style="padding:11px 16px;font-weight:700;font-size:13px;color:${co.color||'var(--c-text)'}">${co.name}</td>
+      <td style="padding:11px 10px">
         <input type="text" inputmode="numeric" value="${_facFmtInput(sueldo)}" placeholder="Ingresar…"
           oninput="_facInputKey(this)"
           onchange="if(!STATE.billing['${co.id}'])STATE.billing['${co.id}']={};STATE.billing['${co.id}'].sueldo=_facParseCOP(this.value);save();renderFacturacion()"
-          style="width:130px;border:1px solid var(--c-border);border-radius:6px;padding:4px 8px;font-size:12px;background:var(--c-surface);color:var(--c-text)">
+          style="width:140px;border:1px solid var(--c-border);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--c-surface);color:var(--c-text)">
       </td>
-      <td style="padding:7px 10px;font-size:13px;font-weight:700;color:var(--c-text)">${mins>0?fmtH(mins):'—'}</td>
-      <td style="padding:7px 10px;font-size:11px;color:var(--c-text3)">${valorH>0?fmtCOP(valorH)+'/h':'—'}</td>
-      <td style="padding:7px 14px;font-size:13px;font-weight:800;color:${sueldo>0?'#16a34a':'var(--c-text3)'};text-align:right">${sueldo>0?fmtCOP(sueldo):'—'}</td>
+      <td style="padding:11px 10px;font-size:14px;font-weight:700;color:var(--c-text)">${mins>0?fmtH(mins):'—'}</td>
+      <td style="padding:11px 10px;font-size:12px;color:var(--c-text3)">${valorH>0?fmtCOP(valorH)+'/h':'—'}</td>
+      <td style="padding:11px 16px;font-size:14px;font-weight:800;color:${sueldo>0?'#16a34a':'var(--c-text3)'};text-align:right">${sueldo>0?fmtCOP(sueldo):'—'}</td>
     </tr>`;
   }).join('');
 
@@ -4265,51 +4265,57 @@ function renderFacturacion() {
   const valorHoraNeto = (ingresoNeto > 0 && horasTotales > 0) ? Math.round(ingresoNeto / horasTotales) : 0;
 
   const deduccionesSection = `
-  <div class="card" style="margin-bottom:10px">
-    <div style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--c-border)">
-      <span style="font-size:12px;font-weight:700;color:var(--c-text)">Deducciones del mes</span>
-      <button onclick="_facAddDeduccion()" style="font-size:10px;padding:3px 10px;border-radius:6px;background:var(--c-gold);color:#fff;border:none;cursor:pointer;font-weight:700">+ Agregar</button>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+      <span class="card-title">Deducciones del mes</span>
+      <button onclick="_facAddDeduccion()" style="font-size:11px;padding:4px 12px;border-radius:6px;background:var(--c-gold);color:#fff;border:none;cursor:pointer;font-weight:700">+ Agregar</button>
     </div>
-    ${deds.length === 0 ? `<div style="padding:10px 14px;font-size:12px;color:var(--c-text3)">Sin deducciones. Agrega seguridad social, retención u otros descuentos.</div>` :
-    `<div>
-      ${deds.map(d => `<div style="display:flex;align-items:center;gap:8px;padding:6px 14px;border-bottom:1px solid var(--c-border)">
-        <input value="${d.nombre}" placeholder="Nombre…"
-          onchange="_facSaveDeduccion('${d.id}','nombre',this.value)"
-          style="flex:1;border:none;border-bottom:1px solid var(--c-border);background:transparent;font-size:12px;color:var(--c-text);outline:none;padding:1px 0;min-width:0">
-        <input type="text" inputmode="numeric" value="${_facFmtInput(d.monto)}" placeholder="0"
-          oninput="_facInputKey(this)"
-          onchange="_facSaveDeduccion('${d.id}','monto',_facParseCOP(this.value))"
-          style="width:120px;border:1px solid var(--c-border);border-radius:6px;padding:3px 8px;font-size:12px;background:var(--c-surface);color:#dc2626;font-weight:600;text-align:right">
-        <button onclick="_facDelDeduccion('${d.id}')" style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--c-text3);line-height:1;padding:0 2px">×</button>
-      </div>`).join('')}
-      <div style="padding:7px 14px;display:flex;justify-content:space-between;background:var(--c-surface2)">
-        <span style="font-size:11px;font-weight:700;color:var(--c-text2)">Total deducciones</span>
-        <span style="font-size:12px;font-weight:800;color:#dc2626">${totalDeds>0?'− '+fmtCOP(totalDeds):'—'}</span>
-      </div>
-    </div>`}
+    ${deds.length === 0 ? `<div style="padding:12px 16px;font-size:12px;color:var(--c-text3)">Sin deducciones. Agrega seguridad social, retención u otros descuentos.</div>` :
+    `<table style="width:100%;border-collapse:collapse">
+      ${deds.map(d => `<tr style="border-bottom:1px solid var(--c-border)">
+        <td style="padding:8px 16px">
+          <input value="${d.nombre}" placeholder="Nombre (ej. Seguridad Social)…"
+            onchange="_facSaveDeduccion('${d.id}','nombre',this.value)"
+            style="border:none;border-bottom:1px solid var(--c-border);background:transparent;font-size:13px;color:var(--c-text);width:100%;outline:none;padding:2px 0">
+        </td>
+        <td style="padding:8px 10px;width:160px">
+          <input type="text" inputmode="numeric" value="${_facFmtInput(d.monto)}" placeholder="0"
+            oninput="_facInputKey(this)"
+            onchange="_facSaveDeduccion('${d.id}','monto',_facParseCOP(this.value))"
+            style="width:140px;border:1px solid var(--c-border);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--c-surface);color:#dc2626;font-weight:600;text-align:right">
+        </td>
+        <td style="padding:8px 10px;width:32px">
+          <button onclick="_facDelDeduccion('${d.id}')" style="background:none;border:none;cursor:pointer;font-size:15px;color:var(--c-text3);line-height:1">×</button>
+        </td>
+      </tr>`).join('')}
+      <tr style="background:var(--c-surface2)">
+        <td style="padding:9px 16px;font-weight:700;font-size:12px;color:var(--c-text2)">Total deducciones</td>
+        <td style="padding:9px 10px;font-weight:800;font-size:13px;color:#dc2626;text-align:right">${totalDeds>0?'− '+fmtCOP(totalDeds):'—'}</td>
+        <td></td>
+      </tr>
+    </table>`}
   </div>`;
 
   // ── KPI resumen ───────────────────────────────────────────────────────────────
   const kpiBar = grandTotalSueldo > 0 ? `
-  <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:10px;align-items:stretch">
-    <div class="card" style="padding:20px 28px;margin:0;background:linear-gradient(135deg,#14532d,#16a34a);border-color:#16a34a;display:flex;flex-direction:column;justify-content:center">
-      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#86efac;font-weight:700;margin-bottom:6px">Valor hora neto</div>
-      <div style="font-size:42px;font-weight:900;color:#fff;letter-spacing:-2px;line-height:1">${valorHoraNeto>0?fmtCOP(valorHoraNeto):'—'}<span style="font-size:16px;font-weight:600;color:#86efac;margin-left:4px">/h</span></div>
-      <div style="font-size:11px;color:#bbf7d0;margin-top:6px">${grandTotalMins>0?fmtH(grandTotalMins)+' facturadas':''} · ${mesLabel}</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 2fr;gap:10px;margin-bottom:14px">
+    <div class="card" style="padding:14px 16px;margin:0">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3);font-weight:600;margin-bottom:4px">Ingreso bruto</div>
+      <div style="font-size:16px;font-weight:800;color:var(--c-text)">${fmtCOP(grandTotalSueldo)}</div>
+      <div style="font-size:11px;color:var(--c-text3);margin-top:2px">${grandTotalMins>0?fmtH(grandTotalMins):''}</div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:6px;justify-content:stretch">
-      <div class="card" style="padding:9px 16px;margin:0;flex:1;display:flex;flex-direction:column;justify-content:center">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3);font-weight:600;margin-bottom:2px">Ingreso bruto</div>
-        <div style="font-size:15px;font-weight:800;color:var(--c-text);white-space:nowrap">${fmtCOP(grandTotalSueldo)}</div>
-      </div>
-      <div class="card" style="padding:9px 16px;margin:0;flex:1;display:flex;flex-direction:column;justify-content:center">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3);font-weight:600;margin-bottom:2px">Deducciones</div>
-        <div style="font-size:15px;font-weight:800;color:#dc2626;white-space:nowrap">${totalDeds>0?'− '+fmtCOP(totalDeds):'—'}</div>
-      </div>
-      <div class="card" style="padding:9px 16px;margin:0;flex:1;display:flex;flex-direction:column;justify-content:center">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3);font-weight:600;margin-bottom:2px">Ingreso neto</div>
-        <div style="font-size:15px;font-weight:800;color:${ingresoNeto>0?'#16a34a':'#dc2626'};white-space:nowrap">${fmtCOP(ingresoNeto)}</div>
-      </div>
+    <div class="card" style="padding:14px 16px;margin:0">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3);font-weight:600;margin-bottom:4px">Deducciones</div>
+      <div style="font-size:16px;font-weight:800;color:#dc2626">${totalDeds>0?'− '+fmtCOP(totalDeds):'—'}</div>
+    </div>
+    <div class="card" style="padding:14px 16px;margin:0">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3);font-weight:600;margin-bottom:4px">Ingreso neto</div>
+      <div style="font-size:16px;font-weight:800;color:${ingresoNeto>0?'#16a34a':'#dc2626'}">${fmtCOP(ingresoNeto)}</div>
+    </div>
+    <div class="card" style="padding:16px 20px;margin:0;background:linear-gradient(135deg,#166534,#16a34a);border-color:#16a34a">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#bbf7d0;font-weight:700;margin-bottom:6px">Valor hora neto</div>
+      <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-1px">${valorHoraNeto>0?fmtCOP(valorHoraNeto):'—'}</div>
+      <div style="font-size:11px;color:#bbf7d0;margin-top:2px">por hora trabajada · ${grandTotalMins>0?fmtH(grandTotalMins):''}</div>
     </div>
   </div>` : '';
 
@@ -4326,29 +4332,29 @@ function renderFacturacion() {
 
   ${kpiBar}
 
-  ${hasRows ? `<div class="card" style="margin-bottom:10px;overflow-x:auto">
+  ${hasRows ? `<div class="card" style="margin-bottom:14px;overflow-x:auto">
     <table style="width:100%;border-collapse:collapse">
       <thead>
-        <tr style="background:var(--c-surface2);font-size:10px;color:var(--c-text3);text-transform:uppercase;letter-spacing:.5px">
-          <th style="padding:7px 14px;text-align:left;font-weight:600">Empresa / Grupo</th>
-          <th style="padding:7px 10px;text-align:left;font-weight:600">Sueldo mensual</th>
-          <th style="padding:7px 10px;text-align:left;font-weight:600">Horas</th>
-          <th style="padding:7px 10px;text-align:left;font-weight:600">Valor hora</th>
-          <th style="padding:7px 14px;text-align:right;font-weight:600">Total mes</th>
+        <tr style="background:var(--c-surface2);font-size:11px;color:var(--c-text3);text-transform:uppercase;letter-spacing:.5px">
+          <th style="padding:9px 16px;text-align:left;font-weight:600">Empresa / Grupo</th>
+          <th style="padding:9px 10px;text-align:left;font-weight:600">Sueldo mensual</th>
+          <th style="padding:9px 10px;text-align:left;font-weight:600">Horas facturadas</th>
+          <th style="padding:9px 10px;text-align:left;font-weight:600">Valor hora</th>
+          <th style="padding:9px 16px;text-align:right;font-weight:600">Total mes</th>
         </tr>
       </thead>
       <tbody>${groupRows}${soloRows}</tbody>
       <tfoot>
         <tr style="background:var(--c-surface2);border-top:2px solid var(--c-border)">
-          <td style="padding:9px 14px;font-weight:800;font-size:12px;color:var(--c-text)">Total bruto</td>
-          <td style="padding:9px 10px;font-size:12px;font-weight:700;color:var(--c-text)">${grandTotalSueldo>0?fmtCOP(grandTotalSueldo):'—'}</td>
-          <td style="padding:9px 10px;font-size:12px;font-weight:700;color:var(--c-text)">${grandTotalMins>0?fmtH(grandTotalMins):'—'}</td>
+          <td style="padding:12px 16px;font-weight:800;font-size:13px;color:var(--c-text)">Total bruto</td>
+          <td style="padding:12px 10px;font-size:13px;font-weight:700;color:var(--c-text)">${grandTotalSueldo>0?fmtCOP(grandTotalSueldo):'—'}</td>
+          <td style="padding:12px 10px;font-size:13px;font-weight:700;color:var(--c-text)">${grandTotalMins>0?fmtH(grandTotalMins):'—'}</td>
           <td></td>
-          <td style="padding:9px 14px;font-size:15px;font-weight:800;color:${grandTotalSueldo>0?'#16a34a':'var(--c-text3)'};text-align:right">${grandTotalSueldo>0?fmtCOP(grandTotalSueldo):'—'}</td>
+          <td style="padding:12px 16px;font-size:16px;font-weight:800;color:${grandTotalSueldo>0?'#16a34a':'var(--c-text3)'};text-align:right">${grandTotalSueldo>0?fmtCOP(grandTotalSueldo):'—'}</td>
         </tr>
       </tfoot>
     </table>
-  </div>` : `<div class="card" style="margin-bottom:10px"><div style="padding:16px;font-size:13px;color:var(--c-text3)">Sin horas registradas ni sueldos configurados este mes.</div></div>`}
+  </div>` : `<div class="card" style="margin-bottom:14px"><div style="padding:20px 16px;font-size:13px;color:var(--c-text3)">Sin horas registradas ni sueldos configurados este mes.</div></div>`}
 
   ${deduccionesSection}
   ${groupMgmt}`;
