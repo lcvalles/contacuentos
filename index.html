@@ -4078,7 +4078,6 @@ function renderFacturacion() {
   const e = el('facturacionBody'); if (!e) return;
   if (!STATE.billing) STATE.billing = {};
 
-  // Calcular horas facturables por empresa para el mes seleccionado
   const [y, m] = _facMes.split('-').map(Number);
   const firstDay = `${_facMes}-01`;
   const lastDay  = new Date(y, m, 0).toISOString().slice(0,10);
@@ -4093,103 +4092,91 @@ function renderFacturacion() {
     });
   });
 
-  const companies = (STATE.companies||[]).filter(co => co.nit || minsByCo[co.id]);
+  // Mostrar empresas que tienen sueldo configurado O tienen horas este mes
+  const companies = (STATE.companies||[]).filter(co => (STATE.billing[co.id]||{}).sueldo || minsByCo[co.id]);
   const fmtCOP = v => v ? new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',minimumFractionDigits:0,maximumFractionDigits:0}).format(v) : '—';
-  const fmtH = m => { const h=Math.floor(m/60), mn=m%60; return h+'h'+(mn?` ${mn}m`:''); };
+  const fmtH = mins => { const h=Math.floor(mins/60), mn=mins%60; return h+'h'+(mn?` ${mn}m`:''); };
 
-  // Mes anterior / siguiente
   const prevMes = () => { const d=new Date(_facMes+'-15'); d.setMonth(d.getMonth()-1); _facMes=d.toISOString().slice(0,7); renderFacturacion(); };
   const nextMes = () => { const d=new Date(_facMes+'-15'); d.setMonth(d.getMonth()+1); _facMes=d.toISOString().slice(0,7); renderFacturacion(); };
-
   const mesLabel = new Date(_facMes+'-15').toLocaleDateString('es-CO',{month:'long',year:'numeric'}).replace(/^\w/,c=>c.toUpperCase());
 
-  let totalSueldo=0, totalCobrar=0, totalMins=0;
+  let totalSueldo=0, totalMins=0;
 
   const rows = companies.map(co => {
-    const b = STATE.billing[co.id] || {};
-    const sueldo   = b.sueldo   || 0;
-    const horasMes = b.horasMes || 0;
-    const mins     = minsByCo[co.id] || 0;
-    const horas    = mins / 60;
-    const valorH   = horasMes > 0 ? sueldo / horasMes : 0;
-    const cobrar   = valorH > 0 ? Math.round(valorH * horas) : 0;
-    const pct      = horasMes > 0 ? Math.min(100, Math.round(horas / horasMes * 100)) : null;
-    const pctColor = pct === null ? '#94a3b8' : pct >= 90 ? '#16a34a' : pct >= 60 ? '#d97706' : '#dc2626';
+    const sueldo = (STATE.billing[co.id]||{}).sueldo || 0;
+    const mins   = minsByCo[co.id] || 0;
+    const horas  = mins / 60;
+    const valorH = (sueldo > 0 && horas > 0) ? Math.round(sueldo / horas) : 0;
     totalSueldo += sueldo;
-    totalCobrar += cobrar;
     totalMins   += mins;
     return `<tr style="border-bottom:1px solid var(--c-border)">
-      <td style="padding:10px 14px;font-weight:600;color:${co.color||'var(--c-text)'};">${co.name}</td>
-      <td style="padding:10px 8px">
-        <div style="display:flex;align-items:center;gap:4px">
-          <span style="font-size:11px;color:var(--c-text3)">$</span>
-          <input type="number" value="${sueldo||''}" placeholder="0" min="0" step="10000"
-            onchange="if(!STATE.billing['${co.id}'])STATE.billing['${co.id}']={};STATE.billing['${co.id}'].sueldo=+this.value;save();renderFacturacion()"
-            style="width:120px;border:1px solid var(--c-border);border-radius:6px;padding:4px 8px;font-size:12px;background:var(--c-surface);color:var(--c-text)">
-        </div>
+      <td style="padding:11px 16px;font-weight:700;font-size:13px;color:${co.color||'var(--c-text)'};">${co.name}</td>
+      <td style="padding:11px 10px">
+        <input type="number" value="${sueldo||''}" placeholder="Ingresar…" min="0" step="10000"
+          onchange="if(!STATE.billing['${co.id}'])STATE.billing['${co.id}']={};STATE.billing['${co.id}'].sueldo=+this.value;save();renderFacturacion()"
+          style="width:140px;border:1px solid var(--c-border);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--c-surface);color:var(--c-text)">
       </td>
-      <td style="padding:10px 8px">
-        <div style="display:flex;align-items:center;gap:4px">
-          <input type="number" value="${horasMes||''}" placeholder="0" min="0" step="1"
-            onchange="if(!STATE.billing['${co.id}'])STATE.billing['${co.id}']={};STATE.billing['${co.id}'].horasMes=+this.value;save();renderFacturacion()"
-            style="width:70px;border:1px solid var(--c-border);border-radius:6px;padding:4px 8px;font-size:12px;background:var(--c-surface);color:var(--c-text)">
-          <span style="font-size:11px;color:var(--c-text3)">h</span>
-        </div>
-      </td>
-      <td style="padding:10px 8px;font-size:13px;font-weight:600;color:var(--c-text)">${mins>0?fmtH(mins):'—'}</td>
-      <td style="padding:10px 8px">
-        ${pct!==null ? `<div style="display:flex;align-items:center;gap:6px">
-          <div style="width:60px;height:6px;border-radius:3px;background:var(--c-border)">
-            <div style="width:${pct}%;height:100%;border-radius:3px;background:${pctColor};transition:width .3s"></div>
-          </div>
-          <span style="font-size:11px;font-weight:700;color:${pctColor}">${pct}%</span>
-        </div>` : '<span style="font-size:11px;color:var(--c-text3)">—</span>'}
-      </td>
-      <td style="padding:10px 8px;font-size:12px;color:var(--c-text3)">${valorH>0?fmtCOP(Math.round(valorH))+'/h':'—'}</td>
-      <td style="padding:10px 14px;font-size:13px;font-weight:700;color:${cobrar>0?'#16a34a':'var(--c-text3)'};text-align:right">${cobrar>0?fmtCOP(cobrar):'—'}</td>
+      <td style="padding:11px 10px;font-size:14px;font-weight:700;color:var(--c-text)">${mins>0?fmtH(mins):'—'}</td>
+      <td style="padding:11px 10px;font-size:12px;color:var(--c-text3)">${valorH>0?fmtCOP(valorH)+'/h':'—'}</td>
+      <td style="padding:11px 16px;font-size:14px;font-weight:800;color:${sueldo>0?'#16a34a':'var(--c-text3)'};text-align:right">${sueldo>0?fmtCOP(sueldo):'—'}</td>
     </tr>`;
   }).join('');
 
-  const totalPct = totalSueldo>0 ? Math.round(totalCobrar/totalSueldo*100) : null;
+  const noData = companies.length === 0;
 
   e.innerHTML = `
   <div class="card" style="margin-bottom:14px">
     <div style="padding:14px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <button onclick="(${prevMes.toString()})()" style="background:none;border:1px solid var(--c-border);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:14px;color:var(--c-text2)">‹</button>
+      <button onclick="(${prevMes.toString()})()" style="background:none;border:1px solid var(--c-border);border-radius:6px;padding:4px 12px;cursor:pointer;font-size:15px;color:var(--c-text2)">‹</button>
       <span style="font-size:15px;font-weight:700;color:var(--c-text);min-width:160px;text-align:center">${mesLabel}</span>
-      <button onclick="(${nextMes.toString()})()" style="background:none;border:1px solid var(--c-border);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:14px;color:var(--c-text2)">›</button>
-      <span style="font-size:11px;color:var(--c-text3);margin-left:8px">Total trabajado: <b style="color:var(--c-text)">${totalMins>0?fmtH(totalMins):'0h'}</b></span>
+      <button onclick="(${nextMes.toString()})()" style="background:none;border:1px solid var(--c-border);border-radius:6px;padding:4px 12px;cursor:pointer;font-size:15px;color:var(--c-text2)">›</button>
     </div>
   </div>
 
+  ${noData ? `<div class="card"><div style="padding:24px 18px;color:var(--c-text3);font-size:13px">Sin horas registradas ni sueldos configurados para este mes.<br>Empieza ingresando el sueldo de cada empresa.</div></div>` : `
   <div class="card" style="margin-bottom:14px;overflow-x:auto">
-    <table style="width:100%;border-collapse:collapse;min-width:640px">
+    <table style="width:100%;border-collapse:collapse">
       <thead>
         <tr style="background:var(--c-surface2);font-size:11px;color:var(--c-text3);text-transform:uppercase;letter-spacing:.5px">
-          <th style="padding:9px 14px;text-align:left;font-weight:600">Empresa</th>
-          <th style="padding:9px 8px;text-align:left;font-weight:600">Sueldo mensual</th>
-          <th style="padding:9px 8px;text-align:left;font-weight:600">Horas/mes</th>
-          <th style="padding:9px 8px;text-align:left;font-weight:600">Horas trabajadas</th>
-          <th style="padding:9px 8px;text-align:left;font-weight:600">Avance</th>
-          <th style="padding:9px 8px;text-align:left;font-weight:600">Valor hora</th>
-          <th style="padding:9px 14px;text-align:right;font-weight:600">A cobrar</th>
+          <th style="padding:9px 16px;text-align:left;font-weight:600">Empresa</th>
+          <th style="padding:9px 10px;text-align:left;font-weight:600">Sueldo mensual</th>
+          <th style="padding:9px 10px;text-align:left;font-weight:600">Horas facturadas</th>
+          <th style="padding:9px 10px;text-align:left;font-weight:600">Valor hora efectivo</th>
+          <th style="padding:9px 16px;text-align:right;font-weight:600">Total mes</th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
       <tfoot>
         <tr style="background:var(--c-surface2);border-top:2px solid var(--c-border)">
-          <td style="padding:11px 14px;font-weight:800;font-size:13px;color:var(--c-text)">Total</td>
-          <td style="padding:11px 8px;font-size:12px;font-weight:700;color:var(--c-text)">${totalSueldo>0?fmtCOP(totalSueldo):'—'}</td>
+          <td style="padding:12px 16px;font-weight:800;font-size:13px;color:var(--c-text)">Total</td>
+          <td style="padding:12px 10px;font-size:13px;font-weight:700;color:var(--c-text)">${totalSueldo>0?fmtCOP(totalSueldo):'—'}</td>
+          <td style="padding:12px 10px;font-size:13px;font-weight:700;color:var(--c-text)">${totalMins>0?fmtH(totalMins):'—'}</td>
           <td></td>
-          <td style="padding:11px 8px;font-size:13px;font-weight:700;color:var(--c-text)">${totalMins>0?fmtH(totalMins):'—'}</td>
-          <td style="padding:11px 8px;font-size:12px;font-weight:700;color:${totalPct!==null?(totalPct>=90?'#16a34a':totalPct>=60?'#d97706':'#dc2626'):'var(--c-text3)'}">${totalPct!==null?totalPct+'%':'—'}</td>
-          <td></td>
-          <td style="padding:11px 14px;font-size:15px;font-weight:800;color:${totalCobrar>0?'#16a34a':'var(--c-text3)'};text-align:right">${totalCobrar>0?fmtCOP(totalCobrar):'—'}</td>
+          <td style="padding:12px 16px;font-size:16px;font-weight:800;color:${totalSueldo>0?'#16a34a':'var(--c-text3)'};text-align:right">${totalSueldo>0?fmtCOP(totalSueldo):'—'}</td>
         </tr>
       </tfoot>
     </table>
   </div>
-  <div style="padding:4px 2px;font-size:11px;color:var(--c-text3)">Los sueldos y horas/mes se guardan por empresa. El valor a cobrar = (horas trabajadas ÷ horas/mes) × sueldo mensual.</div>`;
+  <div style="padding:2px 2px;font-size:11px;color:var(--c-text3)">Valor hora efectivo = sueldo ÷ horas facturadas del mes (referencia, no afecta el total).</div>`}`;
+
+  // Mostrar todas las empresas con campo de sueldo aunque no tengan horas
+  if (!noData) return;
+  const allCos = STATE.companies||[];
+  if (!allCos.length) return;
+  e.innerHTML += `<div class="card" style="margin-top:8px;overflow-x:auto">
+    <div class="card-header"><span class="card-title">Configurar sueldos</span></div>
+    <table style="width:100%;border-collapse:collapse">
+      ${allCos.map(co=>`<tr style="border-bottom:1px solid var(--c-border)">
+        <td style="padding:9px 16px;font-weight:600;color:${co.color||'var(--c-text)'};font-size:13px">${co.name}</td>
+        <td style="padding:9px 10px">
+          <input type="number" value="${(STATE.billing[co.id]||{}).sueldo||''}" placeholder="Sueldo mensual…" min="0" step="10000"
+            onchange="if(!STATE.billing['${co.id}'])STATE.billing['${co.id}']={};STATE.billing['${co.id}'].sueldo=+this.value;save()"
+            style="width:160px;border:1px solid var(--c-border);border-radius:6px;padding:5px 10px;font-size:12px;background:var(--c-surface);color:var(--c-text)">
+        </td>
+      </tr>`).join('')}
+    </table>
+  </div>`;
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
