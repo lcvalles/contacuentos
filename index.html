@@ -4098,7 +4098,7 @@ function _facNewGroup() {
 }
 function _facRenameGroup(id, nombre) {
   const g = (STATE.billingGroups||[]).find(g => g.id === id);
-  if (g) { g.nombre = nombre; save(); }
+  if (g) { g.nombre = nombre; save(); renderFacturacion(); }
 }
 function _facSetGroupSueldo(id, sueldo) {
   const g = (STATE.billingGroups||[]).find(g => g.id === id);
