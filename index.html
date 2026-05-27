@@ -2851,18 +2851,40 @@ function renderAnalytics() {
   }
   const today=todayStr(), goalMins=(STATE.settings.dailyGoal||8)*60;
 
+  // Valor hora por empresa desde facturación (mes de referencia = mes del período)
+  const _refMonth = dates.length ? dates[0].slice(0,7) : todayStr().slice(0,7);
+  const _mbyCo = {};
+  Object.keys(STATE.days||{}).filter(d=>d.startsWith(_refMonth)).forEach(ds=>{
+    ((STATE.days[ds]&&STATE.days[ds].sessions)||[]).forEach(s=>{
+      if(s.mode==='productive'&&s.companyId) _mbyCo[s.companyId]=(_mbyCo[s.companyId]||0)+s.mins;
+    });
+  });
+  const _vhByCo = {};
+  (STATE.billingGroups||[]).forEach(grp=>{
+    const gm=(grp.coIds||[]).reduce((s,id)=>s+(_mbyCo[id]||0),0);
+    if(grp.sueldo>0&&gm>0){ const vh=Math.round(grp.sueldo/(gm/60)); (grp.coIds||[]).forEach(id=>_vhByCo[id]=vh); }
+  });
+  (STATE.companies||[]).forEach(co=>{
+    if(!_vhByCo[co.id]){ const s=(STATE.billing&&STATE.billing[co.id]||{}).sueldo||0, m=_mbyCo[co.id]||0; if(s>0&&m>0) _vhByCo[co.id]=Math.round(s/(m/60)); }
+  });
+
   // Aggregate by day
+  let valorGanado=0;
   const dayData={};
   dates.forEach(ds=>{
     const d={prod:0,brk:0,trans:0};
     ((STATE.days[ds]&&STATE.days[ds].sessions)||[]).forEach(s=>{
       if(coFilter&&s.mode==='productive'&&s.companyId!==coFilter)return;
-      if(s.mode==='productive')d.prod+=s.mins;
+      if(s.mode==='productive'){
+        d.prod+=s.mins;
+        if(s.companyId&&_vhByCo[s.companyId]) valorGanado+=s.mins/60*_vhByCo[s.companyId];
+      }
       else if(s.mode==='break')d.brk+=s.mins;
       else if(s.mode==='transit')d.trans+=s.mins;
     });
     dayData[ds]=d;
   });
+  valorGanado=Math.round(valorGanado);
 
   const totProd=dates.reduce((a,ds)=>a+dayData[ds].prod,0);
   const totBrk=dates.reduce((a,ds)=>a+dayData[ds].brk,0);
@@ -2882,13 +2904,14 @@ function renderAnalytics() {
   if(kpiEl){
     const effColor=eff>=80?'teal':eff>=60?'gold':'amber';
     kpiEl.innerHTML=[
-      {cls:'gold',   lbl:'Productivo',    val:fmtMins(totProd),                sub:`${workDays} día${workDays!==1?'s':''} trabajado${workDays!==1?'s':''}`},
+      {cls:'gold',   lbl:'Productivo',    val:fmtMins(totProd),                sub:`${workDays} día${workDays!==1?'s':''} trabajado${workDays!==1?'s':''}`, earn:valorGanado},
       {cls:'amber',  lbl:'No productivo', val:fmtMins(totNP),                  sub:`${fmtMins(totBrk)} descanso · ${fmtMins(totTrans)} traslado`},
       {cls:effColor, lbl:'Eficiencia',    val:eff+'%',                          sub:'tiempo en pantalla útil'},
       {cls:'teal',   lbl:'Meta diaria',   val:`${goalDays}/${totalLaboralDays}`, sub:`Promedio ${fmtMins(avgProd)}/día · ${totalLaboralDays} días laborales`},
     ].map(k=>`<div class="stat-card ${k.cls}">
       <div class="stat-label">${k.lbl}</div>
       <div class="stat-value ${k.cls}">${k.val}</div>
+      ${k.earn>0?`<div style="font-size:14px;font-weight:800;color:#16a34a;margin:2px 0 1px">≈ ${fmtCOP(k.earn)}</div>`:''}
       <div class="stat-sub">${k.sub}</div>
     </div>`).join('');
   }
