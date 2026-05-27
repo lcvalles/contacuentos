@@ -1378,15 +1378,15 @@ tr:hover .td-actions{opacity:1}
   <button class="mn-item active" id="mnDashboard" onclick="navigate('dashboard')">
     <span class="mn-icon">🏠</span><span class="mn-label">Inicio</span>
   </button>
-  <button class="mn-item" id="mnRegistro" onclick="navigate('registro')">
-    <span class="mn-icon">📋</span><span class="mn-label">Registro</span>
+  <button class="mn-item" id="mnAnalitica" onclick="navigate('analitica')">
+    <span class="mn-icon">📊</span><span class="mn-label">Métricas</span>
   </button>
   <button class="mn-item" id="mnTimer" onclick="toggleMobileTimer()">
     <div class="mn-timer-dot" id="mnTimerDot"></div>
     <span class="mn-icon">⏱</span><span class="mn-label">Timer</span>
   </button>
-  <button class="mn-item" id="mnTareas" onclick="navigate('tareas')">
-    <span class="mn-icon">✅</span><span class="mn-label">Tareas</span>
+  <button class="mn-item" id="mnFacturacion" onclick="navigate('facturacion')">
+    <span class="mn-icon">💰</span><span class="mn-label">Facturación</span>
   </button>
   <button class="mn-item" id="mnAjustes" onclick="navigate('ajustes')">
     <span class="mn-icon">⚙️</span><span class="mn-label">Más</span>
@@ -2175,8 +2175,8 @@ function navigate(page) {
     if ((n.getAttribute('onclick') || '').includes("'" + page + "'")) n.classList.add('active');
   });
   // Mobile bottom nav active state
-  ['mnDashboard','mnRegistro','mnTareas','mnAjustes'].forEach(id=>{const b=el(id);if(b)b.classList.remove('active');});
-  const _mMap={dashboard:'mnDashboard',registro:'mnRegistro',tareas:'mnTareas',ajustes:'mnAjustes',analitica:'mnAjustes',empresas:'mnAjustes',tributario:'mnAjustes',actividades:'mnAjustes',facturacion:'mnAjustes'};
+  ['mnDashboard','mnAnalitica','mnFacturacion','mnAjustes'].forEach(id=>{const b=el(id);if(b)b.classList.remove('active');});
+  const _mMap={dashboard:'mnDashboard',analitica:'mnAnalitica',facturacion:'mnFacturacion',registro:'mnAjustes',tareas:'mnAjustes',ajustes:'mnAjustes',empresas:'mnAjustes',tributario:'mnAjustes',actividades:'mnAjustes'};
   if(_mMap[page]&&el(_mMap[page]))el(_mMap[page]).classList.add('active');
   if (page === 'dashboard')   renderDashboard();
   if (page === 'analitica')   renderAnalytics();
