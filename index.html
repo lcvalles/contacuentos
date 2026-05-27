@@ -4444,9 +4444,9 @@ function renderFacturacion() {
     const ya = dedNombres.has(p);
     const esc = p.replace(/'/g,"\\'");
     const onclick = ya ? '' : ("_facAddDeduccionNamed('" + esc + "')");
-    const border = ya ? 'var(--c-border)' : 'var(--c-teal)';
-    const bg = ya ? 'var(--c-surface2)' : '#f0fdfa';
-    const color = ya ? 'var(--c-text3)' : 'var(--c-teal)';
+    const border = ya ? 'var(--c-border)' : '#f87171';
+    const bg = ya ? 'var(--c-surface2)' : '#fff5f5';
+    const color = ya ? 'var(--c-text3)' : '#dc2626';
     const cursor = ya ? 'default' : 'pointer';
     const extra = ya ? 'opacity:.5;' : '';
     return '<button onclick="' + onclick + '" style="font-size:10px;padding:2px 9px;border-radius:20px;border:1px solid ' + border + ';background:' + bg + ';color:' + color + ';cursor:' + cursor + ';white-space:nowrap;font-weight:600;' + extra + '">' + (ya?'✓ ':'+ ') + p + '</button>';
