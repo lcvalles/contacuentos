@@ -2275,35 +2275,33 @@ function _renderDashSessions(sessions) {
   const rows = indexed.map(({s,i})=>{
     const co = STATE.companies.find(c=>c.id===s.companyId);
     const hh=Math.floor(s.mins/60), mm=s.mins%60;
-    const dur=hh>0?`${hh}h ${mm}m`:`${mm}m`;
-    const liveTag=s._live?'<span style="font-size:9px;color:var(--c-teal);margin-left:5px">● vivo</span>':'';
-    const btns=!s._live?`<button class="icon-btn" onclick="openEditSess('${VIEW_DATE}',${i})">✎</button><button class="icon-btn" style="color:var(--c-red)" onclick="deleteSess('${VIEW_DATE}',${i})">✕</button>`:'';
+    const dur=hh>0?`${hh}h ${mm>0?mm+'m':''}`.trim():`${mm}m`;
+    const liveTag=s._live?'<span style="font-size:8px;color:var(--c-teal);margin-left:4px">●</span>':'';
+    const btns=!s._live?`<div style="display:flex;gap:2px;opacity:0;transition:opacity .15s" class="_sess-btns"><button class="icon-btn" onclick="openEditSess('${VIEW_DATE}',${i})">✎</button><button class="icon-btn" style="color:var(--c-red)" onclick="deleteSess('${VIEW_DATE}',${i})">✕</button></div>`:'';
 
     if(s.mode==='productive'){
       prodTotal+=s.mins;
       const color=co?co.color:'var(--c-teal)';
       const coName=co?co.name:'Sin empresa';
       const act=s.nota||s.activity||'';
-      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--c-border)">
-        <span class="dot" style="background:${color};flex-shrink:0"></span>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:12.5px;font-weight:500;color:var(--c-text)">${act||coName}${liveTag}</div>
-          ${act?`<div style="font-size:10.5px;color:var(--c-text3)">${coName}</div>`:''}
-        </div>
-        <span style="font-size:10.5px;color:var(--c-text4);white-space:nowrap">${s.startDisplay}–${s.endDisplay}</span>
-        <span style="font-size:12px;font-weight:700;color:var(--c-teal);min-width:40px;text-align:right">${dur}</span>
+      const label=act?`${act}<span style="color:var(--c-text3);font-weight:400"> · ${coName}</span>`:coName;
+      return `<div style="display:flex;align-items:center;gap:9px;padding:5px 14px;border-bottom:1px solid var(--c-border)" onmouseenter="this.querySelector('._sess-btns')&&(this.querySelector('._sess-btns').style.opacity=1)" onmouseleave="this.querySelector('._sess-btns')&&(this.querySelector('._sess-btns').style.opacity=0)">
+        <span style="width:7px;height:7px;border-radius:50%;background:${color};flex-shrink:0"></span>
+        <span style="flex:1;font-size:12px;font-weight:500;color:var(--c-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${label}${liveTag}</span>
+        <span style="font-size:10px;color:var(--c-text4);white-space:nowrap;flex-shrink:0">${s.startDisplay}–${s.endDisplay}</span>
+        <span style="font-size:12px;font-weight:700;color:var(--c-teal);min-width:36px;text-align:right;flex-shrink:0">${dur}</span>
         ${btns}
       </div>`;
     } else {
       const isTransit=s.mode==='transit';
       const transitDest=s.companyId==='personal'?'Personal':(co?co.name:'');
-      const label=isTransit?`🚗 Traslado${transitDest?' → '+transitDest:''}`:(s.breakType||'Descanso');
+      const label=isTransit?`🚗${transitDest?' '+transitDest:''}`:(s.breakType||'Descanso');
       const color=isTransit?'var(--c-transit)':'var(--c-break)';
-      return `<div style="display:flex;align-items:center;gap:10px;padding:7px 16px;border-bottom:1px solid var(--c-border);opacity:.72">
-        <span class="dot" style="background:${color};flex-shrink:0"></span>
-        <span style="flex:1;font-size:12px;color:var(--c-text3)">${label}</span>
-        <span style="font-size:10.5px;color:var(--c-text4);white-space:nowrap">${s.startDisplay}–${s.endDisplay}</span>
-        <span style="font-size:11.5px;color:var(--c-text3);min-width:40px;text-align:right">${dur}</span>
+      return `<div style="display:flex;align-items:center;gap:9px;padding:3px 14px;border-bottom:1px solid var(--c-border);opacity:.6" onmouseenter="this.style.opacity=1;this.querySelector('._sess-btns')&&(this.querySelector('._sess-btns').style.opacity=1)" onmouseleave="this.style.opacity=.6;this.querySelector('._sess-btns')&&(this.querySelector('._sess-btns').style.opacity=0)">
+        <span style="width:5px;height:5px;border-radius:50%;background:${color};flex-shrink:0"></span>
+        <span style="flex:1;font-size:11px;color:var(--c-text3)">${label}</span>
+        <span style="font-size:10px;color:var(--c-text4);white-space:nowrap">${s.startDisplay}–${s.endDisplay}</span>
+        <span style="font-size:11px;color:var(--c-text3);min-width:36px;text-align:right">${dur}</span>
         ${btns}
       </div>`;
     }
@@ -2311,16 +2309,16 @@ function _renderDashSessions(sessions) {
 
   // Pie con total productivo del día
   const h=Math.floor(prodTotal/60), m=prodTotal%60;
-  const footer = `<div style="display:flex;justify-content:space-between;padding:8px 16px;background:var(--c-surface3);font-size:11.5px;color:var(--c-text3)">
-    <span>Total productivo del día</span>
-    <span style="font-weight:700;color:var(--c-teal)">${h>0?`${h}h ${m}m`:m+'m'} <span style="font-weight:400;color:var(--c-text4)">(${prodTotal} min)</span></span>
+  const footer = `<div style="display:flex;justify-content:space-between;padding:6px 14px;background:var(--c-surface3);font-size:11px;color:var(--c-text3);border-top:1px solid var(--c-border)">
+    <span>Total productivo</span>
+    <span style="font-weight:700;color:var(--c-teal)">${h>0?`${h}h ${m>0?m+'m':''}`.trim():m+'m'}</span>
   </div>`;
 
   // Coherence warnings
   const issues = _getCoherenceIssues(sessions);
   const warnHtml = issues.map(w=>`<div class="coherence-warn">⚠ ${w}</div>`).join('');
 
-  e2.innerHTML = warnHtml + rows.join('') + footer;
+  e2.innerHTML = `<div style="max-height:340px;overflow-y:auto">${warnHtml}${rows.join('')}</div>${footer}`;
 }
 function _getCoherenceIssues(sessions) {
   const toMins = t => { if(!t) return 0; const [h,m] = (t+'').split(':').map(Number); return h*60+(m||0); };
