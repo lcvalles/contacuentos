@@ -2379,7 +2379,7 @@ function _renderDashTasksCol(tipo, containerId) {
       return `<button onclick="dashTaskField(${ri},'urgencia','${u}')" title="${u}" style="width:9px;height:9px;border-radius:50%;background:${c};border:none;cursor:pointer;padding:0;opacity:${active?1:0.22};transform:scale(${active?1.3:1});transition:all .1s;flex-shrink:0"></button>`;
     }).join('');
     const estOpts = estadoOpts.map(([v,l])=>`<option value="${v}"${estado===v?' selected':''}>${l}</option>`).join('');
-    const coOpts = `<option value=""${!empresa?' selected':''}>Sin empresa</option>`+STATE.companies.map(c=>`<option value="${c.id}"${empresa===c.id?' selected':''}>${c.name}</option>`).join('');
+    const coOpts = `<option value=""${!empresa?' selected':''}>Sin empresa</option>`+_sortedCos().map(c=>`<option value="${c.id}"${empresa===c.id?' selected':''}>${c.name}</option>`).join('');
     const empresaSel = !empresa ? `<select class="dash-task-sel" onchange="dashTaskField(${ri},'empresa',this.value)">${coOpts}</select>` : '';
     const meta = tipo === 'profesional'
       ? `${co?`<div style="font-size:10.5px;color:var(--c-text3);margin-top:1px">${co.name}</div>`:''}
@@ -2735,9 +2735,9 @@ function saveEditTask(){
 }
 function _populateAllSelects(){
   const tfE=el('tfEmpresa');
-  if(tfE)tfE.innerHTML='<option value="">Todas las empresas</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
+  if(tfE)tfE.innerHTML='<option value="">Todas las empresas</option>'+_sortedCos().map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
   const tE=el('tEmpresa');
-  if(tE)tE.innerHTML='<option value="">Sin empresa</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
+  if(tE)tE.innerHTML='<option value="">Sin empresa</option>'+_sortedCos().map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
 }
 
 // ── Companies ─────────────────────────────────────────────────────────────────
@@ -2844,7 +2844,7 @@ function renderAnalytics() {
   // Populate company filter
   const cf=el('anaCoFilter');
   const coFilter=(cf&&cf.value)||'';
-  if(cf){cf.innerHTML='<option value="">Todas las empresas</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');cf.value=coFilter;}
+  if(cf){cf.innerHTML='<option value="">Todas las empresas</option>'+_sortedCos().map(co=>`<option value="${co.id}">${co.name}</option>`).join('');cf.value=coFilter;}
   if(el('anaPeriodLabel')) el('anaPeriodLabel').textContent=_getAnaLabel();
   ['Day','Week','Month','Range'].forEach(t=>{const b=el('anaTab'+t);if(b)b.classList.toggle('active',t.toLowerCase()===_anaView);});
   const _navRow=el('anaPeriodNavRow'),_rangeRow=el('anaRangeRow');
@@ -3406,7 +3406,7 @@ function _calcDurPreview(startId,finId,previewId){
 }
 function _populateSel(id){
   const s=el(id);if(!s)return;
-  s.innerHTML='<option value="">Sin empresa</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
+  s.innerHTML='<option value="">Sin empresa</option>'+_sortedCos().map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
 }
 function onActChange(sel,customId){
   const c=el(customId);if(!c)return;
@@ -3425,6 +3425,7 @@ function _sortedActivities(){
     return a.name.localeCompare(b.name,'es');
   });
 }
+function _sortedCos(){ return [...(STATE.companies||[])].sort((a,b)=>a.name.localeCompare(b.name,'es')); }
 function _renderActivityOptions(){
   const sorted=_sortedActivities();
   const opts='<option value="">— Seleccionar actividad —</option>'+sorted.map(a=>`<option value="${a.name}">${a.name}</option>`).join('')+'<option value="__custom__">Personalizado...</option>';
@@ -3522,10 +3523,10 @@ function deleteActivity(i){
   STATE.activities.splice(i,1);save();renderActivityList();_renderActivityOptions();
 }
 function _renderTimerCompanies(){
-  const opts='<option value="">— Empresa —</option><option value="personal">🏠 Personal</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
+  const opts='<option value="">— Empresa —</option><option value="personal">🏠 Personal</option>'+_sortedCos().map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
   if(el('timerSel'))  el('timerSel').innerHTML=opts;
   if(el('mTimerSel')) el('mTimerSel').innerHTML=opts;
-  const tOpts='<option value="">— ¿A dónde vas? —</option><option value="personal">🏠 Personal</option>'+STATE.companies.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
+  const tOpts='<option value="">— ¿A dónde vas? —</option><option value="personal">🏠 Personal</option>'+_sortedCos().map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
   if(el('transitCoSel'))  el('transitCoSel').innerHTML=tOpts;
   if(el('mTransitCoSel')) el('mTransitCoSel').innerHTML=tOpts;
 }
@@ -3919,7 +3920,7 @@ function renderCalendario() {
   // ── Filtro por empresa ─────────────────────────────────────────────────────
   const coFilterEl = el('calCoFilter');
   if (coFilterEl) {
-    const cos = (STATE.companies||[]).filter(c=>c.nit);
+    const cos = (STATE.companies||[]).filter(c=>c.nit).sort((a,b)=>a.name.localeCompare(b.name,'es'));
     coFilterEl.innerHTML = `<select onchange="_calSetCo(this.value)" style="width:100%;padding:6px 10px;border-radius:8px;border:1px solid var(--c-border);font-size:12.5px;background:var(--c-surface);color:var(--c-text);cursor:pointer">
       <option value="" ${!_calCoFilter?'selected':''}>🏢 Todas las empresas</option>
       ${cos.map(c=>`<option value="${c.id}" ${_calCoFilter===c.id?'selected':''}>${c.name} — NIT ${c.nit}</option>`).join('')}
@@ -4403,7 +4404,7 @@ function renderFacturacion() {
     ${groups.length === 0 ? `<div style="padding:14px 16px;font-size:12px;color:var(--c-text3)">Sin grupos aún. Crea uno para agrupar empresas que comparten sueldo.</div>` :
     groups.map(grp => {
       const grpCos = allCos.filter(co => grp.coIds.includes(co.id));
-      const available = allCos.filter(co => !grp.coIds.includes(co.id));
+      const available = allCos.filter(co => !grp.coIds.includes(co.id)).sort((a,b)=>a.name.localeCompare(b.name,'es'));
       return `<div style="padding:12px 16px;border-bottom:1px solid var(--c-border)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
           <div style="display:flex;align-items:center;gap:4px">
