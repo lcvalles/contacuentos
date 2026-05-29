@@ -3433,7 +3433,8 @@ function _renderActivityOptions(){
 }
 function renderActivityList(){
   const e2=el('activityList');if(!e2)return;
-  const sorted=_sortedActivities();
+  const _alpha=s=>s.replace(/^[\p{Emoji}\p{So}\s]*/u,'').toLowerCase();
+  const sorted=[...(STATE.activities||[])].sort((a,b)=>_alpha(a.name).localeCompare(_alpha(b.name),'es'));
   if(!sorted.length){e2.innerHTML='<div class="empty">Sin actividades.</div>';return;}
   e2.innerHTML=sorted.map(act=>{
     const i=STATE.activities.indexOf(act);
