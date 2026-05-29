@@ -3420,10 +3420,8 @@ function onActChange(sel,customId){
 }
 function _sortedActivities(){
   if(!STATE.activities)return[];
-  return [...STATE.activities].sort((a,b)=>{
-    if((b.uses||0)!==(a.uses||0))return(b.uses||0)-(a.uses||0);
-    return a.name.localeCompare(b.name,'es');
-  });
+  const _alpha=s=>s.replace(/^[\p{Emoji}\p{So}\s]*/u,'').toLowerCase();
+  return [...STATE.activities].sort((a,b)=>_alpha(a.name).localeCompare(_alpha(b.name),'es'));
 }
 function _sortedCos(){ return [...(STATE.companies||[])].sort((a,b)=>a.name.localeCompare(b.name,'es')); }
 function _renderActivityOptions(){
