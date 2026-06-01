@@ -1775,6 +1775,7 @@ function loadState() {
   if (!STATE.billing) STATE.billing = {};
   if (!STATE.billingGroups) STATE.billingGroups = [];
   if (!STATE.billingDeducciones) STATE.billingDeducciones = [];
+  if (!STATE._facIncluded) STATE._facIncluded = {};
 }
 function save() { STATE._savedAt = Date.now(); localStorage.setItem(SK(), JSON.stringify(STATE)); Sync.schedule(); }
 function getDay(ds) {
@@ -4281,6 +4282,19 @@ function _facSetGroupSueldo(id, sueldo) {
   if (g) { if(!g.sueldos)g.sueldos={}; g.sueldos[_facMes]=sueldo; save(); renderFacturacion(); }
 }
 function _facGetGrpSueldo(grp) { return ((grp.sueldos||{})[_facMes]!=null?(grp.sueldos||{})[_facMes]:(grp.sueldo||0)); }
+function _facIncludeCompany(coId) {
+  if (!coId) return;
+  if (!STATE._facIncluded) STATE._facIncluded = {};
+  if (!STATE._facIncluded[_facMes]) STATE._facIncluded[_facMes] = [];
+  if (!STATE._facIncluded[_facMes].includes(coId)) STATE._facIncluded[_facMes].push(coId);
+  save(); renderFacturacion();
+}
+function _facExcludeCompany(coId) {
+  if (!STATE._facIncluded || !STATE._facIncluded[_facMes]) return;
+  STATE._facIncluded[_facMes] = STATE._facIncluded[_facMes].filter(id => id !== coId);
+  // También limpiar sueldo/extras del mes si están en 0
+  save(); renderFacturacion();
+}
 function _facGetCoSueldo(coId) { const b=(STATE.billing||{})[coId]||{}; return ((b.sueldos||{})[_facMes]!=null?(b.sueldos||{})[_facMes]:(b.sueldo||0)); }
 function _facGetGrpExtras(grp) { return ((grp.extras||{})[_facMes]||0); }
 function _facGetCoExtras(coId) { return (((STATE.billing||{})[coId]||{}).extras||{})[_facMes]||0; }
@@ -4318,8 +4332,15 @@ function renderFacturacion() {
   // IDs de empresas ya en algún grupo
   const groupedCoIds = new Set(groups.flatMap(g => g.coIds));
 
-  // Empresas sueltas (no en ningún grupo)
-  const soloCos = allCos.filter(co => !groupedCoIds.has(co.id) && ((STATE.billing[co.id]||{}).sueldo || minsByCo[co.id]));
+  // Empresas incluidas manualmente este mes
+  const manuallyIncluded = new Set((STATE._facIncluded||{})[_facMes]||[]);
+
+  // Empresas sueltas (no en ningún grupo) — con sueldo, horas, o incluidas manualmente
+  const soloCos = allCos.filter(co => {
+    if (groupedCoIds.has(co.id)) return false;
+    const b = STATE.billing[co.id] || {};
+    return b.sueldo || ((b.sueldos||{})[_facMes] != null) || ((b.extras||{})[_facMes]) || minsByCo[co.id] || manuallyIncluded.has(co.id);
+  }).sort((a,b) => a.name.localeCompare(b.name,'es'));
 
   let grandTotalSueldo = 0, grandTotalExtras = 0, grandTotalMins = 0;
   const metricsData = [];
@@ -4377,8 +4398,11 @@ function renderFacturacion() {
     grandTotalExtras += extras;
     grandTotalMins   += mins;
     metricsData.push({ name: co.name, color: co.color||null, mins, sueldo: total, valorH });
+    const isManual = manuallyIncluded.has(co.id) && !sueldo && !extras && !mins;
     return `<tr style="border-bottom:1px solid var(--c-border)">
-      <td style="padding:11px 16px;font-weight:700;font-size:13px;color:${co.color||'var(--c-text)'}">${co.name}</td>
+      <td style="padding:11px 16px;font-weight:700;font-size:13px;color:${co.color||'var(--c-text)'}">
+        ${co.name}${isManual?` <button onclick="_facExcludeCompany('${co.id}')" title="Quitar del mes" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--c-text3);margin-left:4px;line-height:1;vertical-align:middle">×</button>`:''}
+      </td>
       <td style="padding:7px 10px"><input type="text" inputmode="numeric" value="${_facFmtInput(sueldo)}" placeholder="Ingresar…" oninput="_facInputKey(this)" onchange="(function(v){const b=STATE.billing['${co.id}']||(STATE.billing['${co.id}']={});if(!b.sueldos)b.sueldos={};b.sueldos['${_facMes}']=v;save();renderFacturacion();})(_facParseCOP(this.value))" style="width:120px;border:1px solid var(--c-border);border-radius:6px;padding:4px 8px;font-size:12px;background:var(--c-surface);color:var(--c-text)"></td>
       <td style="padding:7px 10px"><input type="text" inputmode="numeric" value="${_facFmtInput(extras)}" placeholder="0" oninput="_facInputKey(this)" onchange="(function(v){const b=STATE.billing['${co.id}']||(STATE.billing['${co.id}']={});if(!b.extras)b.extras={};b.extras['${_facMes}']=v;save();renderFacturacion();})(_facParseCOP(this.value))" style="width:110px;border:1px solid var(--c-border);border-radius:6px;padding:4px 8px;font-size:12px;background:var(--c-surface);color:var(--c-text)"></td>
       <td style="padding:11px 10px;font-size:14px;font-weight:700;color:var(--c-text)">${mins>0?fmtH(mins):'—'}</td>
@@ -4388,6 +4412,10 @@ function renderFacturacion() {
   }).join('');
 
   const hasRows = groups.length > 0 || soloCos.length > 0;
+
+  // Empresas disponibles para agregar manualmente (no están en la tabla aún)
+  const visibleCoIds = new Set([...groupedCoIds, ...soloCos.map(c=>c.id)]);
+  const addableCos = allCos.filter(co => !visibleCoIds.has(co.id)).sort((a,b)=>a.name.localeCompare(b.name,'es'));
 
   // ── Métricas ──────────────────────────────────────────────────────────────
   const metricasSection = grandTotalMins > 0 ? (() => {
@@ -4582,9 +4610,27 @@ function renderFacturacion() {
           <td></td>
           <td style="padding:12px 16px;font-size:16px;font-weight:800;color:${(grandTotalSueldo+grandTotalExtras)>0?'#16a34a':'var(--c-text3)'};text-align:right">${(grandTotalSueldo+grandTotalExtras)>0?fmtCOP(grandTotalSueldo+grandTotalExtras):'—'}</td>
         </tr>
+        ${addableCos.length ? `<tr>
+          <td colspan="6" style="padding:8px 16px;border-top:1px dashed var(--c-border)">
+            <select onchange="if(this.value)_facIncludeCompany(this.value);this.value=''"
+              style="font-size:12px;border:1px dashed var(--c-border);border-radius:6px;padding:5px 10px;background:var(--c-surface);color:var(--c-text3);cursor:pointer;width:auto">
+              <option value="">+ Agregar empresa a este mes…</option>
+              ${addableCos.map(co=>`<option value="${co.id}">${co.name}</option>`).join('')}
+            </select>
+          </td>
+        </tr>` : ''}
       </tfoot>
     </table>
-  </div>` : `<div class="card" style="margin-bottom:14px"><div style="padding:20px 16px;font-size:13px;color:var(--c-text3)">Sin horas registradas ni sueldos configurados este mes.</div></div>`}
+  </div>` : `<div class="card" style="margin-bottom:14px">
+    <div style="padding:20px 16px;font-size:13px;color:var(--c-text3)">Sin horas registradas ni sueldos configurados este mes.</div>
+    ${addableCos.length ? `<div style="padding:0 16px 14px">
+      <select onchange="if(this.value)_facIncludeCompany(this.value);this.value=''"
+        style="font-size:12px;border:1px dashed var(--c-border);border-radius:6px;padding:5px 10px;background:var(--c-surface);color:var(--c-text3);cursor:pointer">
+        <option value="">+ Agregar empresa a este mes…</option>
+        ${addableCos.map(co=>`<option value="${co.id}">${co.name}</option>`).join('')}
+      </select>
+    </div>` : ''}
+  </div>`}
 
   ${deduccionesSection}
   ${metricasSection}
