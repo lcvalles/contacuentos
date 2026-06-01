@@ -1676,7 +1676,14 @@ const Sync = {
       // Preservar sesión activa local para no interrumpir el timer
       const localSession = STATE.activeSession;
       STATE = remote;
-      if (localSession) STATE.activeSession = localSession;
+      if (localSession) {
+        STATE.activeSession = localSession;
+      } else if (STATE.activeSession) {
+        // Validar que la sesión remota sea de hoy (Colombia); si no, descartarla
+        const _coFmt = new Intl.DateTimeFormat('en-CA', { timeZone:'America/Bogota' });
+        const sessDay = _coFmt.format(new Date(STATE.activeSession.startIso));
+        if (sessDay < _coFmt.format(new Date())) STATE.activeSession = null;
+      }
       if (!STATE.companies || !STATE.companies.length) STATE.companies = JSON.parse(JSON.stringify(SEED_COS));
       if (!STATE.tasks) STATE.tasks = [];
       if (!STATE.days) STATE.days = {};
@@ -2048,6 +2055,38 @@ function confirmMobileOtherBreak() {
 function toggleTransit() {
   if (STATE.activeSession && STATE.activeSession.mode === 'transit') _stopActive(false);
   else startTransit();
+}
+function _handleStaleSession() {
+  if (!STATE.activeSession) return;
+  const s = STATE.activeSession;
+  const coFmt = new Intl.DateTimeFormat('en-CA', { timeZone:'America/Bogota' });
+  const sessionDay = coFmt.format(new Date(s.startIso));
+  const today = todayStr();
+  if (sessionDay >= today) return; // sesión de hoy o futura, OK
+  // Sesión de día anterior: guardar lo trabajado hasta medianoche y detener
+  let d = sessionDay;
+  while (d < today) {
+    const next = new Date(d + 'T05:00:00.000Z'); // medianoche Colombia en UTC
+    const nextDay = coFmt.format(next);
+    const endIso = next.toISOString();
+    const minsD = Math.round((next - new Date(s.startIso)) / 60000);
+    if (minsD >= 1) {
+      getDay(d).sessions.push({
+        mode:s.mode, companyId:s.companyId||'', breakType:s.breakType||'',
+        startIso:s.startIso, endIso:endIso,
+        startDisplay:s.startDisplay, endDisplay:'00:00',
+        mins:minsD, nota:s.nota||'', billable:s.mode==='productive', manual:false
+      });
+    }
+    // Si hay más de un día de diferencia, continuar desde medianoche del siguiente día
+    if (nextDay < today) {
+      s.startIso = endIso;
+      s.startDisplay = '00:00';
+      d = nextDay;
+    } else break;
+  }
+  STATE.activeSession = null; // detener — no continuar al día actual
+  save();
 }
 function _splitAtMidnight(s, oldDay, newDay) {
   // Calcular medianoche exacta en Colombia (UTC-5)
@@ -4605,6 +4644,7 @@ async function startApp(){
   _populateAllSelects();
   _renderUserPill();
   navigate(sessionStorage.getItem('yc_page') || 'dashboard');
+  _handleStaleSession();
   _updateTimerUI();
   _renderBanner();
   updateClock();
