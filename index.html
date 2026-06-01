@@ -1776,6 +1776,7 @@ function loadState() {
   if (!STATE.billingGroups) STATE.billingGroups = [];
   if (!STATE.billingDeducciones) STATE.billingDeducciones = [];
   if (!STATE._facIncluded) STATE._facIncluded = {};
+  if (!STATE._facExcluded) STATE._facExcluded = {};
 }
 function save() { STATE._savedAt = Date.now(); localStorage.setItem(SK(), JSON.stringify(STATE)); Sync.schedule(); }
 function getDay(ds) {
@@ -4287,13 +4288,50 @@ function _facIncludeCompany(coId) {
   if (!STATE._facIncluded) STATE._facIncluded = {};
   if (!STATE._facIncluded[_facMes]) STATE._facIncluded[_facMes] = [];
   if (!STATE._facIncluded[_facMes].includes(coId)) STATE._facIncluded[_facMes].push(coId);
+  // Quitar de excluidos si estaba
+  if (STATE._facExcluded && STATE._facExcluded[_facMes])
+    STATE._facExcluded[_facMes] = STATE._facExcluded[_facMes].filter(id => id !== coId);
   save(); renderFacturacion();
 }
-function _facExcludeCompany(coId) {
-  if (!STATE._facIncluded || !STATE._facIncluded[_facMes]) return;
-  STATE._facIncluded[_facMes] = STATE._facIncluded[_facMes].filter(id => id !== coId);
-  // También limpiar sueldo/extras del mes si están en 0
+function _facExcludeFromMonth(coId) {
+  if (!STATE._facExcluded) STATE._facExcluded = {};
+  if (!STATE._facExcluded[_facMes]) STATE._facExcluded[_facMes] = [];
+  if (!STATE._facExcluded[_facMes].includes(coId)) STATE._facExcluded[_facMes].push(coId);
+  if (STATE._facIncluded && STATE._facIncluded[_facMes])
+    STATE._facIncluded[_facMes] = STATE._facIncluded[_facMes].filter(id => id !== coId);
   save(); renderFacturacion();
+}
+function _facGoMonth(delta) {
+  // Al avanzar al mes siguiente, auto-copiar las empresas actuales si el mes destino no tiene datos aún
+  if (delta > 0) {
+    const nextM = (()=>{ const d=new Date(_facMes+'-15');d.setMonth(d.getMonth()+1);return d.toISOString().slice(0,7); })();
+    if (!STATE._facIncluded) STATE._facIncluded = {};
+    if (!STATE._facExcluded) STATE._facExcluded = {};
+    // Solo auto-llevar si el mes destino no ha sido configurado aún
+    const nextHasData = (STATE._facIncluded[nextM]||[]).length > 0 || (STATE._facExcluded[nextM]||[]).length > 0;
+    if (!nextHasData) {
+      const groupedIds = new Set((STATE.billingGroups||[]).flatMap(g=>g.coIds));
+      const curIncluded = new Set(STATE._facIncluded[_facMes]||[]);
+      const curExcluded = new Set(STATE._facExcluded[_facMes]||[]);
+      // Calcular horas del mes actual
+      const minsM = {};
+      Object.keys(STATE.days||{}).filter(ds=>ds.startsWith(_facMes+'-')).forEach(ds=>{
+        ((STATE.days[ds]||{}).sessions||[]).forEach(s=>{
+          if(s.mode==='productive'&&s.companyId&&s.companyId!=='personal')
+            minsM[s.companyId]=(minsM[s.companyId]||0)+(s.mins||0);
+        });
+      });
+      const carryIds = (STATE.companies||[]).filter(co => {
+        if (groupedIds.has(co.id)) return false;
+        if (curExcluded.has(co.id)) return false;
+        const b = STATE.billing[co.id] || {};
+        return b.sueldo || ((b.sueldos||{})[_facMes]!=null) || ((b.extras||{})[_facMes]) || minsM[co.id] || curIncluded.has(co.id);
+      }).map(co => co.id);
+      if (carryIds.length) STATE._facIncluded[nextM] = carryIds;
+    }
+  }
+  _facMes = (()=>{ const d=new Date(_facMes+'-15');d.setMonth(d.getMonth()+delta);return d.toISOString().slice(0,7); })();
+  renderFacturacion();
 }
 function _facGetCoSueldo(coId) { const b=(STATE.billing||{})[coId]||{}; return ((b.sueldos||{})[_facMes]!=null?(b.sueldos||{})[_facMes]:(b.sueldo||0)); }
 function _facGetGrpExtras(grp) { return ((grp.extras||{})[_facMes]||0); }
@@ -4332,12 +4370,14 @@ function renderFacturacion() {
   // IDs de empresas ya en algún grupo
   const groupedCoIds = new Set(groups.flatMap(g => g.coIds));
 
-  // Empresas incluidas manualmente este mes
+  // Empresas incluidas/excluidas manualmente este mes
   const manuallyIncluded = new Set((STATE._facIncluded||{})[_facMes]||[]);
+  const manuallyExcluded = new Set((STATE._facExcluded||{})[_facMes]||[]);
 
   // Empresas sueltas (no en ningún grupo) — con sueldo, horas, o incluidas manualmente
   const soloCos = allCos.filter(co => {
     if (groupedCoIds.has(co.id)) return false;
+    if (manuallyExcluded.has(co.id)) return false;
     const b = STATE.billing[co.id] || {};
     return b.sueldo || ((b.sueldos||{})[_facMes] != null) || ((b.extras||{})[_facMes]) || minsByCo[co.id] || manuallyIncluded.has(co.id);
   }).sort((a,b) => a.name.localeCompare(b.name,'es'));
@@ -4398,10 +4438,12 @@ function renderFacturacion() {
     grandTotalExtras += extras;
     grandTotalMins   += mins;
     metricsData.push({ name: co.name, color: co.color||null, mins, sueldo: total, valorH });
-    const isManual = manuallyIncluded.has(co.id) && !sueldo && !extras && !mins;
     return `<tr style="border-bottom:1px solid var(--c-border)">
       <td style="padding:11px 16px;font-weight:700;font-size:13px;color:${co.color||'var(--c-text)'}">
-        ${co.name}${isManual?` <button onclick="_facExcludeCompany('${co.id}')" title="Quitar del mes" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--c-text3);margin-left:4px;line-height:1;vertical-align:middle">×</button>`:''}
+        <span style="display:flex;align-items:center;gap:4px">
+          ${co.name}
+          <button onclick="_facExcludeFromMonth('${co.id}')" title="Ocultar del mes" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--c-text3);opacity:0.4;line-height:1;padding:0 2px" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.4">×</button>
+        </span>
       </td>
       <td style="padding:7px 10px"><input type="text" inputmode="numeric" value="${_facFmtInput(sueldo)}" placeholder="Ingresar…" oninput="_facInputKey(this)" onchange="(function(v){const b=STATE.billing['${co.id}']||(STATE.billing['${co.id}']={});if(!b.sueldos)b.sueldos={};b.sueldos['${_facMes}']=v;save();renderFacturacion();})(_facParseCOP(this.value))" style="width:120px;border:1px solid var(--c-border);border-radius:6px;padding:4px 8px;font-size:12px;background:var(--c-surface);color:var(--c-text)"></td>
       <td style="padding:7px 10px"><input type="text" inputmode="numeric" value="${_facFmtInput(extras)}" placeholder="0" oninput="_facInputKey(this)" onchange="(function(v){const b=STATE.billing['${co.id}']||(STATE.billing['${co.id}']={});if(!b.extras)b.extras={};b.extras['${_facMes}']=v;save();renderFacturacion();})(_facParseCOP(this.value))" style="width:110px;border:1px solid var(--c-border);border-radius:6px;padding:4px 8px;font-size:12px;background:var(--c-surface);color:var(--c-text)"></td>
@@ -4578,10 +4620,10 @@ function renderFacturacion() {
   e.innerHTML = `
   <div class="card" style="margin-bottom:14px">
     <div style="padding:14px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <button onclick="_facMes=(()=>{const d=new Date(_facMes+'-15');d.setMonth(d.getMonth()-1);return d.toISOString().slice(0,7)})();renderFacturacion()"
+      <button onclick="_facGoMonth(-1)"
         style="background:none;border:1px solid var(--c-border);border-radius:6px;padding:4px 12px;cursor:pointer;font-size:15px;color:var(--c-text2)">‹</button>
       <span style="font-size:15px;font-weight:700;color:var(--c-text);min-width:160px;text-align:center">${mesLabel}</span>
-      <button onclick="_facMes=(()=>{const d=new Date(_facMes+'-15');d.setMonth(d.getMonth()+1);return d.toISOString().slice(0,7)})();renderFacturacion()"
+      <button onclick="_facGoMonth(1)"
         style="background:none;border:1px solid var(--c-border);border-radius:6px;padding:4px 12px;cursor:pointer;font-size:15px;color:var(--c-text2)">›</button>
     </div>
   </div>
