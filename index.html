@@ -787,6 +787,7 @@ tr:hover .td-actions{opacity:1}
     <div class="topbar">
       <h1 class="topbar-title">Dashboard</h1>
       <div id="topbarUser" class="topbar-user" style="margin-left:12px"></div>
+      <button onclick="_testCelebration()" title="Probar celebración" style="margin-left:8px;background:none;border:1px dashed var(--c-border);border-radius:8px;padding:3px 9px;font-size:13px;cursor:pointer;color:var(--c-text3)">🎉</button>
       <div style="display:flex;gap:6px;align-items:center;margin-left:auto">
         <button class="btn btn-primary btn-sm" onclick="openModalQuick()">+ Sesión</button>
         <button class="btn btn-dl btn-sm" onclick="exportCSV()" title="Exportar CSV">↓ CSV</button>
@@ -3504,6 +3505,9 @@ function _launchGoalCelebration(goalMins) {
   }
   // Auto-cerrar a los 6 segundos
   setTimeout(_closeGoalCelebration, 6000);
+}
+function _testCelebration() {
+  _launchGoalCelebration((STATE.settings.dailyGoal||8)*60);
 }
 function _closeGoalCelebration() {
   const panel = el('goalCelebration');
