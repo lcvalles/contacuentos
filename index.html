@@ -542,6 +542,16 @@ tr:hover .td-actions{opacity:1}
 .modal-title{font-family:var(--f-display);font-size:20px;font-weight:300;color:var(--c-text);margin-bottom:18px;letter-spacing:.3px}
 .modal-footer{display:flex;gap:9px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--c-border)}
 
+/* ── CELEBRACIÓN META ────────────────────────── */
+#goalCelebration{display:none;position:fixed;inset:0;z-index:999;pointer-events:none;align-items:center;justify-content:center}
+#goalCelebration.open{display:flex}
+#goalCelebration .goal-card{pointer-events:all;background:#fff;border-radius:24px;padding:36px 44px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.18);animation:goal-pop .5s cubic-bezier(.34,1.56,.64,1) both;max-width:340px;width:90vw}
+@keyframes goal-pop{from{opacity:0;transform:scale(.6) translateY(40px)}to{opacity:1;transform:none}}
+@keyframes goal-fade-out{from{opacity:1}to{opacity:0;transform:scale(.95)}}
+.goal-card.closing{animation:goal-fade-out .4s ease forwards}
+.confetti-piece{position:fixed;width:9px;height:9px;top:-12px;border-radius:2px;animation:confetti-fall linear forwards;pointer-events:none;z-index:998}
+@keyframes confetti-fall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:0}}
+
 /* ── PRINT ───────────────────────────────────── */
 @media print{body *{visibility:hidden !important}#printArea,#printArea *{visibility:visible !important}#printArea{position:fixed;top:0;left:0;width:100%;padding:32px;background:#fff}}
 
@@ -1384,6 +1394,15 @@ tr:hover .td-actions{opacity:1}
 <div id="printArea" style="display:none"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<div id="goalCelebration">
+  <div class="goal-card" id="goalCard">
+    <div style="font-size:56px;line-height:1;margin-bottom:12px">🏆</div>
+    <div style="font-size:22px;font-weight:800;color:#14532d;margin-bottom:6px">¡Meta cumplida!</div>
+    <div style="font-size:14px;color:#4b5563;margin-bottom:18px" id="goalCelebMsg">Completaste tus 8 horas productivas de hoy. ¡Excelente trabajo!</div>
+    <button onclick="_closeGoalCelebration()" style="background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:12px;padding:10px 28px;font-size:14px;font-weight:700;cursor:pointer;width:100%">¡Gracias! 🎉</button>
+  </div>
+</div>
+
 <!-- ═══ MOBILE BOTTOM NAV ═══ -->
 <nav class="mobile-nav" id="mobileNav" aria-label="Navegación móvil">
   <button class="mn-item active" id="mnDashboard" onclick="navigate('dashboard')">
@@ -2105,6 +2124,7 @@ function _splitAtMidnight(s, oldDay, newDay) {
   }
   // Continuar la sesión desde medianoche en el nuevo día
   STATE.activeSession = { ...s, startIso: midnightIso, startDisplay: '00:00' };
+  _goalCelebrated = false; // nuevo día, resetear celebración
   save();
   _updateTimerUI();
   _renderBanner();
@@ -2168,6 +2188,8 @@ function _updateTimerUI() {
     const sc = String(sec % 60).padStart(2, '0');
     if (digits) digits.textContent = `${h}:${m}:${sc}`;
     if(el('mSheetDigits')) el('mSheetDigits').textContent=`${h}:${m}:${sc}`;
+    // Chequear meta cada 30 segundos (solo en sesión productiva)
+    if (s.mode === 'productive' && sec % 30 === 0) _checkGoal();
   }
   tick();
   _timerTick = setInterval(tick, 1000);
@@ -3432,6 +3454,63 @@ function el(id){return document.getElementById(id);}
 function setText(id,val){const e=el(id);if(e)e.textContent=val;}
 function setStyle(id,prop,val){const e=el(id);if(e)e.style[prop]=val;}
 function fmtMins(m){const h=Math.floor(m/60),mn=m%60;return h>0?`${h}h ${mn}m`:`${mn}m`;}
+// ── Celebración meta diaria ───────────────────────────────────────────────────
+let _goalCelebrated = false; // evita disparar múltiples veces en la misma sesión
+function _checkGoal() {
+  const today = todayStr();
+  const goal = (STATE.settings.dailyGoal || 8) * 60;
+  const day = STATE.days[today];
+  if (!day) return;
+  if (day._goalCelebrated) { _goalCelebrated = true; return; } // ya se celebró hoy
+  if (_goalCelebrated) return;
+  // Sumar minutos productivos del día (sesiones guardadas + sesión activa)
+  let prod = (day.sessions||[]).reduce((a,s) => a + (s.mode==='productive' ? (s.mins||0) : 0), 0);
+  if (STATE.activeSession && STATE.activeSession.mode === 'productive') {
+    prod += Math.floor((Date.now() - new Date(STATE.activeSession.startIso).getTime()) / 60000);
+  }
+  if (prod >= goal) {
+    _goalCelebrated = true;
+    day._goalCelebrated = true;
+    save();
+    _launchGoalCelebration(goal);
+  }
+}
+function _launchGoalCelebration(goalMins) {
+  const h = Math.floor(goalMins / 60);
+  const m = goalMins % 60;
+  const label = h + (m ? `h ${m}m` : 'h');
+  const msgEl = el('goalCelebMsg');
+  if (msgEl) msgEl.textContent = `Completaste ${label} productivas hoy. ¡Eres una máquina! 💪`;
+  const panel = el('goalCelebration');
+  if (panel) panel.classList.add('open');
+  // Generar confetti
+  const colors = ['#16a34a','#f59e0b','#6366f1','#ec4899','#0ea5e9','#f97316','#14b8a6'];
+  for (let i = 0; i < 80; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    p.style.width = (7 + Math.random() * 6) + 'px';
+    p.style.height = (7 + Math.random() * 6) + 'px';
+    p.style.animationDuration = (2 + Math.random() * 2.5) + 's';
+    p.style.animationDelay = (Math.random() * 1.2) + 's';
+    document.body.appendChild(p);
+    p.addEventListener('animationend', () => p.remove());
+  }
+  // Auto-cerrar a los 6 segundos
+  setTimeout(_closeGoalCelebration, 6000);
+}
+function _closeGoalCelebration() {
+  const panel = el('goalCelebration');
+  const card = el('goalCard');
+  if (!panel || !panel.classList.contains('open')) return;
+  if (card) card.classList.add('closing');
+  setTimeout(() => {
+    panel.classList.remove('open');
+    if (card) card.classList.remove('closing');
+  }, 400);
+}
 function showToast(msg){
   const t=el('toast');if(!t)return;
   t.textContent=msg;t.style.display='block';
