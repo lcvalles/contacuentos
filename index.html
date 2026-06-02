@@ -545,7 +545,7 @@ tr:hover .td-actions{opacity:1}
 /* ── CELEBRACIÓN META ────────────────────────── */
 #goalCelebration{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.35);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:20px}
 #goalCelebration.open{display:flex}
-#goalCelebration .goal-card{background:#fff;border-radius:28px;padding:40px 36px 32px;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.25);animation:goal-pop .5s cubic-bezier(.34,1.56,.64,1) both;width:100%;max-width:360px}
+#goalCelebration .goal-card{display:flex;flex-direction:column;align-items:center;box-sizing:border-box;background:#fff;border-radius:28px;padding:40px 36px 32px;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.25);animation:goal-pop .5s cubic-bezier(.34,1.56,.64,1) both;width:360px;max-width:calc(100vw - 40px)}
 @keyframes goal-pop{from{opacity:0;transform:scale(.5) translateY(60px)}to{opacity:1;transform:none}}
 @keyframes goal-fade-out{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.92)}}
 .goal-card.closing{animation:goal-fade-out .35s ease forwards}
