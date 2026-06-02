@@ -1672,7 +1672,9 @@ const Sync = {
       setSyncStatus('saving');
       const uid = CURRENT_USER ? CURRENT_USER.username : 'yuli';
       this._lastPushedAt = STATE._savedAt; // registrar antes de push para filtrar eco
-      await db.collection('productivity').doc(uid).set(STATE);
+      // No sincronizar activeSession — es estado local de cada dispositivo
+      const { activeSession: _ignored, ...stateToSave } = STATE;
+      await db.collection('productivity').doc(uid).set(stateToSave);
       setSyncStatus('ok');
     } catch(e) { console.error('Firestore save:', e); setSyncStatus('error'); }
   },
@@ -1695,17 +1697,11 @@ const Sync = {
       const remoteAt = remote._savedAt || 0;
       // Ignorar eco de nuestro propio push
       if (remoteAt <= this._lastPushedAt) return;
-      // Preservar sesión activa local para no interrumpir el timer
+      // Preservar sesión activa local; nunca restaurar la remota durante sync en vivo
+      // (evita duplicados cuando hay 2 dispositivos/tabs abiertos)
       const localSession = STATE.activeSession;
       STATE = remote;
-      if (localSession) {
-        STATE.activeSession = localSession;
-      } else if (STATE.activeSession) {
-        // Validar que la sesión remota sea de hoy (Colombia); si no, descartarla
-        const _coFmt = new Intl.DateTimeFormat('en-CA', { timeZone:'America/Bogota' });
-        const sessDay = _coFmt.format(new Date(STATE.activeSession.startIso));
-        if (sessDay < _coFmt.format(new Date())) STATE.activeSession = null;
-      }
+      STATE.activeSession = localSession || null;
       if (!STATE.companies || !STATE.companies.length) STATE.companies = JSON.parse(JSON.stringify(SEED_COS));
       if (!STATE.tasks) STATE.tasks = [];
       if (!STATE.days) STATE.days = {};
