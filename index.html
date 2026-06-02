@@ -543,13 +543,13 @@ tr:hover .td-actions{opacity:1}
 .modal-footer{display:flex;gap:9px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--c-border)}
 
 /* ── CELEBRACIÓN META ────────────────────────── */
-#goalCelebration{display:none;position:fixed;inset:0;z-index:999;pointer-events:none;align-items:center;justify-content:center}
+#goalCelebration{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.35);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:20px}
 #goalCelebration.open{display:flex}
-#goalCelebration .goal-card{pointer-events:all;background:#fff;border-radius:24px;padding:36px 44px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.18);animation:goal-pop .5s cubic-bezier(.34,1.56,.64,1) both;max-width:340px;width:90vw}
-@keyframes goal-pop{from{opacity:0;transform:scale(.6) translateY(40px)}to{opacity:1;transform:none}}
-@keyframes goal-fade-out{from{opacity:1}to{opacity:0;transform:scale(.95)}}
-.goal-card.closing{animation:goal-fade-out .4s ease forwards}
-.confetti-piece{position:fixed;width:9px;height:9px;top:-12px;border-radius:2px;animation:confetti-fall linear forwards;pointer-events:none;z-index:998}
+#goalCelebration .goal-card{background:#fff;border-radius:28px;padding:40px 36px 32px;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.25);animation:goal-pop .5s cubic-bezier(.34,1.56,.64,1) both;width:100%;max-width:360px}
+@keyframes goal-pop{from{opacity:0;transform:scale(.5) translateY(60px)}to{opacity:1;transform:none}}
+@keyframes goal-fade-out{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.92)}}
+.goal-card.closing{animation:goal-fade-out .35s ease forwards}
+.confetti-piece{position:fixed;width:9px;height:9px;top:-12px;border-radius:2px;animation:confetti-fall linear forwards;pointer-events:none;z-index:9998}
 @keyframes confetti-fall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:0}}
 
 /* ── PRINT ───────────────────────────────────── */
@@ -1395,12 +1395,14 @@ tr:hover .td-actions{opacity:1}
 <div id="printArea" style="display:none"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<div id="goalCelebration">
-  <div class="goal-card" id="goalCard">
-    <div style="font-size:56px;line-height:1;margin-bottom:12px">🏆</div>
-    <div style="font-size:22px;font-weight:800;color:#14532d;margin-bottom:6px">¡Meta cumplida!</div>
-    <div style="font-size:14px;color:#4b5563;margin-bottom:18px" id="goalCelebMsg">Completaste tus 8 horas productivas de hoy. ¡Excelente trabajo!</div>
-    <button onclick="_closeGoalCelebration()" style="background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:12px;padding:10px 28px;font-size:14px;font-weight:700;cursor:pointer;width:100%">¡Gracias! 🎉</button>
+<div id="goalCelebration" onclick="_closeGoalCelebration()">
+  <div class="goal-card" id="goalCard" onclick="event.stopPropagation()">
+    <div style="font-size:72px;line-height:1;margin-bottom:16px">🏆</div>
+    <div style="font-size:26px;font-weight:900;color:#14532d;margin-bottom:4px;letter-spacing:-.3px">¡Meta cumplida!</div>
+    <div style="font-size:13px;font-weight:600;color:#16a34a;margin-bottom:16px;letter-spacing:.5px;text-transform:uppercase" id="goalCelebHours"></div>
+    <div style="font-size:15px;color:#374151;margin-bottom:28px;line-height:1.55;font-style:italic" id="goalCelebMsg"></div>
+    <button onclick="_closeGoalCelebration()" style="background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:14px;padding:13px 28px;font-size:15px;font-weight:700;cursor:pointer;width:100%;letter-spacing:.2px">¡Gracias! 🎉</button>
+    <div style="font-size:11px;color:#9ca3af;margin-top:12px">Toca fuera para cerrar</div>
   </div>
 </div>
 
@@ -3484,8 +3486,43 @@ function _launchGoalCelebration(goalMins) {
   const h = Math.floor(goalMins / 60);
   const m = goalMins % 60;
   const label = h + (m ? `h ${m}m` : 'h');
+  const frases = [
+    '¡Yuli, hoy fuiste imparable! Cada hora que diste, vale oro. 🌟',
+    'Día completo, corazón lleno. Lo lograste, Yuli. ✨',
+    'No todas tienen la disciplina que tú tienes. ¡Orgullosa de ti! 💫',
+    'Otra jornada ganada. Así se construye el éxito, un día a la vez. 🙌',
+    '¡Meta en el bolsillo! Eso es dedicación de verdad, Yuli. 🔥',
+    'Hoy superaste el reto. Mañana lo volverás a hacer. ¡Así es como se hace! 💪',
+    'Tus clientes tienen a la mejor. Hoy lo demostraste una vez más. 👑',
+    'La constancia es tu superpoder, Yuli. ¡Hoy brilló fuerte! ⭐',
+    'Ocho horas de enfoque total. No es fácil, y tú lo haces ver fácil. 🚀',
+    'Cada número que tocas lo haces con propósito. ¡Excelente jornada! 📊',
+    'Yuli, tu esfuerzo de hoy es la inversión de tu futuro. ¡Sigue así! 🌱',
+    '¡Lo hiciste otra vez! La disciplina que tienes es admirable. 💎',
+    'Hoy le diste todo al trabajo. Ahora descansa, te lo mereces. 🌙',
+    'Una contadora de lujo cerrando otra jornada perfecta. ¡Tú! 🏅',
+    'Enfoque, dedicación y resultados. Eso eres tú, Yuli. 💯',
+    'La meta de hoy: ✅ cumplida. La de mañana ya está en camino. 🎯',
+    'No importa qué tan largo fue el día, lo completaste. ¡Increíble! 🌈',
+    'Hoy sumaste otro día ganado. El éxito se construye exactamente así. ✌️',
+    'Yuli, tu trabajo tiene impacto real en personas reales. ¡Gracias por dar lo mejor! 🤝',
+    '¡Qué energía la tuya! Ocho horas productivas no es cualquier cosa. 🔋',
+    'Hoy fue un día de los buenos. Tú lo hiciste posible. 🌻',
+    'Profesional de principio a fin. Eso eres, Yuli. ¡Meta lograda! 🎖️',
+    'Cada hora que trabajaste hoy, es un paso más hacia tus metas. 👣',
+    'La dedicación que tienes es de admirar. ¡Hoy lo demostraste! 🦋',
+    'Jornada completa. Tú pones el estándar, Yuli. ¡Así se hace! 🏆',
+    'El trabajo duro de hoy es el logro de mañana. ¡Tú lo entiendes mejor que nadie! 🌠',
+    'Eres una contadora que no le saca el cuerpo al trabajo. ¡Qué orgullo! 📈',
+    'Hoy ganaste. No solo horas, sino confianza y progreso. ¡Sigue! 🎊',
+    'Yuli, cada día que cumples tu meta eres más la persona que quieres ser. 💗',
+    '¡Boom! Meta lograda. Ahora a celebrar y mañana a repetir. 🎆',
+  ];
+  const frase = frases[Math.floor(Math.random() * frases.length)];
+  const hoursEl = el('goalCelebHours');
   const msgEl = el('goalCelebMsg');
-  if (msgEl) msgEl.textContent = `Completaste ${label} productivas hoy. ¡Eres una máquina! 💪`;
+  if (hoursEl) hoursEl.textContent = `${label} productivas hoy`;
+  if (msgEl) msgEl.textContent = frase;
   const panel = el('goalCelebration');
   if (panel) panel.classList.add('open');
   // Generar confetti
