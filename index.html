@@ -2016,6 +2016,8 @@ function _stopActive(silent) {
   ['timerActivity','mTimerActivity','timerCustomAct','mTimerCustomAct'].forEach(id=>{if(el(id)){el(id).value='';if(el(id).tagName==='INPUT')el(id).style.display='none';}});
   save();
   if (!silent) { _updateTimerUI(); _renderBanner(); if (VIEW_DATE === todayStr()) renderDashboard(); }
+  // Verificar meta al detener (sesión productiva)
+  if (s.mode === 'productive') setTimeout(_checkGoal, 300);
 }
 function toggleTimer() {
   if (STATE.activeSession) {
@@ -2335,6 +2337,8 @@ function renderDashboard() {
   _renderCoBars(coMins);
   _renderBestHours(allSess);
   renderDashVenc();
+  // Mostrar celebración si ya se cumplió la meta pero no se ha visto aún
+  if (VIEW_DATE === todayStr() && prod >= goal) setTimeout(_checkGoal, 500);
 }
 function _renderDashSessions(sessions) {
   const e2 = el('dashSessions'); if (!e2) return;
