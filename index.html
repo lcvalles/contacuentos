@@ -2971,8 +2971,12 @@ function renderAnalytics() {
   const totBrk=dates.reduce((a,ds)=>a+dayData[ds].brk,0);
   const totTrans=dates.reduce((a,ds)=>a+dayData[ds].trans,0);
   const totNP=totBrk+totTrans;
-  const isWeekday=ds=>{const d=new Date(ds+'T12:00:00').getDay();return d>=1&&d<=5;};
-  const laboralDates=dates.filter(isWeekday);
+  // Construir mapa de festivos para todos los años del rango
+  const _festYears=new Set(dates.map(ds=>Number(ds.slice(0,4))));
+  const _festivos=new Map();
+  _festYears.forEach(y=>{ _colombiaFestivos(y).forEach((_,k)=>_festivos.set(k,true)); });
+  const isLaboral=ds=>{const d=new Date(ds+'T12:00:00').getDay();return d>=1&&d<=5&&!_festivos.has(ds);};
+  const laboralDates=dates.filter(isLaboral);
   const totalLaboralDays=laboralDates.length;
   const workDays=dates.filter(ds=>dayData[ds].prod+dayData[ds].brk+dayData[ds].trans>0).length;
   const goalDays=dates.filter(ds=>dayData[ds].prod>=goalMins).length;
