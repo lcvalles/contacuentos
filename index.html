@@ -708,6 +708,7 @@ tr:hover .td-actions{opacity:1}
     <button class="nav-link active" onclick="navigate('dashboard')"><span class="nav-icon">🏠</span><span>Dashboard</span></button>
     <button class="nav-link" onclick="navigate('registro')" style="display:none"><span class="nav-icon">📋</span><span>Registro</span></button>
     <button class="nav-link" onclick="navigate('tareas')"><span class="nav-icon">✅</span><span>Tareas</span></button>
+    <button class="nav-link" onclick="navigate('rentapn')"><span class="nav-icon">🧾</span><span>Renta P/N</span></button>
   </nav>
   <nav class="nav-section">
     <span class="nav-section-label">Análisis</span>
@@ -1389,6 +1390,56 @@ tr:hover .td-actions{opacity:1}
     </div>
   </section>
 
+  <!-- ═══ RENTA P/N ═══ -->
+  <section id="page-rentapn" class="page" aria-label="Renta Persona Natural">
+    <div class="topbar">
+      <h1 class="topbar-title">🧾 Renta P/N</h1>
+      <div style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <button onclick="_rentaOpenModal()" style="display:flex;align-items:center;gap:4px;padding:6px 14px;background:var(--c-gold);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">➕ Cliente</button>
+        <button onclick="_rentaExportCSV()" style="padding:6px 12px;background:none;border:1px solid var(--c-border);border-radius:8px;font-size:12px;cursor:pointer;color:var(--c-text2)">📤 CSV</button>
+        <button onclick="_rentaOpenConfig()" style="padding:6px 12px;background:none;border:1px solid var(--c-border);border-radius:8px;font-size:12px;cursor:pointer;color:var(--c-text2)">⚙️ Config</button>
+      </div>
+    </div>
+    <div class="page-content">
+      <div id="rentaPNBody"></div>
+    </div>
+  </section>
+
+  <!-- Modal Renta P/N -->
+  <div class="overlay" id="rentaModal">
+    <div class="modal" style="max-width:620px">
+      <h2 class="modal-title" id="rentaModalTitle">Nuevo cliente</h2>
+      <div id="rentaModalBody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('rentaModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="_rentaSaveModal()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Config Renta P/N -->
+  <div class="overlay" id="rentaConfigModal">
+    <div class="modal" style="max-width:520px">
+      <h2 class="modal-title">⚙️ Configuración Renta P/N</h2>
+      <div id="rentaConfigBody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('rentaConfigModal')">Cerrar</button>
+        <button class="btn btn-primary" onclick="_rentaSaveConfig()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal WhatsApp Renta P/N -->
+  <div class="overlay" id="rentaWAModal">
+    <div class="modal" style="max-width:580px">
+      <h2 class="modal-title">💬 Mensaje WhatsApp</h2>
+      <div id="rentaWABody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('rentaWAModal')">Cerrar</button>
+        <button class="btn btn-primary" onclick="_rentaCopyWA()">📋 Copiar mensaje</button>
+      </div>
+    </div>
+  </div>
 </main>
 </div><!-- /app -->
 
@@ -1795,6 +1846,8 @@ function loadState() {
   if (!STATE.billingDeducciones) STATE.billingDeducciones = [];
   if (!STATE._facIncluded) STATE._facIncluded = {};
   if (!STATE._facExcluded) STATE._facExcluded = {};
+  if (!STATE.rentaPN) STATE.rentaPN = [];
+  if (!STATE.rentaPNConfig) STATE.rentaPNConfig = { añoGravable:2025, añoPresentacion:2026, valorServicio:150000, porcentajeAnticipo:50, cuentas:'', firma:'Yuli - Contadora 😊', docsRequeridos:'RUT actualizado\nCertificados de ingresos y retenciones\nExtractos bancarios\nBienes e inmuebles\nCertificados de créditos o deudas\nMedicina prepagada y dependientes' };
 }
 function save() { STATE._savedAt = Date.now(); localStorage.setItem(SK(), JSON.stringify(STATE)); Sync.schedule(); }
 function getDay(ds) {
@@ -2237,6 +2290,7 @@ function _syncReRender() {
   else if (_CURRENT_PAGE === 'actividades') renderActivityList();
   else if (_CURRENT_PAGE === 'tributario')  renderCalendario();
   else if (_CURRENT_PAGE === 'facturacion') renderFacturacion();
+  else if (_CURRENT_PAGE === 'rentapn')    renderRentaPN();
   _updateTimerUI();
   _renderBanner();
 }
@@ -2251,7 +2305,7 @@ function navigate(page) {
   });
   // Mobile bottom nav active state
   ['mnDashboard','mnAnalitica','mnFacturacion','mnAjustes'].forEach(id=>{const b=el(id);if(b)b.classList.remove('active');});
-  const _mMap={dashboard:'mnDashboard',analitica:'mnAnalitica',facturacion:'mnFacturacion',registro:'mnAjustes',tareas:'mnAjustes',ajustes:'mnAjustes',empresas:'mnAjustes',tributario:'mnAjustes',actividades:'mnAjustes'};
+  const _mMap={dashboard:'mnDashboard',analitica:'mnAnalitica',facturacion:'mnFacturacion',rentapn:'mnFacturacion',registro:'mnAjustes',tareas:'mnAjustes',ajustes:'mnAjustes',empresas:'mnAjustes',tributario:'mnAjustes',actividades:'mnAjustes'};
   if(_mMap[page]&&el(_mMap[page]))el(_mMap[page]).classList.add('active');
   if (page === 'dashboard')   renderDashboard();
   if (page === 'analitica')   renderAnalytics();
@@ -2262,6 +2316,7 @@ function navigate(page) {
   if (page === 'actividades') renderActivityList();
   if (page === 'tributario')  renderCalendario();
   if (page === 'facturacion') renderFacturacion();
+  if (page === 'rentapn')    renderRentaPN();
 }
 function openModal(id)  { const m = el(id); if (m) m.classList.add('open'); }
 function closeModal(id) { const m = el(id); if (m) m.classList.remove('open'); }
@@ -4801,6 +4856,487 @@ function renderFacturacion() {
   ${deduccionesSection}
   ${metricasSection}
   ${groupMgmt}`;
+}
+
+// ── Renta P/N ─────────────────────────────────────────────────────────────────
+const RENTA_ESTADOS = [
+  {id:'pendiente-contacto',    label:'🟡 Pendiente contacto',     avance:5,  color:'#ca8a04'},
+  {id:'pendiente-documentos',  label:'🟠 Pendiente documentos',   avance:15, color:'#ea580c'},
+  {id:'documentos-recibidos',  label:'📂 Documentos recibidos',   avance:35, color:'#0284c7'},
+  {id:'en-revision',           label:'🔎 En revisión',            avance:50, color:'#7c3aed'},
+  {id:'elaborando',            label:'🧾 Elaborando declaración', avance:70, color:'#0891b2'},
+  {id:'pendiente-presentacion',label:'📨 Pendiente presentación', avance:85, color:'#d97706'},
+  {id:'presentada',            label:'✅ Presentada',             avance:95, color:'#059669'},
+  {id:'pendiente-pago-dian',   label:'💰 Pendiente pago DIAN',    avance:95, color:'#dc2626'},
+  {id:'finalizada',            label:'🏁 Finalizada',             avance:100,color:'#16a34a'},
+];
+
+const RENTA_NIT_VENC = {
+  '01':'2026-08-12','02':'2026-08-12','03':'2026-08-13','04':'2026-08-13',
+  '05':'2026-08-14','06':'2026-08-14','07':'2026-08-18','08':'2026-08-18',
+  '09':'2026-08-19','10':'2026-08-19','11':'2026-08-20','12':'2026-08-20',
+  '13':'2026-08-21','14':'2026-08-21','15':'2026-08-24','16':'2026-08-24',
+  '17':'2026-08-25','18':'2026-08-25','19':'2026-08-26','20':'2026-08-26',
+  '21':'2026-08-27','22':'2026-08-27','23':'2026-08-28','24':'2026-08-28',
+  '25':'2026-08-31','26':'2026-08-31','27':'2026-09-01','28':'2026-09-01',
+  '29':'2026-09-02','30':'2026-09-02','31':'2026-09-03','32':'2026-09-03',
+  '33':'2026-09-04','34':'2026-09-04','35':'2026-09-07','36':'2026-09-07',
+  '37':'2026-09-08','38':'2026-09-08','39':'2026-09-09','40':'2026-09-09',
+  '41':'2026-09-10','42':'2026-09-10','43':'2026-09-11','44':'2026-09-11',
+  '45':'2026-09-14','46':'2026-09-14','47':'2026-09-15','48':'2026-09-15',
+  '49':'2026-09-16','50':'2026-09-16','51':'2026-09-17','52':'2026-09-17',
+  '53':'2026-09-18','54':'2026-09-18','55':'2026-09-21','56':'2026-09-21',
+  '57':'2026-09-22','58':'2026-09-22','59':'2026-09-23','60':'2026-09-23',
+  '61':'2026-09-24','62':'2026-09-24','63':'2026-09-25','64':'2026-09-25',
+  '65':'2026-09-28','66':'2026-09-28','67':'2026-10-01','68':'2026-10-01',
+  '69':'2026-10-02','70':'2026-10-02','71':'2026-10-05','72':'2026-10-05',
+  '73':'2026-10-06','74':'2026-10-06','75':'2026-10-07','76':'2026-10-07',
+  '77':'2026-10-08','78':'2026-10-08','79':'2026-10-09','80':'2026-10-09',
+  '81':'2026-10-13','82':'2026-10-13','83':'2026-10-14','84':'2026-10-14',
+  '85':'2026-10-15','86':'2026-10-15','87':'2026-10-16','88':'2026-10-16',
+  '89':'2026-10-19','90':'2026-10-19','91':'2026-10-20','92':'2026-10-20',
+  '93':'2026-10-21','94':'2026-10-21','95':'2026-10-22','96':'2026-10-22',
+  '97':'2026-10-23','98':'2026-10-23','99':'2026-10-26','00':'2026-10-26',
+};
+
+let _rentaFilter = 'todos', _rentaSearch = '', _rentaEditId = null;
+
+function _rentaFechaVenc(cedula) {
+  if (!cedula) return '';
+  const str = String(cedula).replace(/\D/g,'');
+  if (str.length < 2) return '';
+  const ult2 = str.slice(-2).padStart(2,'0');
+  return RENTA_NIT_VENC[ult2] || '';
+}
+function _rentaEstado(id) { return RENTA_ESTADOS.find(e=>e.id===id)||RENTA_ESTADOS[0]; }
+function _rentaAvance(estadoId) { return _rentaEstado(estadoId).avance; }
+function _rentaDiasRestantes(fecha) {
+  if (!fecha) return null;
+  return Math.ceil((new Date(fecha+'T12:00:00') - new Date(todayStr()+'T12:00:00')) / 86400000);
+}
+function _rentaFmtFecha(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso+'T12:00:00');
+  return d.toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'});
+}
+function _rentaFmtCOP(v) {
+  if (!v) return '—';
+  return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',minimumFractionDigits:0,maximumFractionDigits:0}).format(v);
+}
+
+function renderRentaPN() {
+  const e = el('rentaPNBody'); if (!e) return;
+  const clientes = STATE.rentaPN || [];
+  const cfg = STATE.rentaPNConfig || {};
+  const fmtCOP = _rentaFmtCOP;
+  const today = todayStr();
+
+  // KPIs
+  const total = clientes.length;
+  const nuevos = clientes.filter(c=>c.tipoCliente==='nuevo').length;
+  const antiguos = clientes.filter(c=>c.tipoCliente==='antiguo').length;
+  const proyectado = clientes.reduce((a,c)=>a+(c.valorServicio||0),0);
+  const recaudado  = clientes.reduce((a,c)=>a+(c.valorPagado||0),0);
+  const pendienteCobro = proyectado - recaudado;
+  const pctRecaudo = proyectado>0 ? Math.round(recaudado/proyectado*100) : 0;
+  const presentadas = clientes.filter(c=>['presentada','pendiente-pago-dian','finalizada'].includes(c.estadoProceso)).length;
+  const urgentes = clientes.filter(c=>{
+    if(['presentada','finalizada'].includes(c.estadoProceso)) return false;
+    const d = _rentaDiasRestantes(c.fechaDeclaracion);
+    return d !== null && d <= 3;
+  }).length;
+
+  // Alertas
+  const alertas = clientes.filter(c=>{
+    if(['presentada','finalizada'].includes(c.estadoProceso)) return false;
+    const d = _rentaDiasRestantes(c.fechaDeclaracion);
+    return d !== null && d <= 3;
+  }).sort((a,b)=>a.fechaDeclaracion>b.fechaDeclaracion?1:-1);
+
+  const alertaHTML = alertas.length ? `
+  <div class="card" style="margin-bottom:14px;border-left:4px solid #dc2626">
+    <div class="card-header"><span class="card-title">🚨 Declaraciones próximas a vencer</span></div>
+    <div style="padding:0 16px 12px;display:flex;flex-direction:column;gap:8px">
+    ${alertas.map(c=>{
+      const d = _rentaDiasRestantes(c.fechaDeclaracion);
+      const color = d<=0?'#dc2626':d<=1?'#ea580c':'#ca8a04';
+      const label = d<=0?'🔴 Vence HOY':d===1?'🟠 Vence mañana':'🟡 Vence en '+d+' días';
+      const saldo = (c.valorServicio||0)-(c.valorPagado||0);
+      const faltaDocs = ['pendiente-contacto','pendiente-documentos'].includes(c.estadoProceso);
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:${faltaDocs?'#fff5f5':'var(--c-surface2)'};border:1px solid ${color}30;flex-wrap:wrap">
+        <span style="font-size:11px;font-weight:700;color:${color};min-width:130px">${label}</span>
+        <span style="font-size:13px;font-weight:700;flex:1;min-width:120px">${c.nombre}</span>
+        <span style="font-size:11px;color:var(--c-text3)">${c.cedula||''}</span>
+        <span style="font-size:11px;color:var(--c-text3)">${_rentaEstado(c.estadoProceso).label}</span>
+        ${saldo>0?`<span style="font-size:11px;font-weight:700;color:#dc2626">${fmtCOP(saldo)} pendiente</span>`:''}
+        ${c.telefono?`<a href="https://wa.me/57${c.telefono.replace(/\D/g,'')}" target="_blank" style="font-size:11px;background:#25d366;color:#fff;border-radius:6px;padding:3px 9px;text-decoration:none;white-space:nowrap">📱 WhatsApp</a>`:''}
+        <button onclick="_rentaWAOpen('${c.id}')" style="font-size:11px;background:none;border:1px solid var(--c-border);border-radius:6px;padding:3px 9px;cursor:pointer;white-space:nowrap">💬 Mensaje</button>
+      </div>`;
+    }).join('')}
+    </div>
+  </div>` : '';
+
+  // Filtrar clientes
+  let filtered = [...clientes];
+  if (_rentaSearch) {
+    const q = _rentaSearch.toLowerCase();
+    filtered = filtered.filter(c=>(c.nombre||'').toLowerCase().includes(q)||(c.cedula||'').includes(q)||(c.telefono||'').includes(q));
+  }
+  if (_rentaFilter==='nuevos')     filtered = filtered.filter(c=>c.tipoCliente==='nuevo');
+  if (_rentaFilter==='antiguos')   filtered = filtered.filter(c=>c.tipoCliente==='antiguo');
+  if (_rentaFilter==='pagados')    filtered = filtered.filter(c=>(c.valorPagado||0)>0&&(c.valorPagado||0)>=(c.valorServicio||0));
+  if (_rentaFilter==='pendientes') filtered = filtered.filter(c=>!['finalizada'].includes(c.estadoProceso));
+  if (_rentaFilter==='urgentes')   filtered = filtered.filter(c=>{const d=_rentaDiasRestantes(c.fechaDeclaracion);return d!==null&&d<=3&&!['presentada','finalizada'].includes(c.estadoProceso);});
+  if (_rentaFilter==='presentados')filtered = filtered.filter(c=>['presentada','pendiente-pago-dian','finalizada'].includes(c.estadoProceso));
+
+  // Donut chart por estado
+  const estadoCount = {};
+  RENTA_ESTADOS.forEach(e=>{estadoCount[e.id]=0;});
+  clientes.forEach(c=>{if(estadoCount[c.estadoProceso]!==undefined)estadoCount[c.estadoProceso]++;});
+  const donutItems = RENTA_ESTADOS.filter(e=>estadoCount[e.id]>0);
+  let donutSVG = '';
+  if (donutItems.length) {
+    const r=40, cx=60, cy=60, circ=2*Math.PI*r;
+    let offset=0;
+    const totalC=clientes.length||1;
+    const segments = donutItems.map(e=>{
+      const pct=estadoCount[e.id]/totalC;
+      const dash=circ*pct, gap=circ*(1-pct);
+      const seg=`<circle r="${r}" cx="${cx}" cy="${cy}" fill="none" stroke="${e.color}" stroke-width="18" stroke-dasharray="${dash.toFixed(1)} ${gap.toFixed(1)}" stroke-dashoffset="${(circ - offset*circ).toFixed(1)}" transform="rotate(-90 ${cx} ${cy})"/>`;
+      offset+=pct;
+      return seg;
+    }).join('');
+    donutSVG=`<svg width="120" height="120" style="flex-shrink:0">${segments}<text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="16" font-weight="800" fill="var(--c-text)">${totalC}</text></svg>`;
+  }
+
+  const filtersHTML = ['todos','nuevos','antiguos','pagados','pendientes','urgentes','presentados'].map(f=>
+    `<button onclick="_rentaSetFilter('${f}')" style="font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid ${_rentaFilter===f?'var(--c-gold)':'var(--c-border)'};background:${_rentaFilter===f?'var(--c-gold-lt)':'transparent'};color:${_rentaFilter===f?'var(--c-gold)':'var(--c-text3)'};cursor:pointer;font-weight:${_rentaFilter===f?'700':'400'}">${f.charAt(0).toUpperCase()+f.slice(1)}</button>`
+  ).join('');
+
+  const tableRows = filtered.length ? filtered.map(c=>{
+    const estado = _rentaEstado(c.estadoProceso);
+    const avance = _rentaAvance(c.estadoProceso);
+    const saldo = (c.valorServicio||0)-(c.valorPagado||0);
+    const dias = _rentaDiasRestantes(c.fechaDeclaracion);
+    const diasColor = dias===null?'var(--c-text3)':dias<=0?'#dc2626':dias<=3?'#ea580c':dias<=7?'#ca8a04':'var(--c-text3)';
+    const diasLabel = dias===null?'—':dias<=0?'¡HOY!':dias===1?'Mañana':dias+'d';
+    return `<tr style="border-bottom:1px solid var(--c-border)">
+      <td style="padding:10px 12px;font-weight:700;font-size:13px;white-space:nowrap">${c.nombre||'—'}</td>
+      <td style="padding:10px 8px;font-size:12px;color:var(--c-text2);white-space:nowrap">${c.cedula||'—'}</td>
+      <td style="padding:10px 8px;font-size:12px;white-space:nowrap">${c.telefono?`<a href="https://wa.me/57${c.telefono.replace(/\D/g,'')}" target="_blank" style="color:var(--c-teal);text-decoration:none">${c.telefono}</a>`:'—'}</td>
+      <td style="padding:10px 8px;text-align:center"><span style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;background:${c.tipoCliente==='nuevo'?'#e0e7ff':'#f0fdf4'};color:${c.tipoCliente==='nuevo'?'#4f46e5':'#16a34a'}">${c.tipoCliente==='nuevo'?'🆕 Nuevo':'🤝 Antiguo'}</span></td>
+      <td style="padding:10px 8px;font-size:12px;white-space:nowrap;color:${diasColor};font-weight:${dias!==null&&dias<=3?'700':'400'}">${_rentaFmtFecha(c.fechaDeclaracion)} <span style="font-size:10px">${diasLabel}</span></td>
+      <td style="padding:10px 8px;font-size:12px;text-align:center;color:var(--c-text2)">${c.ultimosDigitosCedula||'—'}</td>
+      <td style="padding:10px 8px;white-space:nowrap"><span style="font-size:11px;padding:3px 8px;border-radius:6px;background:${estado.color}20;color:${estado.color};font-weight:600">${estado.label}</span></td>
+      <td style="padding:10px 8px;font-size:12px;text-align:right;white-space:nowrap">${c.valorServicio?_rentaFmtCOP(c.valorServicio):'—'}</td>
+      <td style="padding:10px 8px;font-size:12px;text-align:right;white-space:nowrap;color:#16a34a;font-weight:${c.valorPagado?'700':'400'}">${c.valorPagado?_rentaFmtCOP(c.valorPagado):'—'}</td>
+      <td style="padding:10px 8px;font-size:11px;color:var(--c-text3);white-space:nowrap">${c.medioPago||'—'}</td>
+      <td style="padding:10px 8px;font-size:12px;text-align:right;white-space:nowrap;color:${saldo>0?'#dc2626':'var(--c-text3)'};font-weight:${saldo>0?'700':'400'}">${saldo>0?_rentaFmtCOP(saldo):'✓'}</td>
+      <td style="padding:10px 12px;min-width:110px">
+        <div style="background:var(--c-surface2);border-radius:4px;height:6px;overflow:hidden">
+          <div style="height:100%;width:${avance}%;background:${estado.color};border-radius:4px;transition:width .3s"></div>
+        </div>
+        <div style="font-size:10px;color:var(--c-text3);margin-top:2px;text-align:center">${avance}%</div>
+      </td>
+      <td style="padding:10px 8px;font-size:11px;color:var(--c-text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.observaciones||''}">${c.observaciones||'—'}</td>
+      <td style="padding:10px 8px;white-space:nowrap">
+        <div style="display:flex;gap:4px">
+          <button onclick="_rentaWAOpen('${c.id}')" title="WhatsApp" style="background:none;border:1px solid var(--c-border);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:13px">💬</button>
+          <button onclick="_rentaOpenModal('${c.id}')" title="Editar" style="background:none;border:1px solid var(--c-border);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:13px">✎</button>
+          <button onclick="_rentaDelete('${c.id}')" title="Eliminar" style="background:none;border:1px solid var(--c-border);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:13px;color:var(--c-red)">✕</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="14" style="padding:24px;text-align:center;color:var(--c-text3);font-size:13px">Sin clientes${_rentaSearch||_rentaFilter!=='todos'?' que coincidan con el filtro':' aún. Agrega el primero con ➕ Cliente'}.</td></tr>`;
+
+  e.innerHTML = `
+  <!-- KPI Bar -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px">
+    ${[
+      {lbl:'💰 Proyectado',  val:fmtCOP(proyectado), sub:'ingresos esperados', color:'gold'},
+      {lbl:'✅ Recaudado',   val:fmtCOP(recaudado),  sub:`${pctRecaudo}% del total`, color:'teal'},
+      {lbl:'⏳ Por cobrar',  val:fmtCOP(pendienteCobro), sub:'saldo pendiente', color:'amber'},
+      {lbl:'👥 Clientes',   val:total, sub:`${nuevos} nuevos · ${antiguos} antiguos`, color:'teal'},
+      {lbl:'📑 Presentadas',val:presentadas, sub:`de ${total} totales`, color:'teal'},
+      {lbl:'🚨 Urgentes',   val:urgentes, sub:'vencen en ≤3 días', color:urgentes>0?'amber':'teal'},
+    ].map(k=>`<div class="stat-card ${k.color}" style="margin:0">
+      <div class="stat-label">${k.lbl}</div>
+      <div class="stat-value ${k.color}" style="font-size:20px">${k.val}</div>
+      <div class="stat-sub">${k.sub}</div>
+    </div>`).join('')}
+  </div>
+
+  ${alertaHTML}
+
+  <!-- Tabla -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-header" style="flex-wrap:wrap;gap:8px">
+      <span class="card-title">Clientes ${total>0?`(${filtered.length}${filtered.length!==total?' de '+total:''})`:''}  </span>
+      <input type="text" placeholder="🔍 Buscar por nombre, cédula o teléfono…" oninput="_rentaSetSearch(this.value)"
+        value="${_rentaSearch}" style="flex:1;min-width:200px;max-width:320px;padding:5px 10px;border:1px solid var(--c-border);border-radius:8px;font-size:12px;background:var(--c-surface);color:var(--c-text)">
+      <div style="display:flex;gap:4px;flex-wrap:wrap">${filtersHTML}</div>
+    </div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;min-width:900px">
+        <thead>
+          <tr style="background:var(--c-surface2);font-size:10px;color:var(--c-text3);text-transform:uppercase;letter-spacing:.5px">
+            <th style="padding:8px 12px;text-align:left;font-weight:600">👤 Cliente</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">🪪 Cédula</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">📱 Teléfono</th>
+            <th style="padding:8px 8px;text-align:center;font-weight:600">Tipo</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">📅 Vencimiento</th>
+            <th style="padding:8px 8px;text-align:center;font-weight:600">🔢 NIT</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">📌 Estado</th>
+            <th style="padding:8px 8px;text-align:right;font-weight:600">💵 Servicio</th>
+            <th style="padding:8px 8px;text-align:right;font-weight:600">💰 Pagado</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">💳 Medio</th>
+            <th style="padding:8px 8px;text-align:right;font-weight:600">⚠️ Saldo</th>
+            <th style="padding:8px 12px;text-align:left;font-weight:600">📈 Avance</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">📝 Notas</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">⚙️</th>
+          </tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Gráfica donut -->
+  ${donutItems.length ? `<div class="card" style="margin-bottom:14px">
+    <div class="card-header"><span class="card-title">🍩 Estado del proceso</span></div>
+    <div style="padding:16px;display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+      ${donutSVG}
+      <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:200px">
+        ${donutItems.map(e=>`<div style="display:flex;align-items:center;gap:8px">
+          <div style="width:10px;height:10px;border-radius:50%;background:${e.color};flex-shrink:0"></div>
+          <span style="font-size:12px;flex:1">${e.label}</span>
+          <span style="font-size:12px;font-weight:700;color:var(--c-text)">${estadoCount[e.id]}</span>
+          <span style="font-size:11px;color:var(--c-text3)">${Math.round(estadoCount[e.id]/(clientes.length||1)*100)}%</span>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>` : ''}`;
+}
+
+function _rentaSetFilter(f) { _rentaFilter=f; renderRentaPN(); }
+function _rentaSetSearch(v) { _rentaSearch=v; renderRentaPN(); }
+
+function _rentaOpenModal(id) {
+  _rentaEditId = id || null;
+  const c = id ? (STATE.rentaPN||[]).find(x=>x.id===id) : null;
+  const cfg = STATE.rentaPNConfig||{};
+  const isNew = !c;
+  if(el('rentaModalTitle')) el('rentaModalTitle').textContent = isNew ? '➕ Nuevo cliente' : '✎ Editar cliente';
+
+  // Auto-calcular fecha de vencimiento cuando cambia cédula
+  const cedVal = c ? (c.cedula||'') : '';
+  const fechaVenc = c ? (c.fechaDeclaracion||_rentaFechaVenc(cedVal)) : '';
+
+  const mb = el('rentaModalBody'); if (!mb) return;
+  mb.innerHTML = `
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div style="grid-column:1/-1">
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">👤 Nombre completo</label>
+      <input id="rn_nombre" type="text" class="field-input" value="${c?c.nombre:''}" placeholder="Nombre del cliente" style="width:100%;margin-top:4px">
+    </div>
+    <div>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">🪪 Cédula</label>
+      <input id="rn_cedula" type="text" class="field-input" value="${c?c.cedula:''}" placeholder="Número de cédula" oninput="_rentaAutoVenc()" style="width:100%;margin-top:4px">
+    </div>
+    <div>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">📱 Teléfono / WhatsApp</label>
+      <input id="rn_telefono" type="text" class="field-input" value="${c?c.telefono:''}" placeholder="Ej: 3001234567" style="width:100%;margin-top:4px">
+    </div>
+    <div>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">🆕 Tipo de cliente</label>
+      <select id="rn_tipo" class="field-input" style="width:100%;margin-top:4px">
+        <option value="nuevo" ${(!c||c.tipoCliente==='nuevo')?'selected':''}>🆕 Nuevo</option>
+        <option value="antiguo" ${c&&c.tipoCliente==='antiguo'?'selected':''}>🤝 Antiguo</option>
+      </select>
+    </div>
+    <div>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">📌 Estado del proceso</label>
+      <select id="rn_estado" class="field-input" style="width:100%;margin-top:4px">
+        ${RENTA_ESTADOS.map(e=>`<option value="${e.id}" ${c&&c.estadoProceso===e.id?'selected':''}>${e.label}</option>`).join('')}
+      </select>
+    </div>
+    <div>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">📅 Fecha vencimiento DIAN</label>
+      <input id="rn_fecha" type="date" class="field-input" value="${fechaVenc}" style="width:100%;margin-top:4px">
+      <div style="font-size:10px;color:var(--c-text3);margin-top:2px">Se calcula automáticamente por cédula</div>
+    </div>
+    <div>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">💵 Valor del servicio</label>
+      <input id="rn_valor" type="text" inputmode="numeric" class="field-input" value="${c&&c.valorServicio?c.valorServicio:cfg.valorServicio||''}" placeholder="$ Valor" style="width:100%;margin-top:4px">
+    </div>
+    <div>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">💰 Valor pagado</label>
+      <input id="rn_pagado" type="text" inputmode="numeric" class="field-input" value="${c?c.valorPagado||'':''}" placeholder="$ Pagado" style="width:100%;margin-top:4px">
+    </div>
+    <div>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">💳 Medio de pago</label>
+      <select id="rn_medio" class="field-input" style="width:100%;margin-top:4px">
+        <option value="">Seleccionar…</option>
+        ${['Nequi','Daviplata','Transferencia bancaria','Efectivo','Bancolombia','PSE'].map(m=>`<option value="${m}" ${c&&c.medioPago===m?'selected':''}>${m}</option>`).join('')}
+        <option value="Otro" ${c&&c.medioPago==='Otro'?'selected':''}>Otro</option>
+      </select>
+    </div>
+    <div>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">🔢 Últimos 2 dígitos NIT</label>
+      <input id="rn_ult2" type="text" class="field-input" value="${c?c.ultimosDigitosCedula||'':''}" maxlength="2" placeholder="00-99" style="width:100%;margin-top:4px">
+    </div>
+    <div style="grid-column:1/-1">
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">📝 Observaciones</label>
+      <textarea id="rn_obs" class="field-input" rows="2" placeholder="Notas adicionales…" style="width:100%;margin-top:4px;resize:vertical">${c?c.observaciones||'':''}</textarea>
+    </div>
+  </div>`;
+  openModal('rentaModal');
+}
+
+function _rentaAutoVenc() {
+  const ced = (el('rn_cedula')||{}).value||'';
+  const f = _rentaFechaVenc(ced);
+  if (f && el('rn_fecha')) el('rn_fecha').value = f;
+  const ult2 = ced.replace(/\D/g,'').slice(-2);
+  if (el('rn_ult2')) el('rn_ult2').value = ult2;
+}
+
+function _rentaSaveModal() {
+  const nombre = (el('rn_nombre')||{}).value?.trim();
+  if (!nombre) { showToast('El nombre es obligatorio'); return; }
+  const cedula = String((el('rn_cedula')||{}).value||'').trim();
+  const data = {
+    nombre, cedula,
+    telefono: (el('rn_telefono')||{}).value?.trim()||'',
+    tipoCliente: (el('rn_tipo')||{}).value||'nuevo',
+    estadoProceso: (el('rn_estado')||{}).value||'pendiente-contacto',
+    fechaDeclaracion: (el('rn_fecha')||{}).value||'',
+    valorServicio: parseInt(((el('rn_valor')||{}).value||'0').replace(/\D/g,''))||0,
+    valorPagado: parseInt(((el('rn_pagado')||{}).value||'0').replace(/\D/g,''))||0,
+    medioPago: (el('rn_medio')||{}).value||'',
+    ultimosDigitosCedula: (el('rn_ult2')||{}).value?.trim()||'',
+    observaciones: (el('rn_obs')||{}).value?.trim()||'',
+    fechaActualizacion: new Date().toISOString(),
+  };
+  data.saldoPendiente = data.valorServicio - data.valorPagado;
+  if (!STATE.rentaPN) STATE.rentaPN = [];
+  if (_rentaEditId) {
+    const idx = STATE.rentaPN.findIndex(c=>c.id===_rentaEditId);
+    if (idx>=0) STATE.rentaPN[idx] = {...STATE.rentaPN[idx], ...data};
+  } else {
+    data.id = 'rn_'+Date.now();
+    data.fechaCreacion = new Date().toISOString();
+    STATE.rentaPN.push(data);
+  }
+  save(); closeModal('rentaModal'); renderRentaPN();
+  showToast(_rentaEditId ? 'Cliente actualizado' : 'Cliente agregado');
+}
+
+function _rentaDelete(id) {
+  if (!confirm('¿Eliminar este cliente?')) return;
+  STATE.rentaPN = (STATE.rentaPN||[]).filter(c=>c.id!==id);
+  save(); renderRentaPN(); showToast('Cliente eliminado');
+}
+
+// ── WhatsApp ──────────────────────────────────────────────────────────────────
+const RENTA_WA_MSGS = [
+  { id:1, label:'📩 Primer contacto',       fn:(c,cfg)=>`Hola ${c.nombre} 👋🏻\n\nTe saluda Yuli, tu contadora 😊\n\nQuiero recordarte que este año debes presentar tu Declaración de Renta como Persona Natural y tu fecha límite asignada por la DIAN es el día ${_rentaFmtFecha(c.fechaDeclaracion)} 📅\n\nPara trabajar con tranquilidad y evitar contratiempos de última hora, me gustaría que iniciáramos el proceso con suficiente anticipación.\n\n📂 Información que necesitaremos:\n\n${(cfg.docsRequeridos||'').split('\n').map(d=>`• ${d.trim()}`).join('\n')}\n\nRecuerda que la obligación de declarar puede originarse por ingresos, patrimonio, consumos, compras, consignaciones o movimientos financieros que superen los topes establecidos por la DIAN.\n\nQuedo muy atenta para acompañarte durante todo el proceso 😊` },
+  { id:2, label:'⏰ Recordatorio documentos', fn:(c)=>`Hola ${c.nombre} 👋🏻\n\nTe escribo para recordarte que seguimos pendientes de recibir la documentación necesaria para elaborar tu Declaración de Renta 📂\n\nTu fecha límite para declarar es el ${_rentaFmtFecha(c.fechaDeclaracion)} 📅\n\nMientras más pronto contemos con la información, más tiempo tendremos para revisar correctamente cada detalle y evitar inconvenientes o sanciones.\n\nQuedo muy atenta a tu envío 😊` },
+  { id:3, label:'🚨 Recordatorio urgente',   fn:(c)=>`Hola ${c.nombre} 👋🏻\n\nTe escribo porque tu fecha límite para presentar la Declaración de Renta es el ${_rentaFmtFecha(c.fechaDeclaracion)} 🚨\n\nAún tenemos información pendiente para finalizar el proceso y es importante avanzar lo antes posible para evitar sanciones o intereses por presentación extemporánea.\n\nPor favor envíame la documentación pendiente o escríbeme para coordinar lo necesario.\n\nQuedo atenta 😊` },
+  { id:4, label:'💳 Solicitud anticipo',     fn:(c,cfg)=>{const ant=Math.round((c.valorServicio||cfg.valorServicio||0)*(cfg.porcentajeAnticipo||50)/100);return `Hola ${c.nombre} 👋🏻\n\nPara iniciar formalmente la elaboración de tu Declaración de Renta, te solicito amablemente el anticipo acordado para el servicio 💳\n\n💰 Valor total del servicio: $${(c.valorServicio||0).toLocaleString('es-CO')}\n💵 Anticipo solicitado: $${ant.toLocaleString('es-CO')}\n\nUna vez realizado el pago puedes enviarme el comprobante y continuaremos inmediatamente con el proceso.\n\nMuchas gracias por tu confianza 😊`;} },
+  { id:5, label:'🔎 Proceso en curso',       fn:(c)=>`Hola ${c.nombre} 👋🏻\n\nQuiero informarte que ya me encuentro trabajando en la revisión y elaboración de tu Declaración de Renta 🧾\n\nActualmente estoy validando la información recibida para asegurar que todo quede correctamente presentado ante la DIAN.\n\nSi requiero algún documento adicional te estaré contactando oportunamente.\n\nSeguimos avanzando 😊` },
+  { id:6, label:'✅ Declaración presentada', fn:(c)=>`Hola ${c.nombre} 👋🏻\n\nTe confirmo que tu Declaración de Renta ya fue presentada exitosamente ante la DIAN ✅\n\nEn las próximas horas te compartiré el soporte correspondiente y la documentación final para tus archivos.\n\nGracias por confiar en mi trabajo y permitirme acompañarte en este proceso 😊` },
+  { id:7, label:'💰 Pago DIAN pendiente',    fn:(c)=>`Hola ${c.nombre} 👋🏻\n\nTu Declaración de Renta ya fue presentada correctamente ✅\n\nSin embargo, quedó un valor pendiente de pago ante la DIAN por:\n\n💰 $${(c.valorDIAN||0).toLocaleString('es-CO')}\n\nLa fecha límite de pago es el ${_rentaFmtFecha(c.fechaDeclaracion)} 📅\n\nTe recomiendo realizarlo antes del vencimiento para evitar intereses o sanciones.\n\nUna vez realizado el pago, por favor compárteme el soporte 😊` },
+  { id:8, label:'💵 Cobro servicio',         fn:(c,cfg)=>`Hola ${c.nombre} 👋🏻\n\nQuiero agradecerte por confiar en mi acompañamiento para la elaboración de tu Declaración de Renta 😊\n\nTe comparto el valor pendiente correspondiente a los honorarios del servicio:\n\n💰 Saldo pendiente: $${((c.valorServicio||0)-(c.valorPagado||0)).toLocaleString('es-CO')}\n\nPuedes realizar el pago mediante:\n${cfg.cuentas||'Nequi / Transferencia bancaria'}\n\nCuando realices el pago, agradeceré me compartas el comprobante para registrar la operación.\n\nMuchas gracias.` },
+  { id:9, label:'🏁 Cierre del proceso',     fn:(c)=>`Hola ${c.nombre} 👋🏻\n\nHemos finalizado completamente tu proceso de Declaración de Renta correspondiente a este año 🏁\n\nLa declaración fue presentada y todos los compromisos asociados quedaron al día.\n\nGracias nuevamente por tu confianza y por permitirme acompañarte como tu contadora 😊\n\nQuedo atenta para cualquier consulta futura.` },
+  { id:10, label:'✏️ Mensaje personalizado', fn:(c)=>`` },
+];
+
+let _rentaWAClientId = null, _rentaWAMsgId = 1;
+
+function _rentaWAOpen(clientId) {
+  _rentaWAClientId = clientId;
+  _rentaWAMsgId = 1;
+  _rentaWARender();
+  openModal('rentaWAModal');
+}
+function _rentaWARender() {
+  const wb = el('rentaWABody'); if (!wb) return;
+  const c = (STATE.rentaPN||[]).find(x=>x.id===_rentaWAClientId);
+  if (!c) return;
+  const cfg = STATE.rentaPNConfig||{};
+  const msgDef = RENTA_WA_MSGS.find(m=>m.id===_rentaWAMsgId)||RENTA_WA_MSGS[0];
+  const texto = msgDef.fn(c, cfg);
+  wb.innerHTML = `
+  <div style="margin-bottom:10px">
+    <select onchange="_rentaWAMsgId=parseInt(this.value);_rentaWARender()" class="field-input" style="width:100%">
+      ${RENTA_WA_MSGS.map(m=>`<option value="${m.id}" ${m.id===_rentaWAMsgId?'selected':''}>${m.label}</option>`).join('')}
+    </select>
+  </div>
+  <textarea id="rentaWAText" class="field-input" rows="12" style="width:100%;font-size:13px;line-height:1.6;resize:vertical">${texto}</textarea>
+  ${c.telefono?`<div style="margin-top:8px"><a href="https://wa.me/57${c.telefono.replace(/\D/g,'')}?text=${encodeURIComponent(texto)}" target="_blank" style="display:inline-block;background:#25d366;color:#fff;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700">📱 Abrir en WhatsApp</a></div>`:''}`;
+}
+function _rentaCopyWA() {
+  const t = el('rentaWAText'); if (!t) return;
+  navigator.clipboard.writeText(t.value).then(()=>showToast('¡Mensaje copiado!')).catch(()=>{t.select();document.execCommand('copy');showToast('¡Copiado!');});
+}
+
+// ── Config ────────────────────────────────────────────────────────────────────
+function _rentaOpenConfig() {
+  const cfg = STATE.rentaPNConfig||{};
+  const cb = el('rentaConfigBody'); if (!cb) return;
+  cb.innerHTML = `
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div>
+        <label style="font-size:11px;color:var(--c-text3);font-weight:600">Año gravable</label>
+        <input id="rc_añog" type="number" class="field-input" value="${cfg.añoGravable||2025}" style="width:100%;margin-top:4px">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--c-text3);font-weight:600">Año de presentación</label>
+        <input id="rc_añop" type="number" class="field-input" value="${cfg.añoPresentacion||2026}" style="width:100%;margin-top:4px">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--c-text3);font-weight:600">💵 Valor sugerido servicio</label>
+        <input id="rc_valor" type="text" inputmode="numeric" class="field-input" value="${cfg.valorServicio||''}" placeholder="$" style="width:100%;margin-top:4px">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--c-text3);font-weight:600">📊 % Anticipo</label>
+        <input id="rc_ant" type="number" class="field-input" value="${cfg.porcentajeAnticipo||50}" min="0" max="100" style="width:100%;margin-top:4px">
+      </div>
+    </div>
+    <div>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">🏦 Cuentas bancarias para pago</label>
+      <textarea id="rc_cuentas" class="field-input" rows="3" style="width:100%;margin-top:4px;resize:vertical" placeholder="Ej: Nequi: 3001234567 – Yuli Castrillón">${cfg.cuentas||''}</textarea>
+    </div>
+    <div>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">📋 Documentos requeridos (uno por línea)</label>
+      <textarea id="rc_docs" class="field-input" rows="5" style="width:100%;margin-top:4px;resize:vertical">${cfg.docsRequeridos||''}</textarea>
+    </div>
+  </div>`;
+  openModal('rentaConfigModal');
+}
+function _rentaSaveConfig() {
+  if (!STATE.rentaPNConfig) STATE.rentaPNConfig = {};
+  STATE.rentaPNConfig.añoGravable = parseInt((el('rc_añog')||{}).value)||2025;
+  STATE.rentaPNConfig.añoPresentacion = parseInt((el('rc_añop')||{}).value)||2026;
+  STATE.rentaPNConfig.valorServicio = parseInt(((el('rc_valor')||{}).value||'').replace(/\D/g,''))||0;
+  STATE.rentaPNConfig.porcentajeAnticipo = parseInt((el('rc_ant')||{}).value)||50;
+  STATE.rentaPNConfig.cuentas = (el('rc_cuentas')||{}).value?.trim()||'';
+  STATE.rentaPNConfig.docsRequeridos = (el('rc_docs')||{}).value?.trim()||'';
+  save(); closeModal('rentaConfigModal'); showToast('Configuración guardada');
+}
+
+function _rentaExportCSV() {
+  const clientes = STATE.rentaPN||[];
+  if (!clientes.length) { showToast('Sin clientes para exportar'); return; }
+  const headers = ['Nombre','Cédula','Teléfono','Tipo','Estado','Fecha vencimiento','Valor servicio','Pagado','Saldo','Medio pago','Observaciones'];
+  const rows = clientes.map(c=>[c.nombre,c.cedula,c.telefono,c.tipoCliente,_rentaEstado(c.estadoProceso).label.replace(/[^\w\s]/g,'').trim(),c.fechaDeclaracion,c.valorServicio||0,c.valorPagado||0,(c.valorServicio||0)-(c.valorPagado||0),c.medioPago,c.observaciones||''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
+  const csv = [headers.join(','),...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);
+  a.download = `renta_pn_${todayStr()}.csv`;
+  a.click();
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
