@@ -5404,7 +5404,8 @@ function _rentaExportCSV() {
 
 // ── Renta P/N histórico 2025 ──────────────────────────────────────────────────
 function _rentaImportHistorico() {
-  if ((STATE.rentaPN||[]).length > 0) return;
+  if (STATE.rentaPNHistoricoImportado) return;
+  STATE.rentaPNHistoricoImportado = true;
   // [nombre, cedula, fPres, usuario, clave, firma, cobro, obs, dondePago, fPago, tel, referido, tipo]
   // tipo: 'a'=antiguo, 'n'=nuevo, 'd'=desertó
   const rows = [
@@ -5509,7 +5510,9 @@ function _rentaImportHistorico() {
     ['Esperanza Garcia','41378286','2025-10-15','41378286','Panchi45*+','Panchi45*+',200000,'Declaracion Presentada','TD YULIETH','2025-10-24','','Si - Referido Caml Mg','n'],
   ];
   const tipoMap = {'a':'antiguo','n':'nuevo','d':'desertó'};
-  STATE.rentaPN = rows.map((r,i) => {
+  const existingCedulas = new Set((STATE.rentaPN||[]).map(c=>String(c.cedula).replace(/\D/g,'')));
+  const newClients = rows.filter(r=>!existingCedulas.has(String(r[1]).replace(/\D/g,'')));
+  const imported = newClients.map((r,i) => {
     const [nombre,cedula,fPres,usuario,clave,firma,cobro,obs,dondePago,fPago,tel,referido,tipo] = r;
     const esPresentada = obs.includes('Presentada');
     const esDesertado = tipo==='d';
@@ -5537,6 +5540,7 @@ function _rentaImportHistorico() {
       fechaActualizacion:new Date().toISOString(),
     };
   });
+  STATE.rentaPN = [...(STATE.rentaPN||[]), ...imported];
   save();
 }
 
