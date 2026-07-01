@@ -5024,16 +5024,20 @@ function renderRentaPN() {
       <td style="padding:10px 12px;font-weight:700;font-size:13px;white-space:nowrap">${c.nombre||'—'}</td>
       <td style="padding:10px 8px;font-size:12px;color:var(--c-text2);white-space:nowrap">${c.cedula||'—'}</td>
       <td style="padding:10px 8px;font-size:12px;white-space:nowrap">${c.telefono?`<a href="https://wa.me/57${c.telefono.replace(/\D/g,'')}" target="_blank" style="color:var(--c-teal);text-decoration:none">${c.telefono}</a>`:'—'}</td>
-      <td style="padding:10px 8px;text-align:center"><span style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;background:${c.tipoCliente==='nuevo'?'#e0e7ff':'#f0fdf4'};color:${c.tipoCliente==='nuevo'?'#4f46e5':'#16a34a'}">${c.tipoCliente==='nuevo'?'🆕 Nuevo':'🤝 Antiguo'}</span></td>
+      <td style="padding:10px 8px;text-align:center"><span style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;background:${c.tipoCliente==='nuevo'?'#e0e7ff':c.tipoCliente==='desertó'?'#fef3c7':'#f0fdf4'};color:${c.tipoCliente==='nuevo'?'#4f46e5':c.tipoCliente==='desertó'?'#ca8a04':'#16a34a'}">${c.tipoCliente==='nuevo'?'🆕 Nuevo':c.tipoCliente==='desertó'?'⚠️ Desertó':'🤝 Antiguo'}</span></td>
+      <td style="padding:10px 8px;font-size:12px;white-space:nowrap;color:var(--c-text2)">${c.fechaPresentacion?_rentaFmtFecha(c.fechaPresentacion):'—'}</td>
       <td style="padding:10px 8px;font-size:12px;white-space:nowrap;color:${diasColor};font-weight:${dias!==null&&dias<=3?'700':'400'}">${_rentaFmtFecha(c.fechaDeclaracion)} <span style="font-size:10px">${diasLabel}</span></td>
       <td style="padding:10px 8px;font-size:12px;text-align:center;color:var(--c-text2)">${c.ultimosDigitosCedula||'—'}</td>
       <td style="padding:10px 8px;font-size:12px;color:var(--c-text2);white-space:nowrap">${c.usuarioDian||'—'}</td>
-      <td style="padding:10px 8px;white-space:nowrap">${c.contrasenaPortal?`<div style="display:flex;align-items:center;gap:4px"><span id="rpw_${c.id}" style="font-size:12px;letter-spacing:2px;color:var(--c-text3)">••••••</span><button onclick="_rentaCopyPwd('${c.id}')" title="Copiar contraseña" style="background:none;border:1px solid var(--c-border);border-radius:5px;padding:2px 6px;cursor:pointer;font-size:11px">📋</button></div>`:'—'}</td>
+      <td style="padding:10px 8px;white-space:nowrap">${c.contrasenaPortal?`<div style="display:flex;align-items:center;gap:4px"><span style="font-size:12px;letter-spacing:2px;color:var(--c-text3)">••••</span><button onclick="_rentaCopyPwd('${c.id}','clave')" title="Copiar contraseña" style="background:none;border:1px solid var(--c-border);border-radius:5px;padding:2px 6px;cursor:pointer;font-size:11px">📋</button></div>`:'—'}</td>
+      <td style="padding:10px 8px;white-space:nowrap">${c.firmaDian?`<div style="display:flex;align-items:center;gap:4px"><span style="font-size:12px;letter-spacing:2px;color:var(--c-text3)">••••</span><button onclick="_rentaCopyPwd('${c.id}','firma')" title="Copiar firma" style="background:none;border:1px solid var(--c-border);border-radius:5px;padding:2px 6px;cursor:pointer;font-size:11px">📋</button></div>`:'—'}</td>
       <td style="padding:10px 8px;white-space:nowrap"><span style="font-size:11px;padding:3px 8px;border-radius:6px;background:${estado.color}20;color:${estado.color};font-weight:600">${estado.label}</span></td>
       <td style="padding:10px 8px;font-size:12px;text-align:right;white-space:nowrap">${c.valorServicio?_rentaFmtCOP(c.valorServicio):'—'}</td>
       <td style="padding:10px 8px;font-size:12px;text-align:right;white-space:nowrap;color:#16a34a;font-weight:${c.valorPagado?'700':'400'}">${c.valorPagado?_rentaFmtCOP(c.valorPagado):'—'}</td>
-      <td style="padding:10px 8px;font-size:11px;color:var(--c-text3);white-space:nowrap">${c.medioPago||'—'}</td>
       <td style="padding:10px 8px;font-size:12px;text-align:right;white-space:nowrap;color:${saldo>0?'#dc2626':'var(--c-text3)'};font-weight:${saldo>0?'700':'400'}">${saldo>0?_rentaFmtCOP(saldo):'✓'}</td>
+      <td style="padding:10px 8px;font-size:11px;color:var(--c-text2);white-space:nowrap">${c.dondePago||'—'}</td>
+      <td style="padding:10px 8px;font-size:11px;color:var(--c-text2);white-space:nowrap">${c.fechaPago?_rentaFmtFecha(c.fechaPago):'—'}</td>
+      <td style="padding:10px 8px;font-size:11px;color:var(--c-text3);white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis">${c.referidoInfo||'—'}</td>
       <td style="padding:10px 12px;min-width:110px">
         <div style="background:var(--c-surface2);border-radius:4px;height:6px;overflow:hidden">
           <div style="height:100%;width:${avance}%;background:${estado.color};border-radius:4px;transition:width .3s"></div>
@@ -5086,15 +5090,19 @@ function renderRentaPN() {
             <th style="padding:8px 8px;text-align:left;font-weight:600">🪪 Cédula</th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">📱 Teléfono</th>
             <th style="padding:8px 8px;text-align:center;font-weight:600">Tipo</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">📆 F. Presentación</th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">📅 Vencimiento</th>
             <th style="padding:8px 8px;text-align:center;font-weight:600">🔢 Últ. Díg.</th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">👤 Usuario</th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">🔑 Contraseña</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">✍️ Firma</th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">📌 Estado</th>
             <th style="padding:8px 8px;text-align:right;font-weight:600">💵 Servicio</th>
             <th style="padding:8px 8px;text-align:right;font-weight:600">💰 Pagado</th>
-            <th style="padding:8px 8px;text-align:left;font-weight:600">💳 Medio</th>
             <th style="padding:8px 8px;text-align:right;font-weight:600">⚠️ Saldo</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">🏦 Donde Pagó</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">📅 F. Pago</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">👥 Referido</th>
             <th style="padding:8px 12px;text-align:left;font-weight:600">📈 Avance</th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">📝 Notas</th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">⚙️</th>
@@ -5156,6 +5164,7 @@ function _rentaOpenModal(id) {
       <select id="rn_tipo" class="field-input" style="width:100%;margin-top:4px">
         <option value="nuevo" ${(!c||c.tipoCliente==='nuevo')?'selected':''}>🆕 Nuevo</option>
         <option value="antiguo" ${c&&c.tipoCliente==='antiguo'?'selected':''}>🤝 Antiguo</option>
+        <option value="desertó" ${c&&c.tipoCliente==='desertó'?'selected':''}>⚠️ Desertó</option>
       </select>
     </div>
     <div>
@@ -5165,23 +5174,34 @@ function _rentaOpenModal(id) {
       </select>
     </div>
     <div>
-      <label style="font-size:11px;color:var(--c-text3);font-weight:600">📅 Fecha vencimiento DIAN</label>
-      <input id="rn_fecha" type="date" class="field-input" value="${fechaVenc}" style="width:100%;margin-top:4px">
-      <div style="font-size:10px;color:var(--c-text3);margin-top:2px">Se calcula automáticamente por cédula</div>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">📆 Fecha presentación</label>
+      <input id="rn_fpres" type="date" class="field-input" value="${c?c.fechaPresentacion||'':''}" style="width:100%;margin-top:4px">
     </div>
     <div>
-      <label style="font-size:11px;color:var(--c-text3);font-weight:600">👤 Usuario portal DIAN</label>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">📅 Vencimiento DIAN</label>
+      <input id="rn_fecha" type="date" class="field-input" value="${fechaVenc}" style="width:100%;margin-top:4px">
+      <div style="font-size:10px;color:var(--c-text3);margin-top:2px">Auto por cédula</div>
+    </div>
+    <div>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">👤 Usuario DIAN</label>
       <input id="rn_usuario" type="text" class="field-input" value="${c?c.usuarioDian||'':''}" placeholder="Usuario o NIT" style="width:100%;margin-top:4px">
     </div>
     <div>
-      <label style="font-size:11px;color:var(--c-text3);font-weight:600">🔑 Contraseña portal</label>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">🔑 Contraseña DIAN</label>
       <div style="position:relative;margin-top:4px">
         <input id="rn_clave" type="password" class="field-input" value="${c?c.contrasenaPortal||'':''}" placeholder="Contraseña" style="width:100%;padding-right:38px;box-sizing:border-box">
         <button type="button" onclick="_rentaTogglePwd('rn_clave',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:15px;color:var(--c-text3)" title="Mostrar/ocultar">👁</button>
       </div>
     </div>
     <div>
-      <label style="font-size:11px;color:var(--c-text3);font-weight:600">💵 Valor del servicio</label>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">✍️ Firma</label>
+      <div style="position:relative;margin-top:4px">
+        <input id="rn_firma" type="password" class="field-input" value="${c?c.firmaDian||'':''}" placeholder="Clave firma" style="width:100%;padding-right:38px;box-sizing:border-box">
+        <button type="button" onclick="_rentaTogglePwd('rn_firma',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:15px;color:var(--c-text3)" title="Mostrar/ocultar">👁</button>
+      </div>
+    </div>
+    <div>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">💵 Cobro</label>
       <input id="rn_valor" type="text" inputmode="numeric" class="field-input" value="${c&&c.valorServicio?c.valorServicio:cfg.valorServicio||''}" placeholder="$ Valor" style="width:100%;margin-top:4px">
     </div>
     <div>
@@ -5189,16 +5209,20 @@ function _rentaOpenModal(id) {
       <input id="rn_pagado" type="text" inputmode="numeric" class="field-input" value="${c?c.valorPagado||'':''}" placeholder="$ Pagado" style="width:100%;margin-top:4px">
     </div>
     <div>
-      <label style="font-size:11px;color:var(--c-text3);font-weight:600">💳 Medio de pago</label>
-      <select id="rn_medio" class="field-input" style="width:100%;margin-top:4px">
-        <option value="">Seleccionar…</option>
-        ${['Nequi','Daviplata','Transferencia bancaria','Efectivo','Bancolombia','PSE'].map(m=>`<option value="${m}" ${c&&c.medioPago===m?'selected':''}>${m}</option>`).join('')}
-        <option value="Otro" ${c&&c.medioPago==='Otro'?'selected':''}>Otro</option>
-      </select>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">🏦 Donde pagó</label>
+      <input id="rn_donde" type="text" class="field-input" value="${c?c.dondePago||'':''}" placeholder="Ej: TD YULIETH, Nequi…" style="width:100%;margin-top:4px">
+    </div>
+    <div>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">📅 Fecha de pago</label>
+      <input id="rn_fpago" type="date" class="field-input" value="${c?c.fechaPago||'':''}" style="width:100%;margin-top:4px">
     </div>
     <div>
       <label style="font-size:11px;color:var(--c-text3);font-weight:600">🔢 Últ. dígitos (NIT)</label>
       <input id="rn_ult2" type="text" class="field-input" value="${c?c.ultimosDigitosCedula||'':''}" maxlength="2" placeholder="00-99" style="width:100%;margin-top:4px">
+    </div>
+    <div>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">👥 Referido / Nuevo</label>
+      <input id="rn_referido" type="text" class="field-input" value="${c?c.referidoInfo||'':''}" placeholder="Ej: Si - Referido por Patricia" style="width:100%;margin-top:4px">
     </div>
     <div style="grid-column:1/-1">
       <label style="font-size:11px;color:var(--c-text3);font-weight:600">📝 Observaciones</label>
@@ -5223,11 +5247,13 @@ function _rentaTogglePwd(inputId, btn) {
   btn.textContent = show ? '🙈' : '👁';
 }
 
-function _rentaCopyPwd(clientId) {
+function _rentaCopyPwd(clientId, field) {
   const c = (STATE.rentaPN||[]).find(x=>x.id===clientId);
-  if (!c?.contrasenaPortal) return;
-  navigator.clipboard.writeText(c.contrasenaPortal)
-    .then(()=>showToast('¡Contraseña copiada!'))
+  const val = field==='firma' ? c?.firmaDian : c?.contrasenaPortal;
+  if (!val) return;
+  const label = field==='firma' ? 'Firma' : 'Contraseña';
+  navigator.clipboard.writeText(val)
+    .then(()=>showToast(`¡${label} copiada!`))
     .catch(()=>showToast('No se pudo copiar'));
 }
 
@@ -5246,6 +5272,11 @@ function _rentaSaveModal() {
     medioPago: (el('rn_medio')||{}).value||'',
     usuarioDian: (el('rn_usuario')||{}).value?.trim()||'',
     contrasenaPortal: (el('rn_clave')||{}).value||'',
+    firmaDian: (el('rn_firma')||{}).value||'',
+    fechaPresentacion: (el('rn_fpres')||{}).value||'',
+    dondePago: (el('rn_donde')||{}).value?.trim()||'',
+    fechaPago: (el('rn_fpago')||{}).value||'',
+    referidoInfo: (el('rn_referido')||{}).value?.trim()||'',
     ultimosDigitosCedula: (el('rn_ult2')||{}).value?.trim()||'',
     observaciones: (el('rn_obs')||{}).value?.trim()||'',
     fechaActualizacion: new Date().toISOString(),
@@ -5371,6 +5402,144 @@ function _rentaExportCSV() {
   a.click();
 }
 
+// ── Renta P/N histórico 2025 ──────────────────────────────────────────────────
+function _rentaImportHistorico() {
+  if ((STATE.rentaPN||[]).length > 0) return;
+  // [nombre, cedula, fPres, usuario, clave, firma, cobro, obs, dondePago, fPago, tel, referido, tipo]
+  // tipo: 'a'=antiguo, 'n'=nuevo, 'd'=desertó
+  const rows = [
+    ['Yuli Marcela Escobar Ochoa (La mona)','1007356671','2025-10-03','1007356671','Mona2025*','Mona2025*',150000,'Declaracion Presentada','TD YULIETH','2025-08-01','3106478415','Si-Madre','n'],
+    ['Ingrid Bermuedez Florez','1037590601','2025-08-12','1037590601','Ingrid2025*','Ingrid2025*',0,'N/A','','','3122660650','','a'],
+    ['John Edison Moreno Monsalve','71262401','2025-08-12','71262401','#Clave0818','#Clave0818',200000,'Declaracion Presentada','TD YULIETH','2025-08-10','3007734177','Si - Mar','n'],
+    ['David Andres Suarez Cardona','1152186814','2025-08-21','1152186814','Corral1152.','Corral1152.',180000,'Declaracion Presentada','TD YULIETH','2025-08-10','3112547941','SI - Referida de Ana Maria Castaño','n'],
+    ['Nathalia Villa','1036627103','2025-08-13','1036627103','Nathalia2025*','Nathalia2025*',0,'No le toca declarar este año','','','3146411120791','','d'],
+    ['Ana Maria Castaño Peleaz','1017176469','2025-10-02','1017176469','Acastano.1','1017176469ANA',180000,'Declaracion Presentada','TD YULIETH','2025-08-10','3043929539','','a'],
+    ['Oscar Alonso Calle Giraldo','7597310','2025-08-19','7597310','Cc7597310','Oscar2023*',200000,'Declaracion Presentada','TD YULIETH','2025-11-12','3224645323','','a'],
+    ['Andres Felipe Marquez Quiroz','1152434109','2025-08-19','1152434109','AzulDian2025*','AzulDian2025*',0,'Deserto','','','3012282168','','d'],
+    ['Angie Paola Mazo Ramirez','1152216101','2025-08-12','1152216101','Luanausma14*','Angie2023*',150000,'Declaracion Presentada','TD YULIETH','2025-08-11','3023358077','','a'],
+    ['Elizabeth Velasco Bedoya','1152196112','2025-08-20','1152196112','Pecesmoras.20+','Pecesmoras.20+',150000,'Declaracion Presentada','TD YULIETH','2025-08-16','3007237142','','a'],
+    ['Alejo Angel Valencia','1020441114','2025-08-21','1020441114','Lisimaco5591*','Alejo2023*',0,'No le toca declarar este año','','','3015201683','','d'],
+    ['Manuel Oquendo','1020475713','2025-08-21','1020475713','Manuel2025*','Manuel2025*',0,'No le toca declarar este año','','','3225500297','','d'],
+    ['Claudia Fernanda Velasquez Sepulveda','1128431218','2025-08-25','1128431218','ANDcxNzM4*','ANDcxNzM4*',150000,'Declaracion Presentada','TD YULIETH','2025-08-16','3104053474','Si','n'],
+    ['Beatriz Omaira Torres Avendaño','32144418','2025-08-25','32144418','Sarachiripa#14','Beatriz2023*',250000,'Declaracion Presentada','TD YULIETH','2025-08-19','3104577428','Si','a'],
+    ['Joan Sebastian Ocampo Rodrigue','1214732414','2025-08-21','1214732414','Dian2024*','Dian2024*',200000,'Declaracion Presentada','TD YULIETH','2025-08-20','3012391592','','n'],
+    ['Duhan Castrillon Zapata','1035859231','2025-09-03','1035859231','Duhan2022*','Duhan2022*',100000,'Declaracion Presentada','TD YULIETH','2025-08-20','3122028719','','a'],
+    ['Mayra Alejandra Mazo Sierra','1036647720','2025-08-26','1036647720','#Emi1036647720','#Emi1036647720',180000,'Declaracion Presentada','TD YULIETH','2025-08-21','3012183976','','a'],
+    ['Juan Camilo Rojas Lopez','1128276723','2025-08-28','1128276723','Juancamilo1228*','Juancamilo1228*',150000,'Declaracion Presentada','TD YULIETH','2025-08-21','3136355418','','n'],
+    ['Monica Alejandra Naranjo','1088278633','2025-09-04','1088278633','AurDra#0290@','AurDra#0290@',200000,'Declaracion Presentada','TD YULIETH','2025-08-22','3136355418','','n'],
+    ['Brahyan de Jesús Bonilla Gonzalez','1035429236','2025-09-05','1035429236','Bryan2025*','Bryan2025*',200000,'Declaracion Presentada','TD YULIETH','2025-08-22','3135046773','Si - Referido Patricia','n'],
+    ['Blanca Arelis Vargas Alvarez','39416439','2025-09-09','39416439','Vargasa.39','Vargasa.39',200000,'Declaracion Presentada','TD YULIETH','2025-08-22','3133776001','Si - Sandrita','n'],
+    ['Eider De Jesus Puerta Castrillón','70756740','2025-09-09','70756740','Eider2025*','Eider2025*',150000,'Declaracion Presentada','TD YULIETH','2025-08-22','3106478415','Si-Madre','n'],
+    ['Luisa Fernanda Acosta Chaverra','1152196216','2025-08-22','1152196216','M4nu3l@Ac0st4','Luisa2023*',200000,'Declaracion Presentada','TD YULIETH','2025-08-25','3187160942','','a'],
+    ['Adriana Maria Cardona Arboleda','43037220','2025-08-26','43037220','Adriana20','Adriana2023*',180000,'Declaracion Presentada','TD YULIETH','2025-08-25','3116170942','','a'],
+    ['Ximena Zapata Londoño','1036685836','2025-09-05','1036685836','Candelaria24.','Candelaria24.',180000,'Declaracion Presentada','TD YULIETH','2025-08-25','3147938524','','a'],
+    ['Sara Maria Carrasquilla','1152463323','2025-08-28','1152463323','Baloochi1.','Baloochi1.',0,'Deserto','','','3146730211','','d'],
+    ['Ivan Bedoya','1037626026','2025-08-29','1037626026','Rut2022Declaracion*','Ivan2023*',0,'No le toca declarar este año','','','3023063527','','d'],
+    ['Fanny Amparo Sepulveda Arboleda','43680545','2025-09-12','43680545','Fanny2025*+','Fanny2025*+',150000,'Declaracion Presentada','TD YULIETH','2025-08-25','3104053474','Si - Fer','n'],
+    ['Wilmar Alonso Valles Bedoya','98453248','2025-09-15','98453248','Casatarso1749','Wilmar2025*',200000,'Declaracion Presentada','TD YULIETH','2025-08-25','3215825098','','a'],
+    ['Marly Danery Perez Garcia','1152711922','2025-08-27','1152711922','Marly2016@','Marly2023*',160000,'Declaracion Presentada','TD YULIETH','2025-08-26','3015374728','','a'],
+    ['Luis Javier Zuluaga Betancur','1017184363','2025-09-25','1017184363','D14n.Lu15','D14n.Lu15',180000,'Declaracion Presentada','TD YULIETH','2025-08-26','3232325615','','a'],
+    ['Ana Maria Oquendo','1020495743','2025-09-11','1020495743','Nacional991010*','Ana2023*',180000,'Declaracion Presentada','TD YULIETH','2025-08-27','3158418006','','a'],
+    ['Andrea Guerra Ochoa','1037641233','2025-09-04','1037641233','Andre1995.','Andre2023*',0,'Segundo año sin declarar','','','3026690189','','d'],
+    ['Julian Andres Lopez Zuluaga','71526824','2025-08-28','71526824','Noviembre13*','Noviembre13*',180000,'Declaracion Presentada','TD YULIETH','2025-08-28','3005770745','Si - Referido Estefa','n'],
+    ['Laura Alejandra Alzate Restrepo','1017207731','2025-09-03','1017207731','Matilde26*','Matilde26*',200000,'Declaracion Presentada','TD YULIETH','2025-08-29','3015297999','Si','n'],
+    ['Dario Castrillon','70252389','2025-10-17','70252389','Dario2023*','Dario2023*',120000,'Declaracion Presentada','TD YULIETH','2025-08-31','3117399567','','a'],
+    ['Isabel Zeneris De Vega Orozco','57304549','2025-09-16','57304549','AMTQyOTU4*','AMTQyOTU4*',180000,'Declaracion Presentada','TD YULIETH','2025-09-03','3242679697','Si - Referido Junior','n'],
+    ['Mayra Alejandra Cañas Pineda','1039468215','2025-08-22','1039468215','Mayra2024*','Mayra2024*',230000,'Declaracion Presentada','TD YULIETH','2025-09-05','3158237265','','a'],
+    ['Olga Ines Rios Monsalves','39352128','2025-09-01','39352128','Olga2024*','Olga2024*',150000,'Declaracion Presentada','TD YULIETH','2025-09-05','3113391493','Si','n'],
+    ['Belmiro Antonio Moreno','8416834','2025-09-04','8416834','Belmiro2025*','Belmiro2025*',200000,'Declaracion Presentada','TD YULIETH','2025-09-05','3128874063','Si - Referido Juanita','n'],
+    ['Libardo Carvajal','15529548','2025-09-15','15529548','Libardo2025*','Libardo2025*',200000,'Declaracion Presentada','TD YULIETH','2025-09-06','3002041505','Si - Fer','n'],
+    ['Oscar Eduardo Trujillo Restrepo','98672142','2025-09-12','98672142','Oscar9842+','Oscar9842+',200000,'Pendiente de confirmacion','','','3016518933','Si - Referida Estefa','d'],
+    ['Luis Carlos Serna Giraldo','71250964','2025-09-25','71250964','Luis2024*','Luis2024*',180000,'Declaracion Presentada','TD YULIETH','2025-09-07','3015421419','','a'],
+    ['Valentina Marin Barrera','1001366255','2025-09-15','1001366255','Valentina2025*','Valentina2025*',150000,'Declaracion Presentada','TD YULIETH','2025-09-08','3015421419','','n'],
+    ['Amor Mio','1037618448','2025-09-15','1037618448','448Motica.','Laura2023*',0,'Declaracion Presentada','N/A','N/A','3043763138','','a'],
+    ['Yuliana Montoya','1128384463','2025-09-25','1128384463','Yuliana2025*','Yuliana2025*',180000,'Declaracion Presentada','TD YULIETH','2025-09-08','3202017679','','n'],
+    ['Daniela Bejarano','1036675907','2025-08-15','1036675907','Daniela2024*','Daniela2023*',160000,'Declaracion Presentada','TD YULIETH','2025-09-14','3023077540','','a'],
+    ['Sergio Ivan Ceballos Mejia','1035876853','2025-09-18','1035876853','Che1035876853.','Che1035876853.',0,'No le toca declarar este año','','','3113442334','Si','d'],
+    ['Harrinson Herrera Loaiza','1043636254','2025-09-19','1043636254','Nacional.2707','Harri2023*',180000,'Declaracion Presentada','TD YULIETH','2025-09-19','59899529268','','a'],
+    ['Maria Patricia Uribe Gonzalez','22230556','2025-09-19','22230556','Pat1303@','Patricia2023*',0,'No le toca declarar este año','','','3122470326','','d'],
+    ['Alejandro Cordoba Ospina','98710956','2025-09-19','98710956','Aco98710956*','Alejo2022*',0,'Deserto','','','','','d'],
+    ['Miriam del Socorro Loaiza Gomez','24433859','2025-09-19','24433859','Colombia.2025','Colombia.2025',180000,'Declaracion Presentada','TD YULIETH','2025-09-19','59899529268','','a'],
+    ['Mariana Urrego Sanchez','1020803455','2025-09-19','1020803455','Mariana2025*','Mariana2025*',0,'Declaracion Presentada','N/A','N/A','3218152995','Si - Referido Cami Ug','n'],
+    ['Alex Mauricio Cadavid Quiceno','1035871258','2025-09-22','1035871258','2897658casA*','Alex2023*',0,'Deserto','','','3218152995','Si - Referido Cami Ug','d'],
+    ['Baldomero Urrego Ramirez','17101120','2025-09-23','17101120','Waldo2025*','Waldo2025*',0,'No le toca declarar','N/A','N/A','3243130595','Si - Referido Cami Ug','d'],
+    ['Luis Enrique Cano Egea','1001880434','2025-09-04','1001880434','Luiskike2025*','Luiskike2025*',400000,'Declaracion Presentada','TD YULIETH','2025-09-24','3103525896','','a'],
+    ['Maria Fanny Naranjo Garcia','63334859','2025-09-23','63334859','Fanny2023*','Fanny2023*',0,'No le toca declarar','','','3243130595','','d'],
+    ['Santiago Urrego Sanchez','80854960','2025-09-23','80854960','Santiago2024$','Santiago2024$',0,'Declaracion Presentada','N/A','N/A','3218152995','Si - Referido Cami Ug','n'],
+    ['Nawhel Jacobo Ochoa Castro','1036518520','2025-08-26','1036518520','Nawel2025*','Nawel2025*',180000,'Declaracion Presentada','TD YULIETH','2025-10-01','3127990761','Si','a'],
+    ['Mayra Alejandra Restrepo Ortiz','43400662','2025-09-24','43400662','Mayra2024*','Mayra2024*',0,'Deserto','','','3225166345','','d'],
+    ['Elver Arleison Hernandez Rincon','1036655051','2025-09-17','1036655051','Elver2025*','Elver2025*',180000,'Declaracion Presentada','TD YULIETH','2025-10-01','3145953676','Si - Referido Brahyan','n'],
+    ['Sandra Liliana Castro Sanchez','39359793','2025-10-21','39359793','Cucho2025*','Cucho2025*',180000,'Declaracion Presentada','TD YULIETH','2025-10-01','3108403028','Si','n'],
+    ['Yesenia Maria Jaramillo Jimenez','1027884465','2025-09-26','1027884465','Y3s3n1AJ.','Y3s3n1AJ.',400000,'Declaracion Presentada','TD YULIETH','2025-10-01','3147354272','','a'],
+    ['Giovanny Esteban Usma Campo','1040756264','2025-09-25','1040756264','Luanausma14*','Esteban2023*',150000,'Declaracion Presentada','TD YULIETH','2025-12-21','3126649406','','a'],
+    ['Gustavo Preciado','1037635880','2025-10-09','1037635880','GzdA8023D()@','GzdA8023D()@',400000,'Declaracion Presentada','TD YULIETH','2025-10-02','3233624941','','a'],
+    ['Alexander de Jesus Gaviria Echavarria','71313804','2025-08-13','71313804','Alex2024@','Alex2024@',150000,'Declaracion Presentada','TD YULIETH','2025-10-03','3233624941','','a'],
+    ['Heriberto De Jesus Quiceno Mesa','719045','2025-09-12','719045','Valerya.23','Valerya.23',200000,'Declaracion Presentada','TD YULIETH','2025-10-04','3218152995','','a'],
+    ['Faneri Lluliet Castrillon','1035862468','2025-10-01','1035862468','Faneryy2025*','Faneryy2025*',0,'Declaracion Presentada','N/A','N/A','','','a'],
+    ['Oscar Alexander Vega','1035869467','2025-10-01','1035869467','941209Jnr*','941209Jnr*',200000,'Declaracion Presentada','TD YULIETH','2025-11-12','3224645323','','a'],
+    ['Andres Felipe Mora Toro','15517382','2025-10-10','15517382','ANDE2NDcx215*','ANDE2NDcx215*',150000,'Declaracion Presentada','TD YULIETH','2025-10-05','3005481796','Si - Fer','n'],
+    ['Juan Alejandro Naranjo Betancur','9862373','2025-10-06','9862373','Holl9862/','Juan2023*',180000,'Declaracion Presentada','TD YULIETH','2025-10-07','3148087679','','a'],
+    ['Daniela Serna Salazar','1020471382','2025-10-10','1020471382','Dian2025*','Dian2025*',180000,'Declaracion Presentada','TD YULIETH','2025-10-10','3215717583','SI - Referida de Ana Maria Castaño','n'],
+    ['Valeria Cadavid Quiceno','1039463259','2025-09-23','1039463259','Valerya.23','Valerya.23',200000,'Declaracion Presentada','TD YULIETH','2025-10-14','3218152995','','a'],
+    ['Carolina Pelaez Giraldo','1037642475','2025-10-07','1037642475','Salpicon16','Carolina2023*',0,'Deserto','','','3182786016','','d'],
+    ['Matias Alvarez Gomez','1017926277','2025-10-08','1017926277','2023Camilo.','2023Camilo.',0,'Declaracion Presentada','N/A','N/A','','','a'],
+    ['Sara Tatiana Vasquez Velasquez','1037636380','2025-10-09','1037636380','Sara2025*','Sara2025*',200000,'Declaracion Presentada','TD YULIETH','2025-10-14','+61424874481','Si - Referida Beatriz','n'],
+    ['Juan David Torres Avendaño','1037581290','2025-10-17','1037581290','JuanTorres2025*','JuanTorres2025*',200000,'Declaracion Presentada','TD YULIETH','2025-10-14','+61424874481','Si - Referida Beatriz','n'],
+    ['Jacqueline Quiceno Garcia','39356091','2025-10-20','39356091','Jaque2025*','Jaque2025*',200000,'Declaracion Presentada','TD YULIETH','2025-10-14','3218152995','Si - Valeria','n'],
+    ['Oscar Alonso Cadavid Alzate','70325182','2025-10-10','70325182','Valeria.123','Valeria.123',0,'No le toca declarar este año','','','3218152995','','d'],
+    ['Laura Quintero','1037608300','2025-10-24','1037608300','LauraDva5','LauraDva5',150000,'Declaracion Presentada','TD YULIETH','2025-10-14','3102018407','Si - Referida Amor','n'],
+    ['Marcela Sanchez Arango','41627183','2025-10-14','41627183','Marcela2024$','Marcela2024S',200000,'Declaracion Presentada','N/A','N/A','3218152995','Si - Referido Cami Ug','n'],
+    ['Claudia Marcela Uribe','1128403284','2025-10-14','1128403284','CmarCUP_11','CmarCUP_11',0,'Deserto','','','','','d'],
+    ['Samuel Muñoz Gutierrez','1000395094','2025-10-21','1000395094','Samuel2025*','Samuel2025*',200000,'Declaracion Presentada','TD YULIETH','2025-10-15','3013566107','','n'],
+    ['Camilo Urrego Sanchez','80093085','2025-10-15','80093085','Camilo2025.','Camilo2025.',0,'Declaracion Presentada','N/A','N/A','','Si - Referido Cami Ug','n'],
+    ['Natalia Gomez Espinel','43628288','2025-10-16','43628288','Natalia2025*','Natalia2025*',0,'Declaracion Presentada','N/A','N/A','','Si - Referido Cami Ug','n'],
+    ['Maria Isabel Velez Hincapie','1152464487','2025-10-16','1152464487','Mariaisa2024*','Mariaisa2024*',0,'No le toca declarar','','','3052236736','','d'],
+    ['Jairo Giraldo Castaño','70382473','2025-10-06','70382473','Jairo2024*','Jairo2024*',500000,'Declaracion Presentada','TD YULIETH','2025-10-16','','','a'],
+    ['Maria del Mar Alvarez Gomez','1000414789','2025-10-17','1000414789','Mariana2024$','Maria2024$',0,'Declaracion Presentada','N/A','N/A','','','a'],
+    ['Ramiro Muñoz Marin','1035861290','2025-10-17','1035861290','Ramiro2024*','Ramiro2024*',0,'Deserto','','','','','d'],
+    ['Mauricio Cardona Suarez','1040182198','2025-10-21','1040182198','Mscsa1845*','Mscsa1845*',180000,'Declaracion Presentada','TD YULIETH','2025-10-16','3112547942','SI - Referida de Ana Maria Castaño','n'],
+    ['Astrid Alexandra Arcila','1026141562','2025-09-24','1026141562','Astrid2023*','Astrid2023*',150000,'Declaracion Presentada','TD YULIETH','2025-10-20','3117417635','','a'],
+    ['Juan Camilo Rios Agudelo','8070692','2025-10-20','8070692','J.8070.15mc','J.8070.15mc',200000,'Declaracion Presentada','TD YULIETH','2025-10-22','3012391592','','a'],
+    ['Jefferson Stivel Rondon Bustamante','1017226091','2025-10-20','1017226091','Paquito10_','Paquito10_',0,'No le toca declarar este año','','','3226132764','','d'],
+    ['Camilo Andres Mayorga Garcia','8028112','2025-08-20','8028112','Cm1l024*+','Cm1l024*+',200000,'Declaracion Presentada','TD YULIETH','2025-10-24','3216388767','Si - Referido Caml Mg','n'],
+    ['Consuelo Vanegas','43437894','2025-10-21','43437894','Consu3736546*','Consu3736546*',0,'No le toca declarar este año','','','','','d'],
+    ['Vanessa Ruiz Rua','1152437015','2025-08-22','1152437015','VRRua2024*+','VRRua2024*+',200000,'Declaracion Presentada','TD YULIETH','2025-10-24','3216388767','','a'],
+    ['Carlos Mayorga Ortiz','17101367','2025-10-01','17101367','Camo43*+','Camo43*+',200000,'Declaracion Presentada','TD YULIETH','2025-10-24','3216388767','','n'],
+    ['Daniela Giraldo Cano','1018229200','2025-10-24','1018229200','Dani.062005','Dani.062005',250000,'Declaracion Presentada','TD YULIETH','2025-11-18','','Si','n'],
+    ['Esperanza Garcia','41378286','2025-10-15','41378286','Panchi45*+','Panchi45*+',200000,'Declaracion Presentada','TD YULIETH','2025-10-24','','Si - Referido Caml Mg','n'],
+  ];
+  const tipoMap = {'a':'antiguo','n':'nuevo','d':'desertó'};
+  STATE.rentaPN = rows.map((r,i) => {
+    const [nombre,cedula,fPres,usuario,clave,firma,cobro,obs,dondePago,fPago,tel,referido,tipo] = r;
+    const esPresentada = obs.includes('Presentada');
+    const esDesertado = tipo==='d';
+    const esPagado = cobro>0 && dondePago && dondePago!=='' && dondePago!=='N/A';
+    const estado = esDesertado?'pendiente-contacto':esPresentada?'finalizada':'pendiente-contacto';
+    const ult2 = String(cedula).replace(/\D/g,'').slice(-2).padStart(2,'0');
+    return {
+      id:'rh_'+i,
+      nombre, cedula,
+      usuarioDian:usuario, contrasenaPortal:clave, firmaDian:firma,
+      fechaPresentacion:fPres,
+      fechaDeclaracion:RENTA_NIT_VENC[ult2]||'',
+      valorServicio:cobro,
+      valorPagado:esPagado?cobro:0,
+      saldoPendiente:esPagado?0:cobro,
+      medioPago:'',
+      dondePago:dondePago==='N/A'?'N/A':dondePago,
+      fechaPago:fPago==='N/A'?'':fPago,
+      telefono:tel, referidoInfo:referido,
+      tipoCliente:tipoMap[tipo]||'antiguo',
+      estadoProceso:estado,
+      observaciones:obs,
+      ultimosDigitosCedula:ult2,
+      fechaCreacion:new Date().toISOString(),
+      fechaActualizacion:new Date().toISOString(),
+    };
+  });
+  save();
+}
+
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 async function startApp(){
   if(el('loginOverlay'))el('loginOverlay').style.display='none';
@@ -5425,6 +5594,7 @@ async function startApp(){
   _renderUserPill();
   navigate(sessionStorage.getItem('yc_page') || 'dashboard');
   _handleStaleSession();
+  _rentaImportHistorico();
   _updateTimerUI();
   _renderBanner();
   updateClock();
