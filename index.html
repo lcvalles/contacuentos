@@ -5027,6 +5027,8 @@ function renderRentaPN() {
       <td style="padding:10px 8px;text-align:center"><span style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;background:${c.tipoCliente==='nuevo'?'#e0e7ff':'#f0fdf4'};color:${c.tipoCliente==='nuevo'?'#4f46e5':'#16a34a'}">${c.tipoCliente==='nuevo'?'🆕 Nuevo':'🤝 Antiguo'}</span></td>
       <td style="padding:10px 8px;font-size:12px;white-space:nowrap;color:${diasColor};font-weight:${dias!==null&&dias<=3?'700':'400'}">${_rentaFmtFecha(c.fechaDeclaracion)} <span style="font-size:10px">${diasLabel}</span></td>
       <td style="padding:10px 8px;font-size:12px;text-align:center;color:var(--c-text2)">${c.ultimosDigitosCedula||'—'}</td>
+      <td style="padding:10px 8px;font-size:12px;color:var(--c-text2);white-space:nowrap">${c.usuarioDian||'—'}</td>
+      <td style="padding:10px 8px;white-space:nowrap">${c.contrasenaPortal?`<div style="display:flex;align-items:center;gap:4px"><span id="rpw_${c.id}" style="font-size:12px;letter-spacing:2px;color:var(--c-text3)">••••••</span><button onclick="_rentaCopyPwd('${c.id}')" title="Copiar contraseña" style="background:none;border:1px solid var(--c-border);border-radius:5px;padding:2px 6px;cursor:pointer;font-size:11px">📋</button></div>`:'—'}</td>
       <td style="padding:10px 8px;white-space:nowrap"><span style="font-size:11px;padding:3px 8px;border-radius:6px;background:${estado.color}20;color:${estado.color};font-weight:600">${estado.label}</span></td>
       <td style="padding:10px 8px;font-size:12px;text-align:right;white-space:nowrap">${c.valorServicio?_rentaFmtCOP(c.valorServicio):'—'}</td>
       <td style="padding:10px 8px;font-size:12px;text-align:right;white-space:nowrap;color:#16a34a;font-weight:${c.valorPagado?'700':'400'}">${c.valorPagado?_rentaFmtCOP(c.valorPagado):'—'}</td>
@@ -5085,7 +5087,9 @@ function renderRentaPN() {
             <th style="padding:8px 8px;text-align:left;font-weight:600">📱 Teléfono</th>
             <th style="padding:8px 8px;text-align:center;font-weight:600">Tipo</th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">📅 Vencimiento</th>
-            <th style="padding:8px 8px;text-align:center;font-weight:600">🔢 NIT</th>
+            <th style="padding:8px 8px;text-align:center;font-weight:600">🔢 Últ. Díg.</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">👤 Usuario</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">🔑 Contraseña</th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">📌 Estado</th>
             <th style="padding:8px 8px;text-align:right;font-weight:600">💵 Servicio</th>
             <th style="padding:8px 8px;text-align:right;font-weight:600">💰 Pagado</th>
@@ -5166,6 +5170,17 @@ function _rentaOpenModal(id) {
       <div style="font-size:10px;color:var(--c-text3);margin-top:2px">Se calcula automáticamente por cédula</div>
     </div>
     <div>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">👤 Usuario portal DIAN</label>
+      <input id="rn_usuario" type="text" class="field-input" value="${c?c.usuarioDian||'':''}" placeholder="Usuario o NIT" style="width:100%;margin-top:4px">
+    </div>
+    <div>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">🔑 Contraseña portal</label>
+      <div style="position:relative;margin-top:4px">
+        <input id="rn_clave" type="password" class="field-input" value="${c?c.contrasenaPortal||'':''}" placeholder="Contraseña" style="width:100%;padding-right:38px;box-sizing:border-box">
+        <button type="button" onclick="_rentaTogglePwd('rn_clave',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:15px;color:var(--c-text3)" title="Mostrar/ocultar">👁</button>
+      </div>
+    </div>
+    <div>
       <label style="font-size:11px;color:var(--c-text3);font-weight:600">💵 Valor del servicio</label>
       <input id="rn_valor" type="text" inputmode="numeric" class="field-input" value="${c&&c.valorServicio?c.valorServicio:cfg.valorServicio||''}" placeholder="$ Valor" style="width:100%;margin-top:4px">
     </div>
@@ -5182,7 +5197,7 @@ function _rentaOpenModal(id) {
       </select>
     </div>
     <div>
-      <label style="font-size:11px;color:var(--c-text3);font-weight:600">🔢 Últimos 2 dígitos NIT</label>
+      <label style="font-size:11px;color:var(--c-text3);font-weight:600">🔢 Últ. dígitos (NIT)</label>
       <input id="rn_ult2" type="text" class="field-input" value="${c?c.ultimosDigitosCedula||'':''}" maxlength="2" placeholder="00-99" style="width:100%;margin-top:4px">
     </div>
     <div style="grid-column:1/-1">
@@ -5201,6 +5216,21 @@ function _rentaAutoVenc() {
   if (el('rn_ult2')) el('rn_ult2').value = ult2;
 }
 
+function _rentaTogglePwd(inputId, btn) {
+  const inp = el(inputId); if (!inp) return;
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  btn.textContent = show ? '🙈' : '👁';
+}
+
+function _rentaCopyPwd(clientId) {
+  const c = (STATE.rentaPN||[]).find(x=>x.id===clientId);
+  if (!c?.contrasenaPortal) return;
+  navigator.clipboard.writeText(c.contrasenaPortal)
+    .then(()=>showToast('¡Contraseña copiada!'))
+    .catch(()=>showToast('No se pudo copiar'));
+}
+
 function _rentaSaveModal() {
   const nombre = (el('rn_nombre')||{}).value?.trim();
   if (!nombre) { showToast('El nombre es obligatorio'); return; }
@@ -5214,6 +5244,8 @@ function _rentaSaveModal() {
     valorServicio: parseInt(((el('rn_valor')||{}).value||'0').replace(/\D/g,''))||0,
     valorPagado: parseInt(((el('rn_pagado')||{}).value||'0').replace(/\D/g,''))||0,
     medioPago: (el('rn_medio')||{}).value||'',
+    usuarioDian: (el('rn_usuario')||{}).value?.trim()||'',
+    contrasenaPortal: (el('rn_clave')||{}).value||'',
     ultimosDigitosCedula: (el('rn_ult2')||{}).value?.trim()||'',
     observaciones: (el('rn_obs')||{}).value?.trim()||'',
     fechaActualizacion: new Date().toISOString(),
