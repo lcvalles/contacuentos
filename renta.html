@@ -160,13 +160,16 @@ img{max-width:100%}
 .cal-filter-input{padding:8px 13px;border:1.5px solid var(--c-border2);border-radius:var(--r-md);font-family:var(--f-body);font-size:.9rem;background:var(--c-surface);color:var(--c-text);width:120px;transition:border-color .15s}
 .cal-filter-input:focus{outline:none;border-color:var(--c-teal)}
 .cal-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.cal-card{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 6px 28px rgba(0,0,0,.1);display:flex;flex-direction:column}
-.cal-card-head{padding:16px 18px;display:flex;align-items:center;gap:12px}
+.cal-card{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 6px 28px rgba(0,0,0,.1)}
+.cal-card-head{padding:16px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none}
 .cal-ico-circ{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0}
 .cal-head-txt{flex:1}
 .cal-month-name{font-size:.88rem;font-weight:800;color:#fff;letter-spacing:.12em;text-transform:uppercase;line-height:1.1}
 .cal-month-year{font-size:.7rem;color:rgba(255,255,255,.65);font-weight:500;margin-top:2px}
-.cal-head-cal{font-size:1.15rem;opacity:.4}
+.cal-chevron{font-size:1.1rem;color:rgba(255,255,255,.7);transition:transform .25s;flex-shrink:0}
+.cal-card.open .cal-chevron{transform:rotate(180deg)}
+.cal-rows{display:none}
+.cal-rows.open{display:block}
 .cal-agosto .cal-card-head{background:#2d6a4f}
 .cal-septiembre .cal-card-head{background:#0b7a6a}
 .cal-octubre .cal-card-head{background:#c45d0a}
@@ -486,112 +489,118 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
     <div class="cal-cards" aria-label="Calendario tributario DIAN 2026">
 
       <!-- AGOSTO -->
-      <div class="cal-card cal-agosto">
-        <div class="cal-card-head">
+      <div class="cal-card cal-agosto" id="cal-card-ago">
+        <div class="cal-card-head" onclick="toggleMonth('cal-card-ago')" aria-expanded="false">
           <div class="cal-ico-circ">☀️</div>
           <div class="cal-head-txt">
             <div class="cal-month-name">Agosto</div>
-            <div class="cal-month-year">2026</div>
+            <div class="cal-month-year">2026 · dígitos 01–26</div>
           </div>
-          <span class="cal-head-cal">📅</span>
+          <span class="cal-chevron">▾</span>
         </div>
-        <div class="cal-col-labels"><span>Últimos dos dígitos</span><span>Día límite</span></div>
-        <div class="cal-row" data-d="01 02"><span class="cal-d">01 — 02</span><span class="cal-badge">12</span></div>
-        <div class="cal-row" data-d="03 04"><span class="cal-d">03 — 04</span><span class="cal-badge">13</span></div>
-        <div class="cal-row" data-d="05 06"><span class="cal-d">05 — 06</span><span class="cal-badge">14</span></div>
-        <div class="cal-row" data-d="07 08"><span class="cal-d">07 — 08</span><span class="cal-badge">18</span></div>
-        <div class="cal-row" data-d="09 10"><span class="cal-d">09 — 10</span><span class="cal-badge">19</span></div>
-        <div class="cal-row" data-d="11 12"><span class="cal-d">11 — 12</span><span class="cal-badge">20</span></div>
-        <div class="cal-row" data-d="13 14"><span class="cal-d">13 — 14</span><span class="cal-badge">21</span></div>
-        <div class="cal-row" data-d="15 16"><span class="cal-d">15 — 16</span><span class="cal-badge">24</span></div>
-        <div class="cal-row" data-d="17 18"><span class="cal-d">17 — 18</span><span class="cal-badge">25</span></div>
-        <div class="cal-row" data-d="19 20"><span class="cal-d">19 — 20</span><span class="cal-badge">26</span></div>
-        <div class="cal-row" data-d="21 22"><span class="cal-d">21 — 22</span><span class="cal-badge">27</span></div>
-        <div class="cal-row" data-d="23 24"><span class="cal-d">23 — 24</span><span class="cal-badge">28</span></div>
-        <div class="cal-row" data-d="25 26"><span class="cal-d">25 — 26</span><span class="cal-badge">31</span></div>
-        <div class="cal-wave">
-          <svg viewBox="0 0 400 52" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,28 C80,8 160,48 240,28 S360,8 400,28 L400,52 L0,52 Z" fill="#2d6a4f" opacity=".12"/>
-            <path d="M0,38 C80,18 160,55 240,36 S360,18 400,38 L400,52 L0,52 Z" fill="#2d6a4f" opacity=".22"/>
-          </svg>
-          <span class="cal-wave-plant">🌿</span>
+        <div class="cal-rows" id="cal-rows-ago">
+          <div class="cal-col-labels"><span>Últimos dos dígitos</span><span>Día límite</span></div>
+          <div class="cal-row" data-d="01 02"><span class="cal-d">01 — 02</span><span class="cal-badge">12</span></div>
+          <div class="cal-row" data-d="03 04"><span class="cal-d">03 — 04</span><span class="cal-badge">13</span></div>
+          <div class="cal-row" data-d="05 06"><span class="cal-d">05 — 06</span><span class="cal-badge">14</span></div>
+          <div class="cal-row" data-d="07 08"><span class="cal-d">07 — 08</span><span class="cal-badge">18</span></div>
+          <div class="cal-row" data-d="09 10"><span class="cal-d">09 — 10</span><span class="cal-badge">19</span></div>
+          <div class="cal-row" data-d="11 12"><span class="cal-d">11 — 12</span><span class="cal-badge">20</span></div>
+          <div class="cal-row" data-d="13 14"><span class="cal-d">13 — 14</span><span class="cal-badge">21</span></div>
+          <div class="cal-row" data-d="15 16"><span class="cal-d">15 — 16</span><span class="cal-badge">24</span></div>
+          <div class="cal-row" data-d="17 18"><span class="cal-d">17 — 18</span><span class="cal-badge">25</span></div>
+          <div class="cal-row" data-d="19 20"><span class="cal-d">19 — 20</span><span class="cal-badge">26</span></div>
+          <div class="cal-row" data-d="21 22"><span class="cal-d">21 — 22</span><span class="cal-badge">27</span></div>
+          <div class="cal-row" data-d="23 24"><span class="cal-d">23 — 24</span><span class="cal-badge">28</span></div>
+          <div class="cal-row" data-d="25 26"><span class="cal-d">25 — 26</span><span class="cal-badge">31</span></div>
+          <div class="cal-wave">
+            <svg viewBox="0 0 400 52" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0,28 C80,8 160,48 240,28 S360,8 400,28 L400,52 L0,52 Z" fill="#2d6a4f" opacity=".12"/>
+              <path d="M0,38 C80,18 160,55 240,36 S360,18 400,38 L400,52 L0,52 Z" fill="#2d6a4f" opacity=".22"/>
+            </svg>
+            <span class="cal-wave-plant">🌿</span>
+          </div>
         </div>
       </div>
 
       <!-- SEPTIEMBRE -->
-      <div class="cal-card cal-septiembre">
-        <div class="cal-card-head">
+      <div class="cal-card cal-septiembre" id="cal-card-sep">
+        <div class="cal-card-head" onclick="toggleMonth('cal-card-sep')" aria-expanded="false">
           <div class="cal-ico-circ">🍃</div>
           <div class="cal-head-txt">
             <div class="cal-month-name">Septiembre</div>
-            <div class="cal-month-year">2026</div>
+            <div class="cal-month-year">2026 · dígitos 27–66</div>
           </div>
-          <span class="cal-head-cal">📅</span>
+          <span class="cal-chevron">▾</span>
         </div>
-        <div class="cal-col-labels"><span>Últimos dos dígitos</span><span>Día límite</span></div>
-        <div class="cal-row" data-d="27 28"><span class="cal-d">27 — 28</span><span class="cal-badge">1</span></div>
-        <div class="cal-row" data-d="29 30"><span class="cal-d">29 — 30</span><span class="cal-badge">2</span></div>
-        <div class="cal-row" data-d="31 32"><span class="cal-d">31 — 32</span><span class="cal-badge">3</span></div>
-        <div class="cal-row" data-d="33 34"><span class="cal-d">33 — 34</span><span class="cal-badge">4</span></div>
-        <div class="cal-row" data-d="35 36"><span class="cal-d">35 — 36</span><span class="cal-badge">7</span></div>
-        <div class="cal-row" data-d="37 38"><span class="cal-d">37 — 38</span><span class="cal-badge">8</span></div>
-        <div class="cal-row" data-d="39 40"><span class="cal-d">39 — 40</span><span class="cal-badge">9</span></div>
-        <div class="cal-row" data-d="41 42"><span class="cal-d">41 — 42</span><span class="cal-badge">10</span></div>
-        <div class="cal-row" data-d="43 44"><span class="cal-d">43 — 44</span><span class="cal-badge">11</span></div>
-        <div class="cal-row" data-d="45 46"><span class="cal-d">45 — 46</span><span class="cal-badge">14</span></div>
-        <div class="cal-row" data-d="47 48"><span class="cal-d">47 — 48</span><span class="cal-badge">15</span></div>
-        <div class="cal-row" data-d="49 50"><span class="cal-d">49 — 50</span><span class="cal-badge">16</span></div>
-        <div class="cal-row" data-d="51 52"><span class="cal-d">51 — 52</span><span class="cal-badge">17</span></div>
-        <div class="cal-row" data-d="53 54"><span class="cal-d">53 — 54</span><span class="cal-badge">18</span></div>
-        <div class="cal-row" data-d="55 56"><span class="cal-d">55 — 56</span><span class="cal-badge">21</span></div>
-        <div class="cal-row" data-d="57 58"><span class="cal-d">57 — 58</span><span class="cal-badge">22</span></div>
-        <div class="cal-row" data-d="59 60"><span class="cal-d">59 — 60</span><span class="cal-badge">23</span></div>
-        <div class="cal-row" data-d="61 62"><span class="cal-d">61 — 62</span><span class="cal-badge">24</span></div>
-        <div class="cal-row" data-d="63 64"><span class="cal-d">63 — 64</span><span class="cal-badge">25</span></div>
-        <div class="cal-row" data-d="65 66"><span class="cal-d">65 — 66</span><span class="cal-badge">28</span></div>
-        <div class="cal-wave">
-          <svg viewBox="0 0 400 52" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,28 C80,8 160,48 240,28 S360,8 400,28 L400,52 L0,52 Z" fill="#0b7a6a" opacity=".12"/>
-            <path d="M0,38 C80,18 160,55 240,36 S360,18 400,38 L400,52 L0,52 Z" fill="#0b7a6a" opacity=".22"/>
-          </svg>
-          <span class="cal-wave-plant">🌱</span>
+        <div class="cal-rows" id="cal-rows-sep">
+          <div class="cal-col-labels"><span>Últimos dos dígitos</span><span>Día límite</span></div>
+          <div class="cal-row" data-d="27 28"><span class="cal-d">27 — 28</span><span class="cal-badge">1</span></div>
+          <div class="cal-row" data-d="29 30"><span class="cal-d">29 — 30</span><span class="cal-badge">2</span></div>
+          <div class="cal-row" data-d="31 32"><span class="cal-d">31 — 32</span><span class="cal-badge">3</span></div>
+          <div class="cal-row" data-d="33 34"><span class="cal-d">33 — 34</span><span class="cal-badge">4</span></div>
+          <div class="cal-row" data-d="35 36"><span class="cal-d">35 — 36</span><span class="cal-badge">7</span></div>
+          <div class="cal-row" data-d="37 38"><span class="cal-d">37 — 38</span><span class="cal-badge">8</span></div>
+          <div class="cal-row" data-d="39 40"><span class="cal-d">39 — 40</span><span class="cal-badge">9</span></div>
+          <div class="cal-row" data-d="41 42"><span class="cal-d">41 — 42</span><span class="cal-badge">10</span></div>
+          <div class="cal-row" data-d="43 44"><span class="cal-d">43 — 44</span><span class="cal-badge">11</span></div>
+          <div class="cal-row" data-d="45 46"><span class="cal-d">45 — 46</span><span class="cal-badge">14</span></div>
+          <div class="cal-row" data-d="47 48"><span class="cal-d">47 — 48</span><span class="cal-badge">15</span></div>
+          <div class="cal-row" data-d="49 50"><span class="cal-d">49 — 50</span><span class="cal-badge">16</span></div>
+          <div class="cal-row" data-d="51 52"><span class="cal-d">51 — 52</span><span class="cal-badge">17</span></div>
+          <div class="cal-row" data-d="53 54"><span class="cal-d">53 — 54</span><span class="cal-badge">18</span></div>
+          <div class="cal-row" data-d="55 56"><span class="cal-d">55 — 56</span><span class="cal-badge">21</span></div>
+          <div class="cal-row" data-d="57 58"><span class="cal-d">57 — 58</span><span class="cal-badge">22</span></div>
+          <div class="cal-row" data-d="59 60"><span class="cal-d">59 — 60</span><span class="cal-badge">23</span></div>
+          <div class="cal-row" data-d="61 62"><span class="cal-d">61 — 62</span><span class="cal-badge">24</span></div>
+          <div class="cal-row" data-d="63 64"><span class="cal-d">63 — 64</span><span class="cal-badge">25</span></div>
+          <div class="cal-row" data-d="65 66"><span class="cal-d">65 — 66</span><span class="cal-badge">28</span></div>
+          <div class="cal-wave">
+            <svg viewBox="0 0 400 52" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0,28 C80,8 160,48 240,28 S360,8 400,28 L400,52 L0,52 Z" fill="#0b7a6a" opacity=".12"/>
+              <path d="M0,38 C80,18 160,55 240,36 S360,18 400,38 L400,52 L0,52 Z" fill="#0b7a6a" opacity=".22"/>
+            </svg>
+            <span class="cal-wave-plant">🌱</span>
+          </div>
         </div>
       </div>
 
       <!-- OCTUBRE -->
-      <div class="cal-card cal-octubre">
-        <div class="cal-card-head">
+      <div class="cal-card cal-octubre" id="cal-card-oct">
+        <div class="cal-card-head" onclick="toggleMonth('cal-card-oct')" aria-expanded="false">
           <div class="cal-ico-circ">🌾</div>
           <div class="cal-head-txt">
             <div class="cal-month-name">Octubre</div>
-            <div class="cal-month-year">2026</div>
+            <div class="cal-month-year">2026 · dígitos 67–00</div>
           </div>
-          <span class="cal-head-cal">📅</span>
+          <span class="cal-chevron">▾</span>
         </div>
-        <div class="cal-col-labels"><span>Últimos dos dígitos</span><span>Día límite</span></div>
-        <div class="cal-row" data-d="67 68"><span class="cal-d">67 — 68</span><span class="cal-badge">1</span></div>
-        <div class="cal-row" data-d="69 70"><span class="cal-d">69 — 70</span><span class="cal-badge">2</span></div>
-        <div class="cal-row" data-d="71 72"><span class="cal-d">71 — 72</span><span class="cal-badge">5</span></div>
-        <div class="cal-row" data-d="73 74"><span class="cal-d">73 — 74</span><span class="cal-badge">6</span></div>
-        <div class="cal-row" data-d="75 76"><span class="cal-d">75 — 76</span><span class="cal-badge">7</span></div>
-        <div class="cal-row" data-d="77 78"><span class="cal-d">77 — 78</span><span class="cal-badge">8</span></div>
-        <div class="cal-row" data-d="79 80"><span class="cal-d">79 — 80</span><span class="cal-badge">9</span></div>
-        <div class="cal-row" data-d="81 82"><span class="cal-d">81 — 82</span><span class="cal-badge">13</span></div>
-        <div class="cal-row" data-d="83 84"><span class="cal-d">83 — 84</span><span class="cal-badge">14</span></div>
-        <div class="cal-row" data-d="85 86"><span class="cal-d">85 — 86</span><span class="cal-badge">15</span></div>
-        <div class="cal-row" data-d="87 88"><span class="cal-d">87 — 88</span><span class="cal-badge">16</span></div>
-        <div class="cal-row" data-d="89 90"><span class="cal-d">89 — 90</span><span class="cal-badge">19</span></div>
-        <div class="cal-row" data-d="91 92"><span class="cal-d">91 — 92</span><span class="cal-badge">20</span></div>
-        <div class="cal-row" data-d="93 94"><span class="cal-d">93 — 94</span><span class="cal-badge">21</span></div>
-        <div class="cal-row" data-d="95 96"><span class="cal-d">95 — 96</span><span class="cal-badge">22</span></div>
-        <div class="cal-row" data-d="97 98"><span class="cal-d">97 — 98</span><span class="cal-badge">23</span></div>
-        <div class="cal-row" data-d="99 00"><span class="cal-d">99 — 00</span><span class="cal-badge">26</span></div>
-        <div class="cal-wave">
-          <svg viewBox="0 0 400 52" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,28 C80,8 160,48 240,28 S360,8 400,28 L400,52 L0,52 Z" fill="#c45d0a" opacity=".12"/>
-            <path d="M0,38 C80,18 160,55 240,36 S360,18 400,38 L400,52 L0,52 Z" fill="#c45d0a" opacity=".22"/>
-          </svg>
-          <span class="cal-wave-plant">🌾</span>
+        <div class="cal-rows" id="cal-rows-oct">
+          <div class="cal-col-labels"><span>Últimos dos dígitos</span><span>Día límite</span></div>
+          <div class="cal-row" data-d="67 68"><span class="cal-d">67 — 68</span><span class="cal-badge">1</span></div>
+          <div class="cal-row" data-d="69 70"><span class="cal-d">69 — 70</span><span class="cal-badge">2</span></div>
+          <div class="cal-row" data-d="71 72"><span class="cal-d">71 — 72</span><span class="cal-badge">5</span></div>
+          <div class="cal-row" data-d="73 74"><span class="cal-d">73 — 74</span><span class="cal-badge">6</span></div>
+          <div class="cal-row" data-d="75 76"><span class="cal-d">75 — 76</span><span class="cal-badge">7</span></div>
+          <div class="cal-row" data-d="77 78"><span class="cal-d">77 — 78</span><span class="cal-badge">8</span></div>
+          <div class="cal-row" data-d="79 80"><span class="cal-d">79 — 80</span><span class="cal-badge">9</span></div>
+          <div class="cal-row" data-d="81 82"><span class="cal-d">81 — 82</span><span class="cal-badge">13</span></div>
+          <div class="cal-row" data-d="83 84"><span class="cal-d">83 — 84</span><span class="cal-badge">14</span></div>
+          <div class="cal-row" data-d="85 86"><span class="cal-d">85 — 86</span><span class="cal-badge">15</span></div>
+          <div class="cal-row" data-d="87 88"><span class="cal-d">87 — 88</span><span class="cal-badge">16</span></div>
+          <div class="cal-row" data-d="89 90"><span class="cal-d">89 — 90</span><span class="cal-badge">19</span></div>
+          <div class="cal-row" data-d="91 92"><span class="cal-d">91 — 92</span><span class="cal-badge">20</span></div>
+          <div class="cal-row" data-d="93 94"><span class="cal-d">93 — 94</span><span class="cal-badge">21</span></div>
+          <div class="cal-row" data-d="95 96"><span class="cal-d">95 — 96</span><span class="cal-badge">22</span></div>
+          <div class="cal-row" data-d="97 98"><span class="cal-d">97 — 98</span><span class="cal-badge">23</span></div>
+          <div class="cal-row" data-d="99 00"><span class="cal-d">99 — 00</span><span class="cal-badge">26</span></div>
+          <div class="cal-wave">
+            <svg viewBox="0 0 400 52" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0,28 C80,8 160,48 240,28 S360,8 400,28 L400,52 L0,52 Z" fill="#c45d0a" opacity=".12"/>
+              <path d="M0,38 C80,18 160,55 240,36 S360,18 400,38 L400,52 L0,52 Z" fill="#c45d0a" opacity=".22"/>
+            </svg>
+            <span class="cal-wave-plant">🌾</span>
+          </div>
         </div>
       </div>
 
@@ -902,15 +911,48 @@ function eduTab(idx, btn) {
   document.querySelectorAll('.edu-panel').forEach((p,i) => p.classList.toggle('active', i === idx));
 }
 
+// ── CALENDAR ACCORDION ────────────────────────────────────────────────────────
+function toggleMonth(cardId) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  const rows = card.querySelector('.cal-rows');
+  const isOpen = card.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.cal-card').forEach(c => {
+    c.classList.remove('open');
+    c.querySelector('.cal-rows').classList.remove('open');
+    c.querySelector('.cal-card-head').setAttribute('aria-expanded','false');
+  });
+  // Toggle clicked
+  if (!isOpen) {
+    card.classList.add('open');
+    rows.classList.add('open');
+    card.querySelector('.cal-card-head').setAttribute('aria-expanded','true');
+  }
+}
+
 // ── CALENDAR FILTER ───────────────────────────────────────────────────────────
 function filterCalendar(val) {
   const q = val.trim().replace(/\D/g,'').padStart(2,'0');
   document.querySelectorAll('.cal-row[data-d]').forEach(row => row.classList.remove('cal-hl'));
-  if (!val.trim()) return;
+  // Close all if empty
+  if (!val.trim()) {
+    document.querySelectorAll('.cal-card').forEach(c => {
+      c.classList.remove('open');
+      c.querySelector('.cal-rows').classList.remove('open');
+    });
+    return;
+  }
   document.querySelectorAll('.cal-row[data-d]').forEach(row => {
     if ((row.dataset.d || '').split(' ').includes(q)) {
       row.classList.add('cal-hl');
-      row.scrollIntoView({behavior:'smooth', block:'nearest'});
+      // Auto-expand the parent card
+      const card = row.closest('.cal-card');
+      if (card) {
+        card.classList.add('open');
+        card.querySelector('.cal-rows').classList.add('open');
+      }
+      setTimeout(() => row.scrollIntoView({behavior:'smooth', block:'nearest'}), 50);
     }
   });
 }
