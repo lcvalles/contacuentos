@@ -5112,8 +5112,6 @@ function renderRentaPN() {
   <div class="card" style="margin-bottom:14px">
     <div class="card-header" style="flex-wrap:wrap;gap:8px">
       <span class="card-title">Clientes ${total>0?`(${filtered.length}${filtered.length!==total?' de '+total:''})`:''}  </span>
-      <input type="text" placeholder="🔍 Buscar por nombre, cédula o teléfono…" oninput="_rentaSetSearch(this.value)"
-        value="${_rentaSearch}" style="flex:1;min-width:200px;max-width:320px;padding:5px 10px;border:1px solid var(--c-border);border-radius:8px;font-size:12px;background:var(--c-surface);color:var(--c-text)">
       <div style="display:flex;gap:4px;flex-wrap:wrap">${filtersHTML}</div>
     </div>
     <div style="overflow-x:scroll;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px;width:100%;box-sizing:border-box;max-height:calc(100vh - 320px)">
@@ -5121,7 +5119,12 @@ function renderRentaPN() {
         <thead style="position:sticky;top:0;z-index:2">
           <tr style="background:var(--c-surface2);font-size:10px;color:var(--c-text3);text-transform:uppercase;letter-spacing:.5px">
             <th style="padding:8px 6px;text-align:center;font-weight:600">#</th>
-            <th style="padding:8px 12px;text-align:left;font-weight:600">👤 Cliente</th>
+            <th style="padding:6px 10px;text-align:left;font-weight:600;min-width:180px">
+              <div style="font-size:9px;margin-bottom:3px;opacity:.8">👤 CLIENTE</div>
+              <input id="rentaSearchHeader" type="text" placeholder="Buscar nombre…" value="${_rentaSearch}"
+                oninput="_rentaSetSearch(this.value)"
+                style="width:100%;font-size:12px;padding:4px 8px;border:1px solid var(--c-border);border-radius:6px;background:var(--c-surface);color:var(--c-text);text-transform:none;letter-spacing:0;font-weight:400;box-sizing:border-box">
+            </th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">🪪 Cédula</th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">📱 Teléfono</th>
             <th style="padding:8px 8px;text-align:center;font-weight:600">Tipo</th>
@@ -5166,7 +5169,14 @@ function renderRentaPN() {
 }
 
 function _rentaSetFilter(f) { _rentaFilter=f; renderRentaPN(); }
-function _rentaSetSearch(v) { _rentaSearch=v; renderRentaPN(); }
+function _rentaSetSearch(v) {
+  const prev = document.getElementById('rentaSearchHeader');
+  const sel = prev ? [prev.selectionStart, prev.selectionEnd] : null;
+  _rentaSearch = v;
+  renderRentaPN();
+  const inp = document.getElementById('rentaSearchHeader');
+  if (inp) { inp.focus(); if (sel) inp.setSelectionRange(sel[0], sel[1]); }
+}
 
 function _rentaInlineEdit(id, field, value) {
   const idx = (STATE.rentaPN||[]).findIndex(c=>c.id===id);
