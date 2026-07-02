@@ -262,21 +262,26 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
   .hero{padding:52px 0 48px}
   .hero-inner{grid-template-columns:1fr;gap:32px}
   .hero-brand{order:-1}
-  .hero-brand-outer{width:140px;height:140px}
+  .hero-brand-outer{width:170px;height:170px}
   .search-row{flex-direction:column}
   .search-input,.search-btn{width:100%}
   .trust-item{border-right:none;border-bottom:1px solid rgba(255,255,255,.15)}
   .trust-item:last-child{border-bottom:none}
-  .free-inner{flex-direction:column;align-items:flex-start;gap:28px}
+  .free-inner{flex-direction:column;align-items:center;gap:24px;text-align:center}
+  .free-copy{min-width:unset}
+  .free-checks{align-items:flex-start;text-align:left}
   .section{padding:52px 0}
+  .edu-tabs{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:1px}
+  .edu-tab{white-space:nowrap;flex-shrink:0}
   .about-grid{grid-template-columns:1fr;gap:28px}
-  .about-photo{max-width:100%;aspect-ratio:3/2}
+  .about-photo{max-width:300px;aspect-ratio:4/5;margin:0 auto}
   .footer-grid{grid-template-columns:1fr;gap:24px}
   .wa-float{padding:13px 15px;border-radius:50%}
   .wa-float .wa-float-label{display:none}
   .about-badges{grid-template-columns:1fr 1fr}
 }
 @media(max-width:400px){
+  .nav-logo-name{display:none}
   .about-badges{grid-template-columns:1fr}
   .topes-grid{grid-template-columns:1fr}
 }
