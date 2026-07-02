@@ -140,19 +140,22 @@ img{max-width:100%}
 .doc-t{font-size:.875rem;color:var(--c-text2);line-height:1.4}
 
 /* CALENDAR */
-.cal-filter-row{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.cal-filter-row{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
 .cal-filter-row label{font-size:.875rem;color:var(--c-text2);font-weight:500}
-.cal-filter-input{padding:8px 13px;border:1.5px solid var(--c-border2);border-radius:var(--r-md);font-family:var(--f-body);font-size:.9rem;background:var(--c-surface);color:var(--c-text);width:140px;transition:border-color .15s}
+.cal-filter-input{padding:8px 13px;border:1.5px solid var(--c-border2);border-radius:var(--r-md);font-family:var(--f-body);font-size:.9rem;background:var(--c-surface);color:var(--c-text);width:120px;transition:border-color .15s}
 .cal-filter-input:focus{outline:none;border-color:var(--c-teal)}
-.cal-wrap{overflow-x:auto;border-radius:var(--r-lg);border:1px solid var(--c-border);background:var(--c-surface);box-shadow:var(--sh-sm)}
-.cal-table{width:100%;border-collapse:collapse;min-width:360px}
-.cal-table th{background:var(--c-surface2);padding:9px 16px;text-align:left;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--c-text3);border-bottom:1px solid var(--c-border)}
-.cal-table td{padding:9px 16px;font-size:.875rem;border-bottom:1px solid var(--c-border);color:var(--c-text2)}
-.cal-table tr:last-child td{border-bottom:none}
-.cal-table tr:hover td{background:var(--c-surface2)}
-.cal-table .d-cell{font-weight:600;color:var(--c-text);font-variant-numeric:tabular-nums;font-family:monospace;font-size:.9rem}
-.cal-table .f-cell{font-weight:500;color:var(--c-teal)}
-.cal-highlight td{background:var(--c-teal-bg)!important}
+.cal-months{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;overflow-x:auto}
+.cal-month{border:1px solid var(--c-border);border-radius:var(--r-lg);overflow:hidden;background:var(--c-surface);box-shadow:var(--sh-sm);min-width:200px}
+.cal-month-head{background:var(--c-teal);color:#fff;text-align:center;padding:9px 12px;font-size:.8125rem;font-weight:600;letter-spacing:.04em}
+.cal-mini{width:100%;border-collapse:collapse}
+.cal-mini th{background:var(--c-surface2);padding:7px 10px;font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--c-text3);border-bottom:1px solid var(--c-border);text-align:center}
+.cal-mini td{padding:6px 10px;font-size:.82rem;border-bottom:1px solid var(--c-border);text-align:center;color:var(--c-text2)}
+.cal-mini tr:last-child td{border-bottom:none}
+.cal-mini tr:hover td{background:var(--c-surface2)}
+.cal-mini .d-cell{font-weight:600;color:var(--c-text);font-variant-numeric:tabular-nums;font-family:monospace}
+.cal-mini .f-cell{font-weight:600;color:var(--c-teal);font-size:.875rem}
+.cal-highlight td{background:var(--c-teal-bg)!important;color:var(--c-green)!important}
+@media(max-width:640px){.cal-months{grid-template-columns:1fr}}
 
 /* CONSEQUENCES */
 .conseq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-top:28px}
@@ -392,19 +395,87 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
     <p class="s-sub">La DIAN asigna una fecha de vencimiento a cada cédula según sus últimos dos dígitos. Consulta la tuya aquí.</p>
 
     <div class="cal-filter-row" style="margin-top:24px">
-      <label for="cal-filter">Filtrar por dígitos:</label>
+      <label for="cal-filter">Buscar mis dígitos:</label>
       <input class="cal-filter-input" id="cal-filter" type="text" inputmode="numeric" maxlength="2" placeholder="Ej: 45" oninput="filterCalendar(this.value)" aria-label="Filtrar calendario por dígitos">
     </div>
-    <div class="cal-wrap">
-      <table class="cal-table" id="cal-table" aria-label="Calendario tributario DIAN 2026">
-        <thead>
-          <tr>
-            <th>Últimos 2 dígitos de cédula / NIT</th>
-            <th>Fecha límite de presentación</th>
-          </tr>
-        </thead>
-        <tbody id="cal-tbody"></tbody>
-      </table>
+    <div class="cal-months">
+      <!-- AGOSTO -->
+      <div class="cal-month">
+        <div class="cal-month-head">Agosto 2026</div>
+        <table class="cal-mini">
+          <thead><tr><th>Dígitos</th><th>Día</th></tr></thead>
+          <tbody>
+            <tr data-d="01 02"><td class="d-cell">01 — 02</td><td class="f-cell">12</td></tr>
+            <tr data-d="03 04"><td class="d-cell">03 — 04</td><td class="f-cell">13</td></tr>
+            <tr data-d="05 06"><td class="d-cell">05 — 06</td><td class="f-cell">14</td></tr>
+            <tr data-d="07 08"><td class="d-cell">07 — 08</td><td class="f-cell">18</td></tr>
+            <tr data-d="09 10"><td class="d-cell">09 — 10</td><td class="f-cell">19</td></tr>
+            <tr data-d="11 12"><td class="d-cell">11 — 12</td><td class="f-cell">20</td></tr>
+            <tr data-d="13 14"><td class="d-cell">13 — 14</td><td class="f-cell">21</td></tr>
+            <tr data-d="15 16"><td class="d-cell">15 — 16</td><td class="f-cell">24</td></tr>
+            <tr data-d="17 18"><td class="d-cell">17 — 18</td><td class="f-cell">25</td></tr>
+            <tr data-d="19 20"><td class="d-cell">19 — 20</td><td class="f-cell">26</td></tr>
+            <tr data-d="21 22"><td class="d-cell">21 — 22</td><td class="f-cell">27</td></tr>
+            <tr data-d="23 24"><td class="d-cell">23 — 24</td><td class="f-cell">28</td></tr>
+            <tr data-d="25 26"><td class="d-cell">25 — 26</td><td class="f-cell">31</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- SEPTIEMBRE -->
+      <div class="cal-month">
+        <div class="cal-month-head">Septiembre 2026</div>
+        <table class="cal-mini">
+          <thead><tr><th>Dígitos</th><th>Día</th></tr></thead>
+          <tbody>
+            <tr data-d="27 28"><td class="d-cell">27 — 28</td><td class="f-cell">1</td></tr>
+            <tr data-d="29 30"><td class="d-cell">29 — 30</td><td class="f-cell">2</td></tr>
+            <tr data-d="31 32"><td class="d-cell">31 — 32</td><td class="f-cell">3</td></tr>
+            <tr data-d="33 34"><td class="d-cell">33 — 34</td><td class="f-cell">4</td></tr>
+            <tr data-d="35 36"><td class="d-cell">35 — 36</td><td class="f-cell">7</td></tr>
+            <tr data-d="37 38"><td class="d-cell">37 — 38</td><td class="f-cell">8</td></tr>
+            <tr data-d="39 40"><td class="d-cell">39 — 40</td><td class="f-cell">9</td></tr>
+            <tr data-d="41 42"><td class="d-cell">41 — 42</td><td class="f-cell">10</td></tr>
+            <tr data-d="43 44"><td class="d-cell">43 — 44</td><td class="f-cell">11</td></tr>
+            <tr data-d="45 46"><td class="d-cell">45 — 46</td><td class="f-cell">14</td></tr>
+            <tr data-d="47 48"><td class="d-cell">47 — 48</td><td class="f-cell">15</td></tr>
+            <tr data-d="49 50"><td class="d-cell">49 — 50</td><td class="f-cell">16</td></tr>
+            <tr data-d="51 52"><td class="d-cell">51 — 52</td><td class="f-cell">17</td></tr>
+            <tr data-d="53 54"><td class="d-cell">53 — 54</td><td class="f-cell">18</td></tr>
+            <tr data-d="55 56"><td class="d-cell">55 — 56</td><td class="f-cell">21</td></tr>
+            <tr data-d="57 58"><td class="d-cell">57 — 58</td><td class="f-cell">22</td></tr>
+            <tr data-d="59 60"><td class="d-cell">59 — 60</td><td class="f-cell">23</td></tr>
+            <tr data-d="61 62"><td class="d-cell">61 — 62</td><td class="f-cell">24</td></tr>
+            <tr data-d="63 64"><td class="d-cell">63 — 64</td><td class="f-cell">25</td></tr>
+            <tr data-d="65 66"><td class="d-cell">65 — 66</td><td class="f-cell">28</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- OCTUBRE -->
+      <div class="cal-month">
+        <div class="cal-month-head">Octubre 2026</div>
+        <table class="cal-mini">
+          <thead><tr><th>Dígitos</th><th>Día</th></tr></thead>
+          <tbody>
+            <tr data-d="67 68"><td class="d-cell">67 — 68</td><td class="f-cell">1</td></tr>
+            <tr data-d="69 70"><td class="d-cell">69 — 70</td><td class="f-cell">2</td></tr>
+            <tr data-d="71 72"><td class="d-cell">71 — 72</td><td class="f-cell">5</td></tr>
+            <tr data-d="73 74"><td class="d-cell">73 — 74</td><td class="f-cell">6</td></tr>
+            <tr data-d="75 76"><td class="d-cell">75 — 76</td><td class="f-cell">7</td></tr>
+            <tr data-d="77 78"><td class="d-cell">77 — 78</td><td class="f-cell">8</td></tr>
+            <tr data-d="79 80"><td class="d-cell">79 — 80</td><td class="f-cell">9</td></tr>
+            <tr data-d="81 82"><td class="d-cell">81 — 82</td><td class="f-cell">13</td></tr>
+            <tr data-d="83 84"><td class="d-cell">83 — 84</td><td class="f-cell">14</td></tr>
+            <tr data-d="85 86"><td class="d-cell">85 — 86</td><td class="f-cell">15</td></tr>
+            <tr data-d="87 88"><td class="d-cell">87 — 88</td><td class="f-cell">16</td></tr>
+            <tr data-d="89 90"><td class="d-cell">89 — 90</td><td class="f-cell">19</td></tr>
+            <tr data-d="91 92"><td class="d-cell">91 — 92</td><td class="f-cell">20</td></tr>
+            <tr data-d="93 94"><td class="d-cell">93 — 94</td><td class="f-cell">21</td></tr>
+            <tr data-d="95 96"><td class="d-cell">95 — 96</td><td class="f-cell">22</td></tr>
+            <tr data-d="97 98"><td class="d-cell">97 — 98</td><td class="f-cell">23</td></tr>
+            <tr data-d="99 00"><td class="d-cell">99 — 00</td><td class="f-cell">26</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </section>
@@ -595,7 +666,7 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
 
 <script>
 // ── CONFIGURACIÓN ─────────────────────────────────────────────────────────────
-const WA_PHONE   = '57XXXXXXXXXX'; // reemplazar con el número real ej: 573001234567
+const WA_PHONE   = '573177635252';
 const WA_MSG_DEF = 'Hola, quiero validar gratuitamente si debo declarar renta este año.';
 
 // ── CALENDARIO DIAN 2026 ──────────────────────────────────────────────────────
@@ -695,59 +766,14 @@ function eduTab(idx, btn) {
   document.querySelectorAll('.edu-panel').forEach((p,i) => p.classList.toggle('active', i === idx));
 }
 
-// ── CALENDAR TABLE ────────────────────────────────────────────────────────────
-(function buildCalendar() {
-  const seen = new Set();
-  const rows = [];
-  const keys = ['01','02','03','04','05','06','07','08','09','10',
-    '11','12','13','14','15','16','17','18','19','20',
-    '21','22','23','24','25','26','27','28','29','30',
-    '31','32','33','34','35','36','37','38','39','40',
-    '41','42','43','44','45','46','47','48','49','50',
-    '51','52','53','54','55','56','57','58','59','60',
-    '61','62','63','64','65','66','67','68','69','70',
-    '71','72','73','74','75','76','77','78','79','80',
-    '81','82','83','84','85','86','87','88','89','90',
-    '91','92','93','94','95','96','97','98','99','00'];
-  const grouped = {};
-  keys.forEach(k => {
-    const f = VENC[k];
-    if (!grouped[f]) grouped[f] = [];
-    grouped[f].push(k);
-  });
-  // Build rows as pairs
-  const pairs = [];
-  Object.entries(grouped).forEach(([fecha, ds]) => {
-    for (let i = 0; i < ds.length; i += 2) {
-      const range = ds[i+1] ? ds[i] + ' — ' + ds[i+1] : ds[i];
-      pairs.push({ range, fecha });
-    }
-  });
-  // Sort by date
-  pairs.sort((a,b) => a.fecha.localeCompare(b.fecha));
-  const tbody = document.getElementById('cal-tbody');
-  pairs.forEach(({range, fecha}) => {
-    const tr = document.createElement('tr');
-    tr.dataset.digits = range;
-    tr.innerHTML = '<td class="d-cell">' + range + '</td><td class="f-cell">' + fmtFecha(fecha) + '</td>';
-    tbody.appendChild(tr);
-  });
-})();
-
+// ── CALENDAR FILTER ───────────────────────────────────────────────────────────
 function filterCalendar(val) {
-  const q = val.trim().padStart(2,'0');
-  const rows = document.querySelectorAll('#cal-tbody tr');
-  rows.forEach(tr => {
-    if (!val.trim()) {
-      tr.style.display = '';
-      tr.classList.remove('cal-highlight');
-      return;
-    }
-    const digits = tr.dataset.digits || '';
-    const ds = digits.replace(/\s/g,'').split('—');
-    const match = ds.some(d => d === q || digits.includes(q));
-    tr.style.display = match ? '' : 'none';
-    tr.classList.toggle('cal-highlight', match);
+  const q = val.trim().replace(/\D/g,'').padStart(2,'0');
+  document.querySelectorAll('.cal-mini tbody tr').forEach(tr => {
+    tr.classList.remove('cal-highlight');
+    if (!val.trim()) return;
+    const ds = (tr.dataset.d || '').split(' ');
+    if (ds.includes(q)) tr.classList.add('cal-highlight');
   });
 }
 
