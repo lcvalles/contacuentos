@@ -4869,6 +4869,7 @@ const RENTA_ESTADOS = [
   {id:'presentada',            label:'✅ Presentada',             avance:95, color:'#059669'},
   {id:'pendiente-pago-dian',   label:'💰 Pendiente pago DIAN',    avance:95, color:'#dc2626'},
   {id:'finalizada',            label:'🏁 Finalizada',             avance:100,color:'#16a34a'},
+  {id:'no-presenta-renta',    label:'🚫 No presenta Renta',      avance:100,color:'#6b7280'},
 ];
 
 const RENTA_NIT_VENC = {
@@ -5014,14 +5015,20 @@ function renderRentaPN() {
     `<button onclick="_rentaSetFilter('${f}')" style="font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid ${_rentaFilter===f?'var(--c-gold)':'var(--c-border)'};background:${_rentaFilter===f?'var(--c-gold-lt)':'transparent'};color:${_rentaFilter===f?'var(--c-gold)':'var(--c-text3)'};cursor:pointer;font-weight:${_rentaFilter===f?'700':'400'}">${f.charAt(0).toUpperCase()+f.slice(1)}</button>`
   ).join('');
 
-  const tableRows = filtered.length ? filtered.map(c=>{
+  const _COMPLETADOS = new Set(['finalizada','no-presenta-renta']);
+  const _sortVenc = (a,b) => (a.fechaDeclaracion||'9999').localeCompare(b.fechaDeclaracion||'9999');
+  const activeClients    = filtered.filter(c=>!_COMPLETADOS.has(c.estadoProceso)).sort(_sortVenc);
+  const completedClients = filtered.filter(c=> _COMPLETADOS.has(c.estadoProceso)).sort(_sortVenc);
+  const _makeRow = (c, num, dimmed=false) => {
     const estado = _rentaEstado(c.estadoProceso);
     const avance = _rentaAvance(c.estadoProceso);
     const saldo = (c.valorServicio||0)-(c.valorPagado||0);
     const dias = _rentaDiasRestantes(c.fechaDeclaracion);
     const diasColor = dias===null?'var(--c-text3)':dias<=0?'#dc2626':dias<=3?'#ea580c':dias<=7?'#ca8a04':'var(--c-text3)';
     const diasLabel = dias===null?'—':dias<=0?'¡HOY!':dias===1?'Mañana':dias+'d';
-    return `<tr style="border-bottom:1px solid var(--c-border)">
+    const rowStyle = dimmed?'border-bottom:1px solid var(--c-border);opacity:.65':'border-bottom:1px solid var(--c-border)';
+    return `<tr style="${rowStyle}">
+      <td style="padding:10px 8px;font-size:11px;color:var(--c-text3);text-align:center;font-weight:600">${num}</td>
       <td style="padding:10px 12px;font-weight:700;font-size:13px;white-space:nowrap">${c.nombre||'—'}</td>
       <td style="padding:10px 8px;font-size:12px;color:var(--c-text2);white-space:nowrap">${c.cedula||'—'}</td>
       <td style="padding:10px 8px;font-size:12px;white-space:nowrap">${c.telefono?`<a href="https://wa.me/57${c.telefono.replace(/\D/g,'')}" target="_blank" style="color:var(--c-teal);text-decoration:none">${c.telefono}</a>`:'—'}</td>
@@ -5071,7 +5078,13 @@ function renderRentaPN() {
         </div>
       </td>
     </tr>`;
-  }).join('') : `<tr><td colspan="14" style="padding:24px;text-align:center;color:var(--c-text3);font-size:13px">Sin clientes${_rentaSearch||_rentaFilter!=='todos'?' que coincidan con el filtro':' aún. Agrega el primero con ➕ Cliente'}.</td></tr>`;
+  };
+  const _sepRow = completedClients.length ? `<tr><td colspan="21" style="padding:6px 16px;background:var(--c-surface2);border-top:2px solid var(--c-border);border-bottom:2px solid var(--c-border);text-align:center;font-size:11px;color:var(--c-text3);font-weight:600;letter-spacing:1px">── COMPLETADOS (${completedClients.length}) ──</td></tr>` : '';
+  const tableRows = filtered.length
+    ? activeClients.map((c,i)=>_makeRow(c,i+1,false)).join('')
+      + _sepRow
+      + completedClients.map((c,i)=>_makeRow(c,activeClients.length+i+1,true)).join('')
+    : `<tr><td colspan="21" style="padding:24px;text-align:center;color:var(--c-text3);font-size:13px">Sin clientes${_rentaSearch||_rentaFilter!=='todos'?' que coincidan con el filtro':' aún. Agrega el primero con ➕ Cliente'}.</td></tr>`;
 
   e.innerHTML = `
   <!-- KPI Bar -->
@@ -5104,6 +5117,7 @@ function renderRentaPN() {
       <table style="width:100%;border-collapse:collapse;min-width:900px">
         <thead>
           <tr style="background:var(--c-surface2);font-size:10px;color:var(--c-text3);text-transform:uppercase;letter-spacing:.5px">
+            <th style="padding:8px 6px;text-align:center;font-weight:600">#</th>
             <th style="padding:8px 12px;text-align:left;font-weight:600">👤 Cliente</th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">🪪 Cédula</th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">📱 Teléfono</th>
@@ -5158,6 +5172,27 @@ function _rentaInlineEdit(id, field, value) {
   STATE.rentaPN[idx][field] = value;
   STATE.rentaPN[idx].saldoPendiente = (STATE.rentaPN[idx].valorServicio||0)-(STATE.rentaPN[idx].valorPagado||0);
   STATE.rentaPN[idx].fechaActualizacion = new Date().toISOString();
+  save();
+}
+
+function _rentaFixAmorMio() {
+  if (STATE.rentaAmorMioFixed) return;
+  if (!STATE.rentaPN) STATE.rentaPN = [];
+  const idx = STATE.rentaPN.findIndex(c=>String(c.cedula).replace(/\D/g,'') === '1037618448');
+  const data = {
+    nombre:'Amor Mio', cedula:'1037618448', usuarioDian:'448Motica.', contrasenaPortal:'Laura2023*',
+    firmaDian:'Laura2023*', fechaPresentacion:'2025-09-15', valorServicio:150000, valorPagado:0,
+    saldoPendiente:150000, dondePago:'N/A', fechaPago:'', telefono:'3043763138',
+    referidoInfo:'', tipoCliente:'antiguo', estadoProceso:'pendiente-contacto',
+    observaciones:'Declaracion Presentada', ultimosDigitosCedula:'48',
+    fechaDeclaracion:'2026-09-15', ultimosDigitosCedula:'48',
+  };
+  if (idx >= 0) {
+    STATE.rentaPN[idx] = {...STATE.rentaPN[idx], ...data};
+  } else {
+    STATE.rentaPN.push({id:'rh_amorMio', ...data, fechaCreacion:new Date().toISOString(), fechaActualizacion:new Date().toISOString()});
+  }
+  STATE.rentaAmorMioFixed = true;
   save();
 }
 
@@ -5642,6 +5677,7 @@ async function startApp(){
   _handleStaleSession();
   _rentaImportHistorico();
   _rentaMigracionV2();
+  _rentaFixAmorMio();
   _updateTimerUI();
   _renderBanner();
   updateClock();
