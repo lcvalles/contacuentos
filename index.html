@@ -61,9 +61,10 @@ body{font-family:var(--f-body);background:var(--c-bg);color:var(--c-text);min-he
 button{font-family:var(--f-body);cursor:pointer}
 input,select,textarea{font-family:var(--f-body)}
 a{color:inherit}
-::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--c-border2);border-radius:10px}
+::-webkit-scrollbar{width:6px;height:10px}
+::-webkit-scrollbar-track{background:var(--c-bg);border-radius:10px}
+::-webkit-scrollbar-thumb{background:var(--c-border2);border-radius:10px;border:2px solid var(--c-bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--c-text3)}
 
 /* ── LOGIN ──────────────────────────────────── */
 .login-overlay{
