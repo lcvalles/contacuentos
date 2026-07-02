@@ -5023,7 +5023,6 @@ function renderRentaPN() {
   const _makeRow = (c, num, dimmed=false) => {
     const estado = _rentaEstado(c.estadoProceso);
     const avance = _rentaAvance(c.estadoProceso);
-    const saldo = (c.valorServicio||0)-(c.valorPagado||0);
     const dias = _rentaDiasRestantes(c.fechaDeclaracion);
     const diasColor = dias===null?'var(--c-text3)':dias<=0?'#dc2626':dias<=3?'#ea580c':dias<=7?'#ca8a04':'var(--c-text3)';
     const diasLabel = dias===null?'—':dias<=0?'¡HOY!':dias===1?'Mañana':dias+'d';
@@ -5032,7 +5031,9 @@ function renderRentaPN() {
       <td style="padding:10px 8px;font-size:11px;color:var(--c-text3);text-align:center;font-weight:600">${num}</td>
       <td style="padding:10px 12px;font-weight:700;font-size:13px;white-space:nowrap">${c.nombre||'—'}</td>
       <td style="padding:10px 8px;font-size:12px;color:var(--c-text2);white-space:nowrap">${c.cedula||'—'}</td>
-      <td style="padding:10px 8px;font-size:12px;white-space:nowrap">${c.telefono?`<a href="https://wa.me/57${c.telefono.replace(/\D/g,'')}" target="_blank" style="color:var(--c-teal);text-decoration:none">${c.telefono}</a>`:'—'}</td>
+      <td style="padding:10px 8px;font-size:12px;white-space:nowrap">
+        ${c.telefono?`<div style="display:flex;align-items:center;gap:5px"><a href="https://wa.me/57${c.telefono.replace(/\D/g,'')}" target="_blank" style="color:var(--c-teal);text-decoration:none">${c.telefono}</a><button onclick="_rentaWAOpen('${c.id}')" title="Mensaje WA" style="background:none;border:1px solid var(--c-border);border-radius:5px;padding:2px 5px;cursor:pointer;font-size:11px;flex-shrink:0">💬</button></div>`:'—'}
+      </td>
       <td style="padding:10px 8px;text-align:center"><span style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;background:${c.tipoCliente==='nuevo'?'#e0e7ff':c.tipoCliente==='desertó'?'#fef3c7':'#f0fdf4'};color:${c.tipoCliente==='nuevo'?'#4f46e5':c.tipoCliente==='desertó'?'#ca8a04':'#16a34a'}">${c.tipoCliente==='nuevo'?'🆕 Nuevo':c.tipoCliente==='desertó'?'⚠️ Desertó':'🤝 Antiguo'}</span></td>
       <td style="padding:10px 8px;font-size:12px;white-space:nowrap;color:var(--c-text2)">${c.fechaPresentacion?_rentaFmtFecha(c.fechaPresentacion):'—'}</td>
       <td style="padding:10px 8px;font-size:12px;white-space:nowrap;color:${diasColor};font-weight:${dias!==null&&dias<=3?'700':'400'}">${_rentaFmtFecha(c.fechaDeclaracion)} <span style="font-size:10px">${diasLabel}</span></td>
@@ -5051,7 +5052,6 @@ function renderRentaPN() {
       <td style="padding:4px 8px;white-space:nowrap">
         <input type="text" inputmode="numeric" value="${c.valorPagado||''}" placeholder="0" onblur="_rentaInlineEdit('${c.id}','valorPagado',this.value)" style="width:80px;font-size:12px;text-align:right;padding:3px 6px;border:1px solid var(--c-border);border-radius:6px;background:var(--c-surface);color:${c.valorPagado?'#16a34a':'var(--c-text)'}">
       </td>
-      <td style="padding:4px 8px;font-size:12px;text-align:right;white-space:nowrap;color:${saldo>0?'#dc2626':'var(--c-text3)'};font-weight:${saldo>0?'700':'400'}">${saldo>0?_rentaFmtCOP(saldo):'✓'}</td>
       <td style="padding:4px 8px;white-space:nowrap">
         <select onchange="_rentaInlineEdit('${c.id}','dondePago',this.value)" style="font-size:11px;padding:3px 6px;border:1px solid var(--c-border);border-radius:6px;background:var(--c-surface);color:var(--c-text);cursor:pointer;max-width:140px">
           <option value="">—</option>
@@ -5073,19 +5073,18 @@ function renderRentaPN() {
       </td>
       <td style="padding:10px 8px;white-space:nowrap">
         <div style="display:flex;gap:4px">
-          <button onclick="_rentaWAOpen('${c.id}')" title="WhatsApp" style="background:none;border:1px solid var(--c-border);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:13px">💬</button>
           <button onclick="_rentaOpenModal('${c.id}')" title="Editar" style="background:none;border:1px solid var(--c-border);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:13px">✎</button>
           <button onclick="_rentaDelete('${c.id}')" title="Eliminar" style="background:none;border:1px solid var(--c-border);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:13px;color:var(--c-red)">✕</button>
         </div>
       </td>
     </tr>`;
   };
-  const _sepRow = completedClients.length ? `<tr><td colspan="21" style="padding:6px 16px;background:var(--c-surface2);border-top:2px solid var(--c-border);border-bottom:2px solid var(--c-border);text-align:center;font-size:11px;color:var(--c-text3);font-weight:600;letter-spacing:1px">── COMPLETADOS (${completedClients.length}) ──</td></tr>` : '';
+  const _sepRow = completedClients.length ? `<tr><td colspan="20" style="padding:6px 16px;background:var(--c-surface2);border-top:2px solid var(--c-border);border-bottom:2px solid var(--c-border);text-align:center;font-size:11px;color:var(--c-text3);font-weight:600;letter-spacing:1px">── COMPLETADOS (${completedClients.length}) ──</td></tr>` : '';
   const tableRows = filtered.length
     ? activeClients.map((c,i)=>_makeRow(c,i+1,false)).join('')
       + _sepRow
       + completedClients.map((c,i)=>_makeRow(c,activeClients.length+i+1,true)).join('')
-    : `<tr><td colspan="21" style="padding:24px;text-align:center;color:var(--c-text3);font-size:13px">Sin clientes${_rentaSearch||_rentaFilter!=='todos'?' que coincidan con el filtro':' aún. Agrega el primero con ➕ Cliente'}.</td></tr>`;
+    : `<tr><td colspan="20" style="padding:24px;text-align:center;color:var(--c-text3);font-size:13px">Sin clientes${_rentaSearch||_rentaFilter!=='todos'?' que coincidan con el filtro':' aún. Agrega el primero con ➕ Cliente'}.</td></tr>`;
 
   e.innerHTML = `
   <!-- KPI Bar -->
@@ -5114,8 +5113,8 @@ function renderRentaPN() {
         value="${_rentaSearch}" style="flex:1;min-width:200px;max-width:320px;padding:5px 10px;border:1px solid var(--c-border);border-radius:8px;font-size:12px;background:var(--c-surface);color:var(--c-text)">
       <div style="display:flex;gap:4px;flex-wrap:wrap">${filtersHTML}</div>
     </div>
-    <div style="overflow-x:scroll;-webkit-overflow-scrolling:touch;padding-bottom:4px">
-      <table style="width:100%;border-collapse:collapse;min-width:1900px">
+    <div style="overflow-x:scroll;-webkit-overflow-scrolling:touch;padding-bottom:8px;width:100%;box-sizing:border-box">
+      <table style="width:max(100%,1750px);border-collapse:collapse">
         <thead>
           <tr style="background:var(--c-surface2);font-size:10px;color:var(--c-text3);text-transform:uppercase;letter-spacing:.5px">
             <th style="padding:8px 6px;text-align:center;font-weight:600">#</th>
@@ -5132,7 +5131,6 @@ function renderRentaPN() {
             <th style="padding:8px 8px;text-align:left;font-weight:600">📌 Estado</th>
             <th style="padding:8px 8px;text-align:right;font-weight:600">💵 Cobro</th>
             <th style="padding:8px 8px;text-align:right;font-weight:600">💰 Pagado</th>
-            <th style="padding:8px 8px;text-align:right;font-weight:600">⚠️ Saldo</th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">🏦 Donde Pagó</th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">📅 F. Pago</th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">👥 Referido</th>
