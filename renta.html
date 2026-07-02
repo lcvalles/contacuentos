@@ -151,23 +151,23 @@ img{max-width:100%}
 .doc-t{font-size:.875rem;color:var(--c-text2);line-height:1.4}
 
 /* CALENDAR */
-.cal-filter-row{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.cal-filter-row{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap}
 .cal-filter-row label{font-size:.875rem;color:var(--c-text2);font-weight:500}
 .cal-filter-input{padding:8px 13px;border:1.5px solid var(--c-border2);border-radius:var(--r-md);font-family:var(--f-body);font-size:.9rem;background:var(--c-surface);color:var(--c-text);width:120px;transition:border-color .15s}
 .cal-filter-input:focus{outline:none;border-color:var(--c-teal)}
-.cal-wrap{overflow-x:auto;border-radius:var(--r-lg);border:1px solid var(--c-border);background:var(--c-surface);box-shadow:var(--sh-sm)}
-.cal-big{width:100%;border-collapse:collapse;min-width:520px}
-.cal-big .mh{background:var(--c-teal);color:#fff;text-align:center;padding:7px 10px;font-size:.78rem;font-weight:600;letter-spacing:.03em}
-.cal-big .ch{background:var(--c-surface2);color:var(--c-text3);font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:5px 8px;text-align:center;border-bottom:1px solid var(--c-border)}
-.cal-big td{padding:4px 8px;border-bottom:1px solid var(--c-border);font-size:.78rem;text-align:center;color:var(--c-text2);line-height:1.4}
-.cal-big tr:last-child td{border-bottom:none}
-.cal-big tr:nth-child(odd) td:not(.vsep){background:var(--c-surface2)}
-.cal-big tr:nth-child(odd) td.empty{background:var(--c-surface2)}
-.cal-big .vsep{width:1px;padding:0;background:var(--c-border);border-bottom:1px solid var(--c-border)}
-.cal-big .d-cell{font-family:monospace;font-weight:600;color:var(--c-text);font-variant-numeric:tabular-nums;white-space:nowrap}
-.cal-big .f-cell{font-weight:700;color:var(--c-teal);font-size:.85rem}
-.cal-big .empty{color:var(--c-border)!important}
-.cal-hl{background:var(--c-teal-bg)!important;color:var(--c-green)!important}
+.cal-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.cal-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-sm)}
+.cal-card-head{background:var(--c-teal);color:#fff;padding:12px 18px;font-size:.9rem;font-weight:600;text-align:center;letter-spacing:.03em}
+.cal-col-head{display:flex;justify-content:space-between;padding:5px 18px;background:var(--c-surface2);border-bottom:1px solid var(--c-border)}
+.cal-col-head span{font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--c-text3)}
+.cal-row{display:flex;justify-content:space-between;align-items:center;padding:8px 18px;border-bottom:1px solid var(--c-border);transition:background .1s}
+.cal-row:last-child{border-bottom:none}
+.cal-row:nth-child(odd){background:var(--c-surface2)}
+.cal-d{font-family:monospace;font-weight:600;color:var(--c-text2);font-size:.8125rem;font-variant-numeric:tabular-nums}
+.cal-f{font-weight:700;color:var(--c-teal);font-size:1rem;font-variant-numeric:tabular-nums;min-width:28px;text-align:right}
+.cal-hl{background:var(--c-teal-bg)!important}
+.cal-hl .cal-d{color:var(--c-green)!important}
+.cal-hl .cal-f{color:var(--c-green)!important}
 
 /* CONSEQUENCES */
 .conseq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-top:28px}
@@ -273,6 +273,7 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
   .section{padding:52px 0}
   .edu-tabs{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:1px}
   .edu-tab{white-space:nowrap;flex-shrink:0}
+  .cal-cards{grid-template-columns:1fr;gap:12px}
   .about-grid{grid-template-columns:1fr;gap:28px}
   .about-photo{max-width:300px;aspect-ratio:4/5;margin:0 auto}
   .footer-grid{grid-template-columns:1fr;gap:24px}
@@ -452,45 +453,72 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
       <label for="cal-filter">Buscar mis dígitos:</label>
       <input class="cal-filter-input" id="cal-filter" type="text" inputmode="numeric" maxlength="2" placeholder="Ej: 45" oninput="filterCalendar(this.value)" aria-label="Filtrar calendario por dígitos">
     </div>
-    <div class="cal-wrap">
-      <table class="cal-big" aria-label="Calendario tributario DIAN 2026">
-        <thead>
-          <tr>
-            <th class="mh" colspan="2">Agosto 2026</th>
-            <th class="vsep" rowspan="22"></th>
-            <th class="mh" colspan="2">Septiembre 2026</th>
-            <th class="vsep" rowspan="22"></th>
-            <th class="mh" colspan="2">Octubre 2026</th>
-          </tr>
-          <tr>
-            <th class="ch">Dígitos</th><th class="ch">Día</th>
-            <th class="ch">Dígitos</th><th class="ch">Día</th>
-            <th class="ch">Dígitos</th><th class="ch">Día</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td class="d-cell" data-d="01 02">01 — 02</td><td class="f-cell">12</td><td class="vsep"></td><td class="d-cell" data-d="27 28">27 — 28</td><td class="f-cell">1</td><td class="vsep"></td><td class="d-cell" data-d="67 68">67 — 68</td><td class="f-cell">1</td></tr>
-          <tr><td class="d-cell" data-d="03 04">03 — 04</td><td class="f-cell">13</td><td class="vsep"></td><td class="d-cell" data-d="29 30">29 — 30</td><td class="f-cell">2</td><td class="vsep"></td><td class="d-cell" data-d="69 70">69 — 70</td><td class="f-cell">2</td></tr>
-          <tr><td class="d-cell" data-d="05 06">05 — 06</td><td class="f-cell">14</td><td class="vsep"></td><td class="d-cell" data-d="31 32">31 — 32</td><td class="f-cell">3</td><td class="vsep"></td><td class="d-cell" data-d="71 72">71 — 72</td><td class="f-cell">5</td></tr>
-          <tr><td class="d-cell" data-d="07 08">07 — 08</td><td class="f-cell">18</td><td class="vsep"></td><td class="d-cell" data-d="33 34">33 — 34</td><td class="f-cell">4</td><td class="vsep"></td><td class="d-cell" data-d="73 74">73 — 74</td><td class="f-cell">6</td></tr>
-          <tr><td class="d-cell" data-d="09 10">09 — 10</td><td class="f-cell">19</td><td class="vsep"></td><td class="d-cell" data-d="35 36">35 — 36</td><td class="f-cell">7</td><td class="vsep"></td><td class="d-cell" data-d="75 76">75 — 76</td><td class="f-cell">7</td></tr>
-          <tr><td class="d-cell" data-d="11 12">11 — 12</td><td class="f-cell">20</td><td class="vsep"></td><td class="d-cell" data-d="37 38">37 — 38</td><td class="f-cell">8</td><td class="vsep"></td><td class="d-cell" data-d="77 78">77 — 78</td><td class="f-cell">8</td></tr>
-          <tr><td class="d-cell" data-d="13 14">13 — 14</td><td class="f-cell">21</td><td class="vsep"></td><td class="d-cell" data-d="39 40">39 — 40</td><td class="f-cell">9</td><td class="vsep"></td><td class="d-cell" data-d="79 80">79 — 80</td><td class="f-cell">9</td></tr>
-          <tr><td class="d-cell" data-d="15 16">15 — 16</td><td class="f-cell">24</td><td class="vsep"></td><td class="d-cell" data-d="41 42">41 — 42</td><td class="f-cell">10</td><td class="vsep"></td><td class="d-cell" data-d="81 82">81 — 82</td><td class="f-cell">13</td></tr>
-          <tr><td class="d-cell" data-d="17 18">17 — 18</td><td class="f-cell">25</td><td class="vsep"></td><td class="d-cell" data-d="43 44">43 — 44</td><td class="f-cell">11</td><td class="vsep"></td><td class="d-cell" data-d="83 84">83 — 84</td><td class="f-cell">14</td></tr>
-          <tr><td class="d-cell" data-d="19 20">19 — 20</td><td class="f-cell">26</td><td class="vsep"></td><td class="d-cell" data-d="45 46">45 — 46</td><td class="f-cell">14</td><td class="vsep"></td><td class="d-cell" data-d="85 86">85 — 86</td><td class="f-cell">15</td></tr>
-          <tr><td class="d-cell" data-d="21 22">21 — 22</td><td class="f-cell">27</td><td class="vsep"></td><td class="d-cell" data-d="47 48">47 — 48</td><td class="f-cell">15</td><td class="vsep"></td><td class="d-cell" data-d="87 88">87 — 88</td><td class="f-cell">16</td></tr>
-          <tr><td class="d-cell" data-d="23 24">23 — 24</td><td class="f-cell">28</td><td class="vsep"></td><td class="d-cell" data-d="49 50">49 — 50</td><td class="f-cell">16</td><td class="vsep"></td><td class="d-cell" data-d="89 90">89 — 90</td><td class="f-cell">19</td></tr>
-          <tr><td class="d-cell" data-d="25 26">25 — 26</td><td class="f-cell">31</td><td class="vsep"></td><td class="d-cell" data-d="51 52">51 — 52</td><td class="f-cell">17</td><td class="vsep"></td><td class="d-cell" data-d="91 92">91 — 92</td><td class="f-cell">20</td></tr>
-          <tr><td class="empty">·</td><td class="empty">·</td><td class="vsep"></td><td class="d-cell" data-d="53 54">53 — 54</td><td class="f-cell">18</td><td class="vsep"></td><td class="d-cell" data-d="93 94">93 — 94</td><td class="f-cell">21</td></tr>
-          <tr><td class="empty">·</td><td class="empty">·</td><td class="vsep"></td><td class="d-cell" data-d="55 56">55 — 56</td><td class="f-cell">21</td><td class="vsep"></td><td class="d-cell" data-d="95 96">95 — 96</td><td class="f-cell">22</td></tr>
-          <tr><td class="empty">·</td><td class="empty">·</td><td class="vsep"></td><td class="d-cell" data-d="57 58">57 — 58</td><td class="f-cell">22</td><td class="vsep"></td><td class="d-cell" data-d="97 98">97 — 98</td><td class="f-cell">23</td></tr>
-          <tr><td class="empty">·</td><td class="empty">·</td><td class="vsep"></td><td class="d-cell" data-d="59 60">59 — 60</td><td class="f-cell">23</td><td class="vsep"></td><td class="d-cell" data-d="99 00">99 — 00</td><td class="f-cell">26</td></tr>
-          <tr><td class="empty">·</td><td class="empty">·</td><td class="vsep"></td><td class="d-cell" data-d="61 62">61 — 62</td><td class="f-cell">24</td><td class="vsep"></td><td class="empty">·</td><td class="empty">·</td></tr>
-          <tr><td class="empty">·</td><td class="empty">·</td><td class="vsep"></td><td class="d-cell" data-d="63 64">63 — 64</td><td class="f-cell">25</td><td class="vsep"></td><td class="empty">·</td><td class="empty">·</td></tr>
-          <tr><td class="empty">·</td><td class="empty">·</td><td class="vsep"></td><td class="d-cell" data-d="65 66">65 — 66</td><td class="f-cell">28</td><td class="vsep"></td><td class="empty">·</td><td class="empty">·</td></tr>
-        </tbody>
-      </table>
+    <div class="cal-cards" aria-label="Calendario tributario DIAN 2026">
+      <!-- Agosto -->
+      <div class="cal-card">
+        <div class="cal-card-head">Agosto 2026</div>
+        <div class="cal-col-head"><span>Dígitos</span><span>Día límite</span></div>
+        <div class="cal-row" data-d="01 02"><span class="cal-d">01 — 02</span><span class="cal-f">12</span></div>
+        <div class="cal-row" data-d="03 04"><span class="cal-d">03 — 04</span><span class="cal-f">13</span></div>
+        <div class="cal-row" data-d="05 06"><span class="cal-d">05 — 06</span><span class="cal-f">14</span></div>
+        <div class="cal-row" data-d="07 08"><span class="cal-d">07 — 08</span><span class="cal-f">18</span></div>
+        <div class="cal-row" data-d="09 10"><span class="cal-d">09 — 10</span><span class="cal-f">19</span></div>
+        <div class="cal-row" data-d="11 12"><span class="cal-d">11 — 12</span><span class="cal-f">20</span></div>
+        <div class="cal-row" data-d="13 14"><span class="cal-d">13 — 14</span><span class="cal-f">21</span></div>
+        <div class="cal-row" data-d="15 16"><span class="cal-d">15 — 16</span><span class="cal-f">24</span></div>
+        <div class="cal-row" data-d="17 18"><span class="cal-d">17 — 18</span><span class="cal-f">25</span></div>
+        <div class="cal-row" data-d="19 20"><span class="cal-d">19 — 20</span><span class="cal-f">26</span></div>
+        <div class="cal-row" data-d="21 22"><span class="cal-d">21 — 22</span><span class="cal-f">27</span></div>
+        <div class="cal-row" data-d="23 24"><span class="cal-d">23 — 24</span><span class="cal-f">28</span></div>
+        <div class="cal-row" data-d="25 26"><span class="cal-d">25 — 26</span><span class="cal-f">31</span></div>
+      </div>
+      <!-- Septiembre -->
+      <div class="cal-card">
+        <div class="cal-card-head">Septiembre 2026</div>
+        <div class="cal-col-head"><span>Dígitos</span><span>Día límite</span></div>
+        <div class="cal-row" data-d="27 28"><span class="cal-d">27 — 28</span><span class="cal-f">1</span></div>
+        <div class="cal-row" data-d="29 30"><span class="cal-d">29 — 30</span><span class="cal-f">2</span></div>
+        <div class="cal-row" data-d="31 32"><span class="cal-d">31 — 32</span><span class="cal-f">3</span></div>
+        <div class="cal-row" data-d="33 34"><span class="cal-d">33 — 34</span><span class="cal-f">4</span></div>
+        <div class="cal-row" data-d="35 36"><span class="cal-d">35 — 36</span><span class="cal-f">7</span></div>
+        <div class="cal-row" data-d="37 38"><span class="cal-d">37 — 38</span><span class="cal-f">8</span></div>
+        <div class="cal-row" data-d="39 40"><span class="cal-d">39 — 40</span><span class="cal-f">9</span></div>
+        <div class="cal-row" data-d="41 42"><span class="cal-d">41 — 42</span><span class="cal-f">10</span></div>
+        <div class="cal-row" data-d="43 44"><span class="cal-d">43 — 44</span><span class="cal-f">11</span></div>
+        <div class="cal-row" data-d="45 46"><span class="cal-d">45 — 46</span><span class="cal-f">14</span></div>
+        <div class="cal-row" data-d="47 48"><span class="cal-d">47 — 48</span><span class="cal-f">15</span></div>
+        <div class="cal-row" data-d="49 50"><span class="cal-d">49 — 50</span><span class="cal-f">16</span></div>
+        <div class="cal-row" data-d="51 52"><span class="cal-d">51 — 52</span><span class="cal-f">17</span></div>
+        <div class="cal-row" data-d="53 54"><span class="cal-d">53 — 54</span><span class="cal-f">18</span></div>
+        <div class="cal-row" data-d="55 56"><span class="cal-d">55 — 56</span><span class="cal-f">21</span></div>
+        <div class="cal-row" data-d="57 58"><span class="cal-d">57 — 58</span><span class="cal-f">22</span></div>
+        <div class="cal-row" data-d="59 60"><span class="cal-d">59 — 60</span><span class="cal-f">23</span></div>
+        <div class="cal-row" data-d="61 62"><span class="cal-d">61 — 62</span><span class="cal-f">24</span></div>
+        <div class="cal-row" data-d="63 64"><span class="cal-d">63 — 64</span><span class="cal-f">25</span></div>
+        <div class="cal-row" data-d="65 66"><span class="cal-d">65 — 66</span><span class="cal-f">28</span></div>
+      </div>
+      <!-- Octubre -->
+      <div class="cal-card">
+        <div class="cal-card-head">Octubre 2026</div>
+        <div class="cal-col-head"><span>Dígitos</span><span>Día límite</span></div>
+        <div class="cal-row" data-d="67 68"><span class="cal-d">67 — 68</span><span class="cal-f">1</span></div>
+        <div class="cal-row" data-d="69 70"><span class="cal-d">69 — 70</span><span class="cal-f">2</span></div>
+        <div class="cal-row" data-d="71 72"><span class="cal-d">71 — 72</span><span class="cal-f">5</span></div>
+        <div class="cal-row" data-d="73 74"><span class="cal-d">73 — 74</span><span class="cal-f">6</span></div>
+        <div class="cal-row" data-d="75 76"><span class="cal-d">75 — 76</span><span class="cal-f">7</span></div>
+        <div class="cal-row" data-d="77 78"><span class="cal-d">77 — 78</span><span class="cal-f">8</span></div>
+        <div class="cal-row" data-d="79 80"><span class="cal-d">79 — 80</span><span class="cal-f">9</span></div>
+        <div class="cal-row" data-d="81 82"><span class="cal-d">81 — 82</span><span class="cal-f">13</span></div>
+        <div class="cal-row" data-d="83 84"><span class="cal-d">83 — 84</span><span class="cal-f">14</span></div>
+        <div class="cal-row" data-d="85 86"><span class="cal-d">85 — 86</span><span class="cal-f">15</span></div>
+        <div class="cal-row" data-d="87 88"><span class="cal-d">87 — 88</span><span class="cal-f">16</span></div>
+        <div class="cal-row" data-d="89 90"><span class="cal-d">89 — 90</span><span class="cal-f">19</span></div>
+        <div class="cal-row" data-d="91 92"><span class="cal-d">91 — 92</span><span class="cal-f">20</span></div>
+        <div class="cal-row" data-d="93 94"><span class="cal-d">93 — 94</span><span class="cal-f">21</span></div>
+        <div class="cal-row" data-d="95 96"><span class="cal-d">95 — 96</span><span class="cal-f">22</span></div>
+        <div class="cal-row" data-d="97 98"><span class="cal-d">97 — 98</span><span class="cal-f">23</span></div>
+        <div class="cal-row" data-d="99 00"><span class="cal-d">99 — 00</span><span class="cal-f">26</span></div>
+      </div>
     </div>
   </div>
 </section>
@@ -693,7 +721,7 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
 <script>
 // ── CONFIGURACIÓN ─────────────────────────────────────────────────────────────
 const WA_PHONE   = '573177635252';
-const WA_MSG_DEF = 'Hola, quiero validar gratuitamente si debo declarar renta este año.';
+const WA_MSG_DEF = 'Hola, quiero validar gratuitamente si debo declarar renta este año.\n\nMás información: https://contacuentos.site/renta';
 
 // ── CALENDARIO DIAN 2026 ──────────────────────────────────────────────────────
 const VENC = {
@@ -762,7 +790,7 @@ function consultarRenta() {
       return;
     }
     const fechaStr = fmtFecha(fecha);
-    const msg = 'Hola, quiero consultar mi declaración de renta. Mis últimos dos dígitos de cédula son ' + ult2 + ' y mi fecha límite es el ' + fechaStr + '. ¿Me pueden ayudar?';
+    const msg = 'Hola, quiero consultar mi declaración de renta. Mis últimos dos dígitos de cédula son ' + ult2 + ' y mi fecha límite es el ' + fechaStr + '. ¿Me pueden ayudar?\n\nMás información: https://contacuentos.site/renta';
     showResult(box,'must',
       'Tu fecha límite es el ' + fechaStr,
       'Según el calendario DIAN 2026, los dígitos <strong>' + ult2 + '</strong> tienen como fecha de vencimiento el <strong>' + fechaStr + '</strong>. Te recomendamos iniciar el proceso con anticipación.',
@@ -795,17 +823,12 @@ function eduTab(idx, btn) {
 // ── CALENDAR FILTER ───────────────────────────────────────────────────────────
 function filterCalendar(val) {
   const q = val.trim().replace(/\D/g,'').padStart(2,'0');
-  document.querySelectorAll('.cal-big .d-cell').forEach(td => {
-    td.classList.remove('cal-hl');
-    if (td.nextElementSibling) td.nextElementSibling.classList.remove('cal-hl');
-  });
+  document.querySelectorAll('.cal-row[data-d]').forEach(row => row.classList.remove('cal-hl'));
   if (!val.trim()) return;
-  document.querySelectorAll('.cal-big .d-cell').forEach(td => {
-    const ds = (td.dataset.d || '').split(' ');
-    if (ds.includes(q)) {
-      td.classList.add('cal-hl');
-      if (td.nextElementSibling) td.nextElementSibling.classList.add('cal-hl');
-      td.scrollIntoView({behavior:'smooth', block:'nearest'});
+  document.querySelectorAll('.cal-row[data-d]').forEach(row => {
+    if ((row.dataset.d || '').split(' ').includes(q)) {
+      row.classList.add('cal-hl');
+      row.scrollIntoView({behavior:'smooth', block:'nearest'});
     }
   });
 }
