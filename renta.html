@@ -159,38 +159,24 @@ img{max-width:100%}
 .cal-filter-row label{font-size:.875rem;color:var(--c-text2);font-weight:500}
 .cal-filter-input{padding:8px 13px;border:1.5px solid var(--c-border2);border-radius:var(--r-md);font-family:var(--f-body);font-size:.9rem;background:var(--c-surface);color:var(--c-text);width:120px;transition:border-color .15s}
 .cal-filter-input:focus{outline:none;border-color:var(--c-teal)}
-.cal-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.cal-card{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 6px 28px rgba(0,0,0,.1)}
-.cal-card-head{padding:16px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none}
-.cal-ico-circ{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0}
-.cal-head-txt{flex:1}
-.cal-month-name{font-size:.88rem;font-weight:800;color:#fff;letter-spacing:.12em;text-transform:uppercase;line-height:1.1}
-.cal-month-year{font-size:.7rem;color:rgba(255,255,255,.65);font-weight:500;margin-top:2px}
-.cal-chevron{font-size:1.1rem;color:rgba(255,255,255,.7);transition:transform .25s;flex-shrink:0}
+.cal-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.cal-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-sm)}
+.cal-card-head{background:var(--c-teal);color:#fff;padding:11px 16px;font-size:.875rem;font-weight:600;letter-spacing:.03em;cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cal-head-label{flex:1;text-align:center}
+.cal-chevron{font-size:.75rem;opacity:.8;transition:transform .22s;flex-shrink:0}
 .cal-card.open .cal-chevron{transform:rotate(180deg)}
 .cal-rows{display:none}
 .cal-rows.open{display:block}
-.cal-agosto .cal-card-head{background:#2d6a4f}
-.cal-septiembre .cal-card-head{background:#0b7a6a}
-.cal-octubre .cal-card-head{background:#c45d0a}
-.cal-col-labels{display:flex;justify-content:space-between;padding:7px 18px;background:#f8f8f8;border-bottom:1px solid #ececec}
-.cal-col-labels span{font-size:.58rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#bbb}
-.cal-row{display:flex;justify-content:space-between;align-items:center;padding:9px 18px;border-bottom:1px solid #f0f0f0;transition:background .1s}
+.cal-col-labels{display:flex;justify-content:space-between;padding:5px 16px;background:var(--c-surface2);border-bottom:1px solid var(--c-border)}
+.cal-col-labels span{font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--c-text3)}
+.cal-row{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;border-bottom:1px solid var(--c-border);transition:background .1s}
 .cal-row:last-of-type{border-bottom:none}
-.cal-row:nth-child(odd){background:#fafafa}
-.cal-d{font-size:.84rem;color:#555;font-family:monospace;font-weight:600;letter-spacing:.02em}
-.cal-badge{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:26px;padding:0 9px;border-radius:50px;font-size:.8rem;font-weight:700;color:#fff;font-variant-numeric:tabular-nums}
-.cal-agosto .cal-badge{background:#2d6a4f}
-.cal-septiembre .cal-badge{background:#0b7a6a}
-.cal-octubre .cal-badge{background:#c45d0a}
-.cal-hl{background:#e8f5ee!important}
-.cal-hl .cal-d{color:#1a5e35!important;font-weight:700}
-.cal-agosto .cal-hl .cal-badge{box-shadow:0 0 0 3px rgba(45,106,79,.35)}
-.cal-septiembre .cal-hl .cal-badge{box-shadow:0 0 0 3px rgba(11,122,106,.35)}
-.cal-octubre .cal-hl .cal-badge{box-shadow:0 0 0 3px rgba(196,93,10,.35)}
-.cal-wave{position:relative;height:52px;overflow:hidden;flex-shrink:0;margin-top:auto}
-.cal-wave svg{position:absolute;bottom:0;left:0;width:100%;height:100%}
-.cal-wave-plant{position:absolute;bottom:9px;left:16px;font-size:1.15rem}
+.cal-row:nth-child(odd){background:var(--c-surface2)}
+.cal-d{font-family:monospace;font-weight:600;color:var(--c-text2);font-size:.8125rem;font-variant-numeric:tabular-nums}
+.cal-badge{font-weight:700;color:var(--c-teal);font-size:1rem;font-variant-numeric:tabular-nums;min-width:28px;text-align:right}
+.cal-hl{background:var(--c-teal-bg)!important}
+.cal-hl .cal-d{color:var(--c-green)!important;font-weight:700}
+.cal-hl .cal-badge{color:var(--c-green)!important}
 .cal-note{display:flex;align-items:flex-start;gap:12px;margin-top:18px;padding:14px 18px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-lg)}
 .cal-note-ico{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--c-teal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;margin-top:1px}
 .cal-note-txt{font-size:.875rem;color:var(--c-text2);line-height:1.65}
@@ -489,13 +475,9 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
     <div class="cal-cards" aria-label="Calendario tributario DIAN 2026">
 
       <!-- AGOSTO -->
-      <div class="cal-card cal-agosto" id="cal-card-ago">
+      <div class="cal-card" id="cal-card-ago">
         <div class="cal-card-head" onclick="toggleMonth('cal-card-ago')" aria-expanded="false">
-          <div class="cal-ico-circ">☀️</div>
-          <div class="cal-head-txt">
-            <div class="cal-month-name">Agosto</div>
-            <div class="cal-month-year">2026 · dígitos 01–26</div>
-          </div>
+          <span class="cal-head-label">Agosto 2026</span>
           <span class="cal-chevron">▾</span>
         </div>
         <div class="cal-rows" id="cal-rows-ago">
@@ -513,24 +495,13 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
           <div class="cal-row" data-d="21 22"><span class="cal-d">21 — 22</span><span class="cal-badge">27</span></div>
           <div class="cal-row" data-d="23 24"><span class="cal-d">23 — 24</span><span class="cal-badge">28</span></div>
           <div class="cal-row" data-d="25 26"><span class="cal-d">25 — 26</span><span class="cal-badge">31</span></div>
-          <div class="cal-wave">
-            <svg viewBox="0 0 400 52" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0,28 C80,8 160,48 240,28 S360,8 400,28 L400,52 L0,52 Z" fill="#2d6a4f" opacity=".12"/>
-              <path d="M0,38 C80,18 160,55 240,36 S360,18 400,38 L400,52 L0,52 Z" fill="#2d6a4f" opacity=".22"/>
-            </svg>
-            <span class="cal-wave-plant">🌿</span>
-          </div>
         </div>
       </div>
 
       <!-- SEPTIEMBRE -->
-      <div class="cal-card cal-septiembre" id="cal-card-sep">
+      <div class="cal-card" id="cal-card-sep">
         <div class="cal-card-head" onclick="toggleMonth('cal-card-sep')" aria-expanded="false">
-          <div class="cal-ico-circ">🍃</div>
-          <div class="cal-head-txt">
-            <div class="cal-month-name">Septiembre</div>
-            <div class="cal-month-year">2026 · dígitos 27–66</div>
-          </div>
+          <span class="cal-head-label">Septiembre 2026</span>
           <span class="cal-chevron">▾</span>
         </div>
         <div class="cal-rows" id="cal-rows-sep">
@@ -555,24 +526,13 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
           <div class="cal-row" data-d="61 62"><span class="cal-d">61 — 62</span><span class="cal-badge">24</span></div>
           <div class="cal-row" data-d="63 64"><span class="cal-d">63 — 64</span><span class="cal-badge">25</span></div>
           <div class="cal-row" data-d="65 66"><span class="cal-d">65 — 66</span><span class="cal-badge">28</span></div>
-          <div class="cal-wave">
-            <svg viewBox="0 0 400 52" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0,28 C80,8 160,48 240,28 S360,8 400,28 L400,52 L0,52 Z" fill="#0b7a6a" opacity=".12"/>
-              <path d="M0,38 C80,18 160,55 240,36 S360,18 400,38 L400,52 L0,52 Z" fill="#0b7a6a" opacity=".22"/>
-            </svg>
-            <span class="cal-wave-plant">🌱</span>
-          </div>
         </div>
       </div>
 
       <!-- OCTUBRE -->
-      <div class="cal-card cal-octubre" id="cal-card-oct">
+      <div class="cal-card" id="cal-card-oct">
         <div class="cal-card-head" onclick="toggleMonth('cal-card-oct')" aria-expanded="false">
-          <div class="cal-ico-circ">🌾</div>
-          <div class="cal-head-txt">
-            <div class="cal-month-name">Octubre</div>
-            <div class="cal-month-year">2026 · dígitos 67–00</div>
-          </div>
+          <span class="cal-head-label">Octubre 2026</span>
           <span class="cal-chevron">▾</span>
         </div>
         <div class="cal-rows" id="cal-rows-oct">
@@ -594,13 +554,6 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
           <div class="cal-row" data-d="95 96"><span class="cal-d">95 — 96</span><span class="cal-badge">22</span></div>
           <div class="cal-row" data-d="97 98"><span class="cal-d">97 — 98</span><span class="cal-badge">23</span></div>
           <div class="cal-row" data-d="99 00"><span class="cal-d">99 — 00</span><span class="cal-badge">26</span></div>
-          <div class="cal-wave">
-            <svg viewBox="0 0 400 52" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0,28 C80,8 160,48 240,28 S360,8 400,28 L400,52 L0,52 Z" fill="#c45d0a" opacity=".12"/>
-              <path d="M0,38 C80,18 160,55 240,36 S360,18 400,38 L400,52 L0,52 Z" fill="#c45d0a" opacity=".22"/>
-            </svg>
-            <span class="cal-wave-plant">🌾</span>
-          </div>
         </div>
       </div>
 
@@ -915,20 +868,10 @@ function eduTab(idx, btn) {
 function toggleMonth(cardId) {
   const card = document.getElementById(cardId);
   if (!card) return;
-  const rows = card.querySelector('.cal-rows');
   const isOpen = card.classList.contains('open');
-  // Close all
-  document.querySelectorAll('.cal-card').forEach(c => {
-    c.classList.remove('open');
-    c.querySelector('.cal-rows').classList.remove('open');
-    c.querySelector('.cal-card-head').setAttribute('aria-expanded','false');
-  });
-  // Toggle clicked
-  if (!isOpen) {
-    card.classList.add('open');
-    rows.classList.add('open');
-    card.querySelector('.cal-card-head').setAttribute('aria-expanded','true');
-  }
+  card.classList.toggle('open', !isOpen);
+  card.querySelector('.cal-rows').classList.toggle('open', !isOpen);
+  card.querySelector('.cal-card-head').setAttribute('aria-expanded', String(!isOpen));
 }
 
 // ── CALENDAR FILTER ───────────────────────────────────────────────────────────
