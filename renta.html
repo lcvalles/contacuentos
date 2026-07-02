@@ -56,8 +56,8 @@ img{max-width:100%}
 /* NAV */
 .nav{position:sticky;top:0;z-index:100;background:rgba(242,241,237,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border)}
 .nav-inner{max-width:var(--max-w);margin:0 auto;padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.nav-logo{font-family:var(--f-display);font-size:1.2rem;font-weight:600;color:var(--c-teal);display:flex;align-items:center;gap:8px}
-.nav-logo span{width:7px;height:7px;background:var(--c-gold);border-radius:50%;display:inline-block}
+.nav-logo{display:flex;align-items:center}
+.nav-logo img{height:38px;width:auto;display:block}
 .nav-wa{display:flex;align-items:center;gap:7px;background:#25d366;color:#fff;padding:8px 18px;border-radius:var(--r-lg);font-size:.875rem;font-weight:500;transition:background .15s;white-space:nowrap}
 .nav-wa:hover{background:#1fbb58}
 
@@ -215,8 +215,8 @@ img{max-width:100%}
 /* FOOTER */
 footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
 .footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:40px;margin-bottom:36px}
-.f-logo{font-family:var(--f-display);font-size:1.2rem;color:#fff;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-.f-logo span{width:7px;height:7px;background:var(--c-gold);border-radius:50%;display:inline-block}
+.f-logo{margin-bottom:12px}
+.f-logo img{height:40px;width:auto;display:block;filter:brightness(0) invert(1);opacity:.85}
 .f-desc{font-size:.875rem;color:rgba(255,255,255,.5);line-height:1.65;max-width:270px}
 .f-head{font-size:.7rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:12px}
 .f-link{display:block;font-size:.875rem;color:rgba(255,255,255,.65);margin-bottom:8px;transition:color .15s}
@@ -275,7 +275,7 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
 <!-- NAV -->
 <header class="nav" role="banner">
   <div class="nav-inner">
-    <div class="nav-logo"><span></span> Yulieth Castrillón</div>
+    <div class="nav-logo"><img src="LogoYC.jpeg" alt="Yulieth Castrillón Contadora"></div>
     <a class="nav-wa" id="nav-wa-btn" href="#" target="_blank" rel="noopener">💬 WhatsApp</a>
   </div>
 </header>
@@ -607,7 +607,7 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
   <div class="wrap">
     <div class="footer-grid">
       <div>
-        <div class="f-logo"><span></span> Yulieth Castrillón</div>
+        <div class="f-logo"><img src="LogoYC.jpeg" alt="Yulieth Castrillón Contadora"></div>
         <p class="f-desc">Contadora Pública especializada en declaración de renta para personas naturales en Colombia. Atención personalizada con más de 6 años de experiencia.</p>
       </div>
       <div>
