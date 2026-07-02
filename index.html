@@ -5041,6 +5041,9 @@ function renderRentaPN() {
       <td style="padding:10px 8px;font-size:12px;color:var(--c-text2);white-space:nowrap">${c.usuarioDian||'—'}</td>
       <td style="padding:10px 8px;white-space:nowrap">${c.contrasenaPortal?`<div style="display:flex;align-items:center;gap:4px"><span style="font-size:12px;letter-spacing:2px;color:var(--c-text3)">••••</span><button onclick="_rentaCopyPwd('${c.id}','clave')" title="Copiar contraseña" style="background:none;border:1px solid var(--c-border);border-radius:5px;padding:2px 6px;cursor:pointer;font-size:11px">📋</button></div>`:'—'}</td>
       <td style="padding:10px 8px;white-space:nowrap">${c.firmaDian?`<div style="display:flex;align-items:center;gap:4px"><span style="font-size:12px;letter-spacing:2px;color:var(--c-text3)">••••</span><button onclick="_rentaCopyPwd('${c.id}','firma')" title="Copiar firma" style="background:none;border:1px solid var(--c-border);border-radius:5px;padding:2px 6px;cursor:pointer;font-size:11px">📋</button></div>`:'—'}</td>
+      <td style="padding:4px 8px;text-align:center">
+        <input type="checkbox" ${c.exogena?'checked':''} onchange="_rentaInlineEdit('${c.id}','exogena',this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:var(--c-teal)">
+      </td>
       <td style="padding:4px 8px;white-space:nowrap">
         <select onchange="_rentaInlineEdit('${c.id}','estadoProceso',this.value)" style="font-size:11px;padding:3px 8px;border-radius:6px;background:${estado.color}20;color:${estado.color};font-weight:600;border:1px solid ${estado.color}40;cursor:pointer;max-width:170px;width:100%">
           ${RENTA_ESTADOS.map(e=>`<option value="${e.id}" ${c.estadoProceso===e.id?'selected':''}>${e.label}</option>`).join('')}
@@ -5079,12 +5082,12 @@ function renderRentaPN() {
       </td>
     </tr>`;
   };
-  const _sepRow = completedClients.length ? `<tr><td colspan="20" style="padding:6px 16px;background:var(--c-surface2);border-top:2px solid var(--c-border);border-bottom:2px solid var(--c-border);text-align:center;font-size:11px;color:var(--c-text3);font-weight:600;letter-spacing:1px">── COMPLETADOS (${completedClients.length}) ──</td></tr>` : '';
+  const _sepRow = completedClients.length ? `<tr><td colspan="21" style="padding:6px 16px;background:var(--c-surface2);border-top:2px solid var(--c-border);border-bottom:2px solid var(--c-border);text-align:center;font-size:11px;color:var(--c-text3);font-weight:600;letter-spacing:1px">── COMPLETADOS (${completedClients.length}) ──</td></tr>` : '';
   const tableRows = filtered.length
     ? activeClients.map((c,i)=>_makeRow(c,i+1,false)).join('')
       + _sepRow
       + completedClients.map((c,i)=>_makeRow(c,activeClients.length+i+1,true)).join('')
-    : `<tr><td colspan="20" style="padding:24px;text-align:center;color:var(--c-text3);font-size:13px">Sin clientes${_rentaSearch||_rentaFilter!=='todos'?' que coincidan con el filtro':' aún. Agrega el primero con ➕ Cliente'}.</td></tr>`;
+    : `<tr><td colspan="21" style="padding:24px;text-align:center;color:var(--c-text3);font-size:13px">Sin clientes${_rentaSearch||_rentaFilter!=='todos'?' que coincidan con el filtro':' aún. Agrega el primero con ➕ Cliente'}.</td></tr>`;
 
   e.innerHTML = `
   <!-- KPI Bar -->
@@ -5128,6 +5131,7 @@ function renderRentaPN() {
             <th style="padding:8px 8px;text-align:left;font-weight:600">👤 Usuario</th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">🔑 Contraseña</th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">✍️ Firma</th>
+            <th style="padding:8px 8px;text-align:center;font-weight:600">Exógena</th>
             <th style="padding:8px 8px;text-align:left;font-weight:600">📌 Estado</th>
             <th style="padding:8px 8px;text-align:right;font-weight:600">💵 Cobro</th>
             <th style="padding:8px 8px;text-align:right;font-weight:600">💰 Pagado</th>
