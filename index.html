@@ -5035,7 +5035,7 @@ function renderRentaPN() {
         ${c.telefono?`<div style="display:flex;align-items:center;gap:5px"><a href="https://wa.me/57${c.telefono.replace(/\D/g,'')}" target="_blank" style="color:var(--c-teal);text-decoration:none">${c.telefono}</a><button onclick="_rentaWAOpen('${c.id}')" title="Mensaje WA" style="background:none;border:1px solid var(--c-border);border-radius:5px;padding:2px 5px;cursor:pointer;font-size:11px;flex-shrink:0">💬</button></div>`:'—'}
       </td>
       <td style="padding:10px 8px;text-align:center"><span style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;background:${c.tipoCliente==='nuevo'?'#e0e7ff':c.tipoCliente==='desertó'?'#fef3c7':'#f0fdf4'};color:${c.tipoCliente==='nuevo'?'#4f46e5':c.tipoCliente==='desertó'?'#ca8a04':'#16a34a'}">${c.tipoCliente==='nuevo'?'🆕 Nuevo':c.tipoCliente==='desertó'?'⚠️ Desertó':'🤝 Antiguo'}</span></td>
-      <td style="padding:10px 8px;font-size:12px;white-space:nowrap;color:var(--c-text2)">${c.fechaPresentacion?_rentaFmtFecha(c.fechaPresentacion):'—'}</td>
+      <td style="padding:10px 8px;font-size:12px;white-space:nowrap;color:var(--c-text2)">${_rentaFmtFecha(c.fechaPresentacion||c.fechaDeclaracion)}</td>
       <td style="padding:10px 8px;font-size:12px;white-space:nowrap;color:${diasColor};font-weight:${dias!==null&&dias<=3?'700':'400'}">${_rentaFmtFecha(c.fechaDeclaracion)} <span style="font-size:10px">${diasLabel}</span></td>
       <td style="padding:10px 8px;font-size:12px;text-align:center;color:var(--c-text2)">${c.ultimosDigitosCedula||'—'}</td>
       <td style="padding:10px 8px;font-size:12px;color:var(--c-text2);white-space:nowrap">${c.usuarioDian||'—'}</td>
@@ -5251,7 +5251,7 @@ function _rentaOpenModal(id) {
     </div>
     <div>
       <label style="font-size:11px;color:var(--c-text3);font-weight:600">📆 Fecha presentación</label>
-      <input id="rn_fpres" type="date" class="field-input" value="${c?c.fechaPresentacion||'':''}" style="width:100%;margin-top:4px">
+      <input id="rn_fpres" type="date" class="field-input" value="${c?(c.fechaPresentacion||c.fechaDeclaracion||''):''}" style="width:100%;margin-top:4px">
     </div>
     <div>
       <label style="font-size:11px;color:var(--c-text3);font-weight:600">📅 Vencimiento DIAN</label>
