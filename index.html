@@ -5435,8 +5435,11 @@ function _rentaWARender() {
       ${RENTA_WA_MSGS.map(m=>`<option value="${m.id}" ${m.id===_rentaWAMsgId?'selected':''}>${m.label}</option>`).join('')}
     </select>
   </div>
-  <textarea id="rentaWAText" class="field-input" rows="12" style="width:100%;font-size:13px;line-height:1.6;resize:vertical">${texto}</textarea>
-  ${c.telefono?`<div style="margin-top:8px"><button onclick="var t=document.getElementById('rentaWAText');window.open('https://wa.me/57${c.telefono.replace(/\D/g,'')}?text='+encodeURIComponent(t?t.value:''),'_blank')" style="display:inline-block;background:#25d366;color:#fff;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:700">📱 Abrir en WhatsApp</button></div>`:''}`;
+  <textarea id="rentaWAText" class="field-input" rows="12" style="width:100%;font-size:13px;line-height:1.6;resize:vertical;font-family:inherit"></textarea>
+  ${c.telefono?`<div style="margin-top:8px"><button onclick="var t=document.getElementById('rentaWAText');window.open('https://wa.me/57${c.telefono.replace(/\D/g,'')}?text='+encodeURIComponent(t?t.value:''),'_blank')" style="display:inline-block;background:#25d366;color:#fff;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:700">\u{1F4F1} Abrir en WhatsApp</button></div>`:''}`;
+  // asignar via .value (no innerHTML) para preservar emoji correctamente
+  const _ta = el('rentaWAText');
+  if (_ta) _ta.value = texto;
 }
 function _rentaCopyWA() {
   const t = el('rentaWAText'); if (!t) return;
