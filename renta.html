@@ -56,8 +56,10 @@ img{max-width:100%}
 /* NAV */
 .nav{position:sticky;top:0;z-index:100;background:rgba(242,241,237,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border)}
 .nav-inner{max-width:var(--max-w);margin:0 auto;padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.nav-logo{display:flex;align-items:center}
-.nav-logo img{height:44px;width:auto;display:block}
+.nav-logo{display:flex;align-items:center;gap:10px}
+.nav-logo-circle{width:38px;height:38px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1.5px solid var(--c-gold-bd)}
+.nav-logo-circle img{width:100%;height:100%;object-fit:cover;object-position:center 18%}
+.nav-logo-name{font-family:var(--f-display);font-size:1.1rem;font-weight:600;color:var(--c-teal)}
 .nav-wa{display:flex;align-items:center;gap:7px;background:#25d366;color:#fff;padding:8px 18px;border-radius:var(--r-lg);font-size:.875rem;font-weight:500;transition:background .15s;white-space:nowrap}
 .nav-wa:hover{background:#1fbb58}
 
@@ -279,7 +281,10 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
 <!-- NAV -->
 <header class="nav" role="banner">
   <div class="nav-inner">
-    <div class="nav-logo"><img src="LogoYC.jpeg" alt="Yulieth Castrillón Contadora"></div>
+    <div class="nav-logo">
+      <div class="nav-logo-circle"><img src="LogoYC.jpeg" alt="Logo YC"></div>
+      <span class="nav-logo-name">Yulieth Castrillón</span>
+    </div>
     <a class="nav-wa" id="nav-wa-btn" href="#" target="_blank" rel="noopener">💬 WhatsApp</a>
   </div>
 </header>
@@ -521,19 +526,19 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
         <div class="eyebrow">Tu contadora</div>
         <h2 class="about-name">Yulieth Castrillón</h2>
         <p class="about-role">Contadora Pública · Especialización en Políticas y Legislación Tributaria</p>
-        <p class="about-bio">Especialista en Legislación Tributaria con formación en la Universidad de Medellín y más de 6 años de experiencia. Dirijo la contabilidad de grandes empresas, lo que significa que conozco la DIAN por dentro — sus procesos, sus exigencias y cómo cumplir sin pagar de más. Eso me mantiene al día con estrategias tributarias que van mucho más allá del formulario.</p>
+        <p class="about-bio">Especialista en Legislación Tributaria con formación en la Universidad de Medellín y más de 6 años de experiencia. Dirijo la contabilidad de más de 10 empresas, lo que significa que conozco la DIAN por dentro — sus procesos, sus exigencias y cómo cumplir sin pagar de más. Eso me mantiene al día con estrategias tributarias que van mucho más allá del formulario.</p>
         <p class="about-bio" style="margin-top:-8px">Pero también sé que detrás de cada declaración hay una persona con dudas reales. Cuando acompaño a personas naturales, aplico ese mismo nivel de detalle: te explico qué estás firmando, aprovechamos cada deducción válida y presentamos a tiempo. Atención directa, sin intermediarios y sin tecnicismos innecesarios — desde la primera consulta hasta la presentación final.</p>
         <div class="about-corp">
           <div class="about-corp-lbl">Experiencia corporativa que respalda tu proceso</div>
           <div class="about-corp-items">
-            <div class="corp-item">🏢 Directora Contable de grupo empresarial de 8 compañías</div>
+            <div class="corp-item">🏢 Directora Contable de más de 10 empresas</div>
             <div class="corp-item">🎓 Especialización en Legislación Tributaria · Universidad de Medellín</div>
             <div class="corp-item">⚖️ Auditoría fiscal y cumplimiento normativo ante la DIAN</div>
           </div>
         </div>
         <div class="about-badges">
           <div class="a-badge"><div class="a-badge-n">+6</div><div class="a-badge-l">años de experiencia contable y tributaria</div></div>
-          <div class="a-badge"><div class="a-badge-n">8</div><div class="a-badge-l">empresas bajo su dirección actualmente</div></div>
+          <div class="a-badge"><div class="a-badge-n">+10</div><div class="a-badge-l">empresas bajo su dirección actualmente</div></div>
           <div class="a-badge"><div class="a-badge-n">Esp.</div><div class="a-badge-l">Legislación Tributaria · UdeM 2025</div></div>
           <div class="a-badge"><div class="a-badge-n">100%</div><div class="a-badge-l">atención personalizada y directa</div></div>
         </div>
