@@ -5436,8 +5436,10 @@ function _rentaWARender() {
     </select>
   </div>
   <textarea id="rentaWAText" class="field-input" rows="12" style="width:100%;font-size:13px;line-height:1.6;resize:vertical;font-family:inherit"></textarea>
-  ${c.telefono?`<div style="margin-top:8px"><button onclick="var t=document.getElementById('rentaWAText');window.open('https://wa.me/57${c.telefono.replace(/\D/g,'')}?text='+encodeURIComponent(t?t.value:''),'_blank')" style="display:inline-block;background:#25d366;color:#fff;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:700">\u{1F4F1} Abrir en WhatsApp</button></div>`:''}`;
-  // asignar via .value (no innerHTML) para preservar emoji correctamente
+  ${c.telefono?`<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <button onclick="(function(){var t=document.getElementById('rentaWAText');if(!t)return;navigator.clipboard.writeText(t.value).then(function(){window.open('https://web.whatsapp.com/send?phone=57${c.telefono.replace(/\D/g,'')}','_blank');var b=document.getElementById('rentaWACopied');if(b){b.style.display='inline-flex';setTimeout(function(){b.style.display='none'},5000);}}).catch(function(){window.open('https://wa.me/57${c.telefono.replace(/\D/g,'')}?text='+encodeURIComponent(t.value),'_blank');});})()" style="display:inline-block;background:#25d366;color:#fff;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:700">\u{1F4F1} Abrir en WhatsApp</button>
+    <span id="rentaWACopied" style="display:none;font-size:12px;color:var(--c-teal);font-weight:600">\u{2705} Mensaje copiado &mdash; pega con Ctrl+V en WhatsApp</span>
+  </div>`:''}`;
   const _ta = el('rentaWAText');
   if (_ta) _ta.value = texto;
 }
