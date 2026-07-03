@@ -4943,7 +4943,7 @@ function _rentaEstadoDD(clientId, btn) {
     opt.innerHTML = `<span style="width:12px;height:12px;border-radius:50%;background:${e.color};flex-shrink:0;display:inline-block"></span>${e.label}`;
     opt.onmouseenter = ()=>{ opt.style.background=e.color; opt.style.color='#fff'; };
     opt.onmouseleave = ()=>{ opt.style.background='transparent'; opt.style.color=e.color; };
-    opt.onclick = (ev)=>{ ev.stopPropagation(); _rentaInlineEdit(clientId,'estadoProceso',e.id); dd.remove(); renderRentaPN(); };
+    opt.onclick = (ev)=>{ ev.stopPropagation(); _rentaInlineEdit(clientId,'estadoProceso',e.id); btn.style.background=e.bg||'#6b7280'; btn.style.color=e.text||'#fff'; btn.innerHTML=`<span style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5);flex-shrink:0;display:inline-block"></span>${e.label}`; dd.remove(); };
     dd.appendChild(opt);
   });
   document.body.appendChild(dd);
@@ -4966,7 +4966,7 @@ function _rentaTipoDD(clientId, btn) {
     opt.innerHTML = `<span style="width:12px;height:12px;border-radius:50%;background:${t.color};flex-shrink:0;display:inline-block"></span>${t.label}`;
     opt.onmouseenter = ()=>{ opt.style.background=t.color; opt.style.color='#fff'; };
     opt.onmouseleave = ()=>{ opt.style.background='transparent'; opt.style.color=t.color; };
-    opt.onclick = (ev)=>{ ev.stopPropagation(); _rentaInlineEdit(clientId,'tipoCliente',t.id); dd.remove(); renderRentaPN(); };
+    opt.onclick = (ev)=>{ ev.stopPropagation(); _rentaInlineEdit(clientId,'tipoCliente',t.id); btn.style.background=t.color+'18'; btn.style.color=t.color; btn.style.borderColor=t.color+'40'; btn.textContent=t.label; dd.remove(); };
     dd.appendChild(opt);
   });
   document.body.appendChild(dd);
