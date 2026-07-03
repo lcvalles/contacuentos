@@ -4933,9 +4933,9 @@ function _rentaEstadoDD(clientId, btn) {
   RENTA_ESTADOS.forEach(e=>{
     const opt = document.createElement('button');
     opt.style.cssText = `display:flex;align-items:center;gap:9px;width:100%;padding:7px 11px;border-radius:7px;border:none;background:transparent;cursor:pointer;font-size:12px;text-align:left;font-family:inherit;transition:background .1s`;
-    opt.innerHTML = `<span style="width:12px;height:12px;border-radius:50%;background:${e.color};flex-shrink:0;display:inline-block"></span><span style="color:${e.text};font-weight:600">${e.label}</span>`;
-    opt.onmouseenter = ()=>{ opt.style.background=e.bg; };
-    opt.onmouseleave = ()=>{ opt.style.background='transparent'; };
+    opt.innerHTML = `<span style="width:12px;height:12px;border-radius:50%;background:${e.color};flex-shrink:0;display:inline-block"></span><span style="color:${e.color};font-weight:600">${e.label}</span>`;
+    opt.onmouseenter = ()=>{ opt.style.background=e.color; opt.querySelectorAll('span')[1].style.color='#fff'; };
+    opt.onmouseleave = ()=>{ opt.style.background='transparent'; opt.querySelectorAll('span')[1].style.color=e.color; };
     opt.onclick = (ev)=>{ ev.stopPropagation(); _rentaInlineEdit(clientId,'estadoProceso',e.id); dd.remove(); };
     dd.appendChild(opt);
   });
