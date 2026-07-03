@@ -5091,7 +5091,7 @@ function renderRentaPN() {
         <input type="checkbox" ${c.exogena?'checked':''} onchange="_rentaInlineEdit('${c.id}','exogena',this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:var(--c-teal)">
       </td>
       <td style="padding:4px 8px;white-space:nowrap">
-        <select onchange="_rentaInlineEdit('${c.id}','estadoProceso',this.value)" style="font-size:11px;padding:3px 8px;border-radius:6px;background:${estado.bg||'#f3f4f6'};color:${estado.text||'#374151'};font-weight:700;border:2px solid ${estado.color};cursor:pointer;max-width:175px;width:100%">
+        <select onchange="_rentaInlineEdit('${c.id}','estadoProceso',this.value)" style="font-size:11px;padding:3px 8px;border-radius:6px;background:var(--c-surface);color:${estado.text||'#374151'};font-weight:700;border:2px solid ${estado.color};cursor:pointer;max-width:175px;width:100%">
           ${RENTA_ESTADOS.map(e=>`<option value="${e.id}" ${c.estadoProceso===e.id?'selected':''}>${e.label}</option>`).join('')}
         </select>
       </td>
