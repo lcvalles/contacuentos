@@ -4900,7 +4900,8 @@ const RENTA_COLS = [
   {idx:19,label:'Notas',           hideable:true},
   {idx:20,label:'Acciones',        hideable:false},
 ];
-let _rentaHiddenCols = new Set([8,9,10,17,18]);
+const _rcStored = localStorage.getItem('rentaHiddenCols');
+let _rentaHiddenCols = _rcStored ? new Set(JSON.parse(_rcStored)) : new Set([8,9,10,17,18]);
 
 function _rentaUpdateColVis() {
   let st = document.getElementById('renta-col-vis-style');
@@ -4910,6 +4911,7 @@ function _rentaUpdateColVis() {
 function _rentaToggleCol(idx) {
   idx = Number(idx);
   if (_rentaHiddenCols.has(idx)) _rentaHiddenCols.delete(idx); else _rentaHiddenCols.add(idx);
+  localStorage.setItem('rentaHiddenCols', JSON.stringify([..._rentaHiddenCols]));
   _rentaUpdateColVis();
 }
 function _rentaColPanel(e) {
