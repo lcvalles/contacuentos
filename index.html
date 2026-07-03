@@ -4877,6 +4877,13 @@ const RENTA_ESTADOS = [
   {id:'deserto',               label:'🏳️ Desertó',               avance:0,  color:'#374151', bg:'#374151', text:'#fff'},
 ];
 
+const RENTA_TIPOS = [
+  {id:'nuevo',       label:'🆕 Nuevo',        color:'#4f46e5'},
+  {id:'antiguo',     label:'🤝 Antiguo',       color:'#16a34a'},
+  {id:'reactivado',  label:'🔁 Reactivado',    color:'#0891b2'},
+  {id:'desertó',     label:'⚠️ Desertó',       color:'#b45309'},
+];
+
 const RENTA_COLS = [
   {idx:0, label:'#',               hideable:false},
   {idx:1, label:'Cliente',         hideable:false},
@@ -4921,7 +4928,7 @@ function _rentaColPanel(e) {
 }
 document.addEventListener('click', ()=>{
   const p=document.getElementById('renta-col-panel'); if(p) p.style.display='none';
-  document.querySelectorAll('.estado-dd').forEach(d=>d.remove());
+  document.querySelectorAll('.estado-dd,.tipo-dd').forEach(d=>d.remove());
 });
 
 function _rentaEstadoDD(clientId, btn) {
@@ -4937,6 +4944,29 @@ function _rentaEstadoDD(clientId, btn) {
     opt.onmouseenter = ()=>{ opt.style.background=e.color; opt.style.color='#fff'; };
     opt.onmouseleave = ()=>{ opt.style.background='transparent'; opt.style.color=e.color; };
     opt.onclick = (ev)=>{ ev.stopPropagation(); _rentaInlineEdit(clientId,'estadoProceso',e.id); dd.remove(); };
+    dd.appendChild(opt);
+  });
+  document.body.appendChild(dd);
+  setTimeout(()=>{
+    document.addEventListener('click', function _close(ev){
+      if(!dd.contains(ev.target)&&ev.target!==btn){ dd.remove(); document.removeEventListener('click',_close); }
+    });
+  }, 10);
+}
+
+function _rentaTipoDD(clientId, btn) {
+  document.querySelectorAll('.estado-dd,.tipo-dd').forEach(d=>d.remove());
+  const rect = btn.getBoundingClientRect();
+  const dd = document.createElement('div');
+  dd.className = 'tipo-dd';
+  dd.style.cssText = `position:fixed;z-index:9999;background:#fff;border:1px solid #d1d5db;border-radius:10px;padding:4px;box-shadow:0 6px 24px rgba(0,0,0,.15);min-width:180px;top:${rect.bottom+3}px;left:${rect.left}px`;
+  RENTA_TIPOS.forEach(t=>{
+    const opt = document.createElement('button');
+    opt.style.cssText = `display:flex;align-items:center;gap:9px;width:100%;padding:7px 11px;border-radius:7px;border:none;background:transparent;cursor:pointer;font-size:12px;font-weight:600;text-align:left;font-family:inherit;transition:background .15s,color .15s;color:${t.color}`;
+    opt.innerHTML = `<span style="width:12px;height:12px;border-radius:50%;background:${t.color};flex-shrink:0;display:inline-block"></span>${t.label}`;
+    opt.onmouseenter = ()=>{ opt.style.background=t.color; opt.style.color='#fff'; };
+    opt.onmouseleave = ()=>{ opt.style.background='transparent'; opt.style.color=t.color; };
+    opt.onclick = (ev)=>{ ev.stopPropagation(); _rentaInlineEdit(clientId,'tipoCliente',t.id); dd.remove(); };
     dd.appendChild(opt);
   });
   document.body.appendChild(dd);
@@ -4985,6 +5015,7 @@ function _rentaFechaVenc(cedula) {
   return RENTA_NIT_VENC[ult2] || '';
 }
 function _rentaEstado(id) { return RENTA_ESTADOS.find(e=>e.id===id)||RENTA_ESTADOS[0]; }
+function _rentaTipo(id) { return RENTA_TIPOS.find(t=>t.id===id)||RENTA_TIPOS[1]; }
 function _rentaAvance(estadoId) { return _rentaEstado(estadoId).avance; }
 function _rentaDiasRestantes(fecha) {
   if (!fecha) return null;
@@ -5011,6 +5042,7 @@ function renderRentaPN() {
   const total = clientes.length;
   const nuevos = clientes.filter(c=>c.tipoCliente==='nuevo').length;
   const antiguos = clientes.filter(c=>c.tipoCliente==='antiguo').length;
+  const reactivados = clientes.filter(c=>c.tipoCliente==='reactivado').length;
   const proyectado = clientes.reduce((a,c)=>a+(c.valorServicio||0),0);
   const recaudado  = clientes.reduce((a,c)=>a+(c.valorPagado||0),0);
   const pendienteCobro = proyectado - recaudado;
@@ -5058,9 +5090,10 @@ function renderRentaPN() {
     const q = _rentaSearch.toLowerCase();
     filtered = filtered.filter(c=>(c.nombre||'').toLowerCase().includes(q)||(c.cedula||'').includes(q)||(c.telefono||'').includes(q));
   }
-  if (_rentaFilter==='nuevos')      filtered = filtered.filter(c=>c.tipoCliente==='nuevo');
-  if (_rentaFilter==='antiguos')    filtered = filtered.filter(c=>c.tipoCliente==='antiguo');
-  if (_rentaFilter==='desertados')  filtered = filtered.filter(c=>c.tipoCliente==='desertó');
+  if (_rentaFilter==='nuevos')       filtered = filtered.filter(c=>c.tipoCliente==='nuevo');
+  if (_rentaFilter==='antiguos')     filtered = filtered.filter(c=>c.tipoCliente==='antiguo');
+  if (_rentaFilter==='reactivados')  filtered = filtered.filter(c=>c.tipoCliente==='reactivado');
+  if (_rentaFilter==='desertados')   filtered = filtered.filter(c=>c.tipoCliente==='desertó');
   if (_rentaFilter==='pagados')     filtered = filtered.filter(c=>(c.valorPagado||0)>0&&(c.valorPagado||0)>=(c.valorServicio||0));
   if (_rentaFilter==='pendientes')  filtered = filtered.filter(c=>!['finalizada'].includes(c.estadoProceso));
   if (_rentaFilter==='urgentes')    filtered = filtered.filter(c=>{const d=_rentaDiasRestantes(c.fechaDeclaracion);return d!==null&&d<=3&&!['presentada','finalizada'].includes(c.estadoProceso);});
@@ -5086,7 +5119,7 @@ function renderRentaPN() {
     donutSVG=`<svg width="120" height="120" style="flex-shrink:0">${segments}<text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="16" font-weight="800" fill="var(--c-text)">${totalC}</text></svg>`;
   }
 
-  const filtersHTML = ['todos','antiguos','desertados','pagados','pendientes','urgentes','presentados'].map(f=>
+  const filtersHTML = ['todos','nuevos','antiguos','reactivados','desertados','pagados','pendientes','urgentes','presentados'].map(f=>
     `<button onclick="_rentaSetFilter('${f}')" style="font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid ${_rentaFilter===f?'var(--c-gold)':'var(--c-border)'};background:${_rentaFilter===f?'var(--c-gold-lt)':'transparent'};color:${_rentaFilter===f?'var(--c-gold)':'var(--c-text3)'};cursor:pointer;font-weight:${_rentaFilter===f?'700':'400'}">${f.charAt(0).toUpperCase()+f.slice(1)}</button>`
   ).join('');
 
@@ -5108,7 +5141,7 @@ function renderRentaPN() {
       <td style="padding:10px 8px;font-size:12px;white-space:nowrap">
         ${c.telefono?`<div style="display:flex;align-items:center;gap:5px"><a href="https://wa.me/57${c.telefono.replace(/\D/g,'')}" target="_blank" style="color:var(--c-teal);text-decoration:none">${c.telefono}</a><button onclick="_rentaWAOpen('${c.id}')" title="Mensaje WA" style="background:none;border:1px solid var(--c-border);border-radius:5px;padding:2px 5px;cursor:pointer;font-size:11px;flex-shrink:0">💬</button></div>`:'—'}
       </td>
-      <td style="padding:10px 8px;text-align:center"><span style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;background:${c.tipoCliente==='nuevo'?'#e0e7ff':c.tipoCliente==='desertó'?'#fef3c7':'#f0fdf4'};color:${c.tipoCliente==='nuevo'?'#4f46e5':c.tipoCliente==='desertó'?'#ca8a04':'#16a34a'}">${c.tipoCliente==='nuevo'?'🆕 Nuevo':c.tipoCliente==='desertó'?'⚠️ Desertó':'🤝 Antiguo'}</span></td>
+      <td style="padding:4px 8px;text-align:center">${(()=>{const tp=_rentaTipo(c.tipoCliente);return `<button onclick="event.stopPropagation();_rentaTipoDD('${c.id}',this)" style="font-size:10px;padding:3px 10px;border-radius:20px;background:${tp.color}18;color:${tp.color};font-weight:700;border:1px solid ${tp.color}40;cursor:pointer;white-space:nowrap">${tp.label}</button>`;})()}</td>
       <td style="padding:4px 8px;white-space:nowrap"><input type="date" value="${(c.fechaPresentacion&&!c.fechaPresentacion.startsWith('2025'))?c.fechaPresentacion:(c.fechaDeclaracion||'')}" onchange="_rentaInlineEdit('${c.id}','fechaPresentacion',this.value)" style="font-size:11px;padding:3px 6px;border:1px solid var(--c-border);border-radius:6px;background:var(--c-surface);color:var(--c-text);max-width:130px"></td>
       <td style="padding:10px 8px;font-size:12px;white-space:nowrap;color:${diasColor};font-weight:${dias!==null&&dias<=3?'700':'400'}">${_rentaFmtFecha(c.fechaDeclaracion)} <span style="font-size:10px">${diasLabel}</span></td>
       <td style="padding:10px 8px;font-size:12px;text-align:center;color:var(--c-text2)">${c.ultimosDigitosCedula||'—'}</td>
@@ -5334,9 +5367,10 @@ function _rentaOpenModal(id) {
     <div>
       <label style="font-size:11px;color:var(--c-text3);font-weight:600">🆕 Tipo de cliente</label>
       <select id="rn_tipo" class="field-input" style="width:100%;margin-top:4px">
-        <option value="nuevo" ${(!c||c.tipoCliente==='nuevo')?'selected':''}>🆕 Nuevo</option>
-        <option value="antiguo" ${c&&c.tipoCliente==='antiguo'?'selected':''}>🤝 Antiguo</option>
-        <option value="desertó" ${c&&c.tipoCliente==='desertó'?'selected':''}>⚠️ Desertó</option>
+        <option value="nuevo"       ${(!c||c.tipoCliente==='nuevo')?'selected':''}>🆕 Nuevo</option>
+        <option value="antiguo"     ${c&&c.tipoCliente==='antiguo'?'selected':''}>🤝 Antiguo</option>
+        <option value="reactivado"  ${c&&c.tipoCliente==='reactivado'?'selected':''}>🔁 Reactivado</option>
+        <option value="desertó"     ${c&&c.tipoCliente==='desertó'?'selected':''}>⚠️ Desertó</option>
       </select>
     </div>
     <div>
