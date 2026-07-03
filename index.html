@@ -4943,7 +4943,7 @@ function _rentaEstadoDD(clientId, btn) {
     opt.innerHTML = `<span style="width:12px;height:12px;border-radius:50%;background:${e.color};flex-shrink:0;display:inline-block"></span>${e.label}`;
     opt.onmouseenter = ()=>{ opt.style.background=e.color; opt.style.color='#fff'; };
     opt.onmouseleave = ()=>{ opt.style.background='transparent'; opt.style.color=e.color; };
-    opt.onclick = (ev)=>{ ev.stopPropagation(); _rentaInlineEdit(clientId,'estadoProceso',e.id); dd.remove(); };
+    opt.onclick = (ev)=>{ ev.stopPropagation(); _rentaInlineEdit(clientId,'estadoProceso',e.id); dd.remove(); renderRentaPN(); };
     dd.appendChild(opt);
   });
   document.body.appendChild(dd);
@@ -4966,7 +4966,7 @@ function _rentaTipoDD(clientId, btn) {
     opt.innerHTML = `<span style="width:12px;height:12px;border-radius:50%;background:${t.color};flex-shrink:0;display:inline-block"></span>${t.label}`;
     opt.onmouseenter = ()=>{ opt.style.background=t.color; opt.style.color='#fff'; };
     opt.onmouseleave = ()=>{ opt.style.background='transparent'; opt.style.color=t.color; };
-    opt.onclick = (ev)=>{ ev.stopPropagation(); _rentaInlineEdit(clientId,'tipoCliente',t.id); dd.remove(); };
+    opt.onclick = (ev)=>{ ev.stopPropagation(); _rentaInlineEdit(clientId,'tipoCliente',t.id); dd.remove(); renderRentaPN(); };
     dd.appendChild(opt);
   });
   document.body.appendChild(dd);
