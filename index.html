@@ -4917,7 +4917,33 @@ function _rentaColPanel(e) {
   const p = document.getElementById('renta-col-panel');
   if (p) p.style.display = p.style.display==='none' ? 'block' : 'none';
 }
-document.addEventListener('click', ()=>{ const p=document.getElementById('renta-col-panel'); if(p) p.style.display='none'; });
+document.addEventListener('click', ()=>{
+  const p=document.getElementById('renta-col-panel'); if(p) p.style.display='none';
+  document.querySelectorAll('.estado-dd').forEach(d=>d.remove());
+});
+
+function _rentaEstadoDD(clientId, btn) {
+  document.querySelectorAll('.estado-dd').forEach(d=>d.remove());
+  const rect = btn.getBoundingClientRect();
+  const dd = document.createElement('div');
+  dd.className = 'estado-dd';
+  dd.style.cssText = `position:fixed;z-index:9999;background:#fff;border:1px solid #d1d5db;border-radius:10px;padding:4px;box-shadow:0 6px 24px rgba(0,0,0,.15);min-width:230px;top:${rect.bottom+3}px;left:${rect.left}px;max-height:340px;overflow-y:auto`;
+  RENTA_ESTADOS.forEach(e=>{
+    const opt = document.createElement('button');
+    opt.style.cssText = `display:flex;align-items:center;gap:9px;width:100%;padding:7px 11px;border-radius:7px;border:none;background:transparent;cursor:pointer;font-size:12px;text-align:left;font-family:inherit;transition:background .1s`;
+    opt.innerHTML = `<span style="width:12px;height:12px;border-radius:50%;background:${e.color};flex-shrink:0;display:inline-block"></span><span style="color:${e.text};font-weight:600">${e.label}</span>`;
+    opt.onmouseenter = ()=>{ opt.style.background=e.bg; };
+    opt.onmouseleave = ()=>{ opt.style.background='transparent'; };
+    opt.onclick = (ev)=>{ ev.stopPropagation(); _rentaInlineEdit(clientId,'estadoProceso',e.id); dd.remove(); };
+    dd.appendChild(opt);
+  });
+  document.body.appendChild(dd);
+  setTimeout(()=>{
+    document.addEventListener('click', function _close(ev){
+      if(!dd.contains(ev.target)&&ev.target!==btn){ dd.remove(); document.removeEventListener('click',_close); }
+    });
+  }, 10);
+}
 
 const RENTA_NIT_VENC = {
   '01':'2026-08-12','02':'2026-08-12','03':'2026-08-13','04':'2026-08-13',
@@ -5091,9 +5117,7 @@ function renderRentaPN() {
         <input type="checkbox" ${c.exogena?'checked':''} onchange="_rentaInlineEdit('${c.id}','exogena',this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:var(--c-teal)">
       </td>
       <td style="padding:4px 8px;white-space:nowrap">
-        <select onchange="_rentaInlineEdit('${c.id}','estadoProceso',this.value)" style="font-size:11px;padding:3px 8px;border-radius:6px;background:var(--c-surface);color:${estado.text||'#374151'};font-weight:700;border:2px solid ${estado.color};cursor:pointer;max-width:175px;width:100%">
-          ${RENTA_ESTADOS.map(e=>`<option value="${e.id}" ${c.estadoProceso===e.id?'selected':''}>${e.label}</option>`).join('')}
-        </select>
+        <button onclick="_rentaEstadoDD('${c.id}',this)" style="font-size:11px;padding:4px 11px;border-radius:20px;background:${estado.bg||'#f3f4f6'};color:${estado.text||'#374151'};font-weight:700;border:2px solid ${estado.color};cursor:pointer;max-width:180px;width:100%;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px"><span style="width:9px;height:9px;border-radius:50%;background:${estado.color};flex-shrink:0;display:inline-block"></span>${estado.label}</button>
       </td>
       <td style="padding:4px 8px;white-space:nowrap">
         <input type="text" inputmode="numeric" value="${c.valorServicio||150000}" onblur="_rentaInlineEdit('${c.id}','valorServicio',this.value)" style="width:80px;font-size:12px;text-align:right;padding:3px 6px;border:1px solid var(--c-border);border-radius:6px;background:var(--c-surface);color:var(--c-text)">
