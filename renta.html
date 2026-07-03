@@ -159,7 +159,7 @@ img{max-width:100%}
 .cal-filter-row label{font-size:.875rem;color:var(--c-text2);font-weight:500}
 .cal-filter-input{padding:8px 13px;border:1.5px solid var(--c-border2);border-radius:var(--r-md);font-family:var(--f-body);font-size:.9rem;background:var(--c-surface);color:var(--c-text);width:120px;transition:border-color .15s}
 .cal-filter-input:focus{outline:none;border-color:var(--c-teal)}
-.cal-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.cal-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
 .cal-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-sm)}
 .cal-card-head{background:var(--c-teal);color:#fff;padding:11px 16px;font-size:.875rem;font-weight:600;letter-spacing:.03em;cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .cal-head-label{flex:1;text-align:center}
@@ -183,16 +183,21 @@ img{max-width:100%}
 .cal-note-txt strong{color:var(--c-text);font-weight:600}
 
 /* CONSEQUENCES */
-.conseq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-top:28px}
-.conseq-card{padding:22px;border-radius:var(--r-lg);border-left:4px solid}
-.c-red{background:var(--c-red-bg);border-color:var(--c-red)}
-.c-amber{background:var(--c-amber-bg);border-color:var(--c-amber)}
-.c-gray{background:var(--c-surface2);border-color:var(--c-border2)}
+.conseq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-top:20px}
+.conseq-card{padding:22px;border-radius:var(--r-lg);border-left:5px solid}
+.c-danger1{background:#fee2e2;border-color:#7f1d1d}
+.c-danger2{background:#fef2f2;border-color:#b91c1c}
+.c-danger3{background:#fff4ee;border-color:#c2410c}
+.conseq-severity{display:block;font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.c-danger1 .conseq-severity{color:#7f1d1d}
+.c-danger2 .conseq-severity{color:#b91c1c}
+.c-danger3 .conseq-severity{color:#c2410c}
 .conseq-title{font-weight:600;font-size:.9375rem;margin-bottom:7px}
-.c-red .conseq-title{color:var(--c-red)}
-.c-amber .conseq-title{color:var(--c-amber)}
-.c-gray .conseq-title{color:var(--c-text2)}
+.c-danger1 .conseq-title{color:#7f1d1d}
+.c-danger2 .conseq-title{color:#b91c1c}
+.c-danger3 .conseq-title{color:#c2410c}
 .conseq-text{font-size:.875rem;color:var(--c-text2);line-height:1.6}
+.conseq-alert{background:#fee2e2;border:1px solid #fca5a5;border-left:4px solid #b91c1c;border-radius:var(--r-md);padding:13px 16px;margin-top:14px;margin-bottom:4px;font-size:.875rem;color:#7f1d1d;font-weight:500;line-height:1.55}
 
 /* TIMELINE */
 .timeline{display:flex;flex-direction:column;gap:0;margin-top:36px;max-width:640px}
@@ -208,7 +213,7 @@ img{max-width:100%}
 
 /* ABOUT */
 .about-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:60px;align-items:start}
-.about-photo{aspect-ratio:4/5;background:var(--c-surface2);border-radius:var(--r-xl);border:1px solid var(--c-border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--c-text3);font-size:.875rem;box-shadow:var(--sh-md);max-width:340px;overflow:hidden;margin:0 auto}
+.about-photo{aspect-ratio:4/5;background:var(--c-surface2);border-radius:var(--r-xl);border:1px solid var(--c-border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--c-text3);font-size:.875rem;box-shadow:var(--sh-md);max-width:340px;overflow:hidden;margin:26px auto 0}
 .about-photo-icon{font-size:3rem;opacity:.3}
 .about-name{font-family:var(--f-display);font-size:1.9rem;font-weight:400;margin-bottom:4px}
 .about-role{font-size:.875rem;font-weight:500;color:var(--c-teal);letter-spacing:.02em;margin-bottom:16px}
@@ -289,7 +294,7 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
   .edu-tab{white-space:nowrap;flex-shrink:0}
   .cal-cards{grid-template-columns:1fr;gap:12px}
   .about-grid{grid-template-columns:1fr;gap:28px}
-  .about-photo{max-width:300px;aspect-ratio:4/5;margin:0 auto}
+  .about-photo{max-width:300px;aspect-ratio:4/5;margin:0 auto!important}
   .footer-grid{grid-template-columns:1fr;gap:24px}
   .wa-float{padding:13px 15px;border-radius:50%}
   .wa-float .wa-float-label{display:none}
@@ -334,13 +339,13 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
         <div class="hero-eye">Año gravable 2025 · Declaración 2026</div>
         <h1 class="hero-title">¿Debes <em>declarar renta</em><br>este año?</h1>
         <p class="hero-sub">Consulta gratuitamente si estás obligado a declarar renta y conoce tu fecha límite exacta según el calendario DIAN. Recibe acompañamiento profesional durante todo el proceso.</p>
-        <p class="search-label">Ingresa los últimos 2 dígitos de tu cédula o NIT</p>
+        <p class="search-label">Ingresa tu número de cédula completo o solo los últimos 2 dígitos</p>
         <div class="search-row">
-          <input class="search-input" id="cedula-input" type="text" inputmode="numeric" maxlength="20"
-            placeholder="Ej: 45 · 72 · 89 · 03" aria-label="Últimos dos dígitos de cédula">
+          <input class="search-input" id="cedula-input" type="text" inputmode="numeric" maxlength="12"
+            placeholder="Ej: 1234567845 · 45" aria-label="Número de cédula o últimos dos dígitos">
           <button class="search-btn" onclick="consultarRenta()">Consultar fecha</button>
         </div>
-        <p class="hero-hint">Solo se usan los últimos 2 dígitos · No se almacena ningún dato</p>
+        <p class="hero-hint">El sistema toma solo los últimos 2 dígitos · No se almacena ningún dato</p>
         <div class="hero-result" id="hero-result" role="alert" aria-live="polite"></div>
       </div>
       <div class="hero-brand">
@@ -469,8 +474,8 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
     <p class="s-sub">La DIAN asigna una fecha de vencimiento a cada cédula según sus últimos dos dígitos. Consulta la tuya aquí.</p>
 
     <div class="cal-filter-row" style="margin-top:24px">
-      <label for="cal-filter">Buscar mis dígitos:</label>
-      <input class="cal-filter-input" id="cal-filter" type="text" inputmode="numeric" maxlength="2" placeholder="Ej: 45" oninput="filterCalendar(this.value)" aria-label="Filtrar calendario por dígitos">
+      <label for="cal-filter">Buscar por cédula o dígitos:</label>
+      <input class="cal-filter-input" id="cal-filter" type="text" inputmode="numeric" maxlength="12" placeholder="Cédula completa o Ej: 45" oninput="filterCalendar(this.value)" aria-label="Filtrar calendario por cédula o dígitos">
     </div>
     <div class="cal-cards" aria-label="Calendario tributario DIAN 2026">
 
@@ -568,19 +573,23 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
 <!-- CONSEQUENCES -->
 <section class="section section-alt" id="consecuencias">
   <div class="wrap">
-    <div class="eyebrow">Información importante</div>
+    <div class="eyebrow">⚠️ Riesgo de sanción</div>
     <h2 class="s-title">¿Qué pasa si <em>no declaras</em> a tiempo?</h2>
     <p class="s-sub">No presentar la declaración cuando se está obligado tiene consecuencias financieras y legales. La DIAN tiene mecanismos para identificar a los omisos.</p>
+    <div class="conseq-alert">🚨 Ignorar esta obligación genera deudas que crecen mes a mes — y la DIAN tiene mecanismos para detectarlas y cobrarlas, incluyendo el cruce con bancos, empleadores y registros públicos.</div>
     <div class="conseq-grid">
-      <div class="conseq-card c-red">
+      <div class="conseq-card c-danger1">
+        <span class="conseq-severity">🔴 Multa inmediata</span>
         <div class="conseq-title">Sanción por extemporaneidad</div>
         <div class="conseq-text">Si presentas fuera de la fecha límite, se liquida una sanción del 5% del impuesto a cargo por cada mes o fracción de mes de retraso, hasta el 100% del valor. Si no hay impuesto a cargo, la sanción mínima igualmente aplica.</div>
       </div>
-      <div class="conseq-card c-amber">
+      <div class="conseq-card c-danger2">
+        <span class="conseq-severity">🟠 Deuda que crece cada día</span>
         <div class="conseq-title">Intereses de mora</div>
         <div class="conseq-text">Además de la sanción, se generan intereses de mora sobre el impuesto pendiente de pago. Estos intereses se acumulan diariamente, incrementando el valor total de la deuda con la DIAN.</div>
       </div>
-      <div class="conseq-card c-gray">
+      <div class="conseq-card c-danger3">
+        <span class="conseq-severity">⚠️ Riesgo legal</span>
         <div class="conseq-title">Requerimientos y embargos</div>
         <div class="conseq-text">La DIAN puede emitir requerimientos especiales, practicar liquidaciones de aforo y, en casos de deuda significativa, iniciar procesos de cobro coactivo que incluyen el embargo de cuentas y bienes.</div>
       </div>
@@ -876,7 +885,8 @@ function toggleMonth(cardId) {
 
 // ── CALENDAR FILTER ───────────────────────────────────────────────────────────
 function filterCalendar(val) {
-  const q = val.trim().replace(/\D/g,'').padStart(2,'0');
+  const raw = val.trim().replace(/\D/g,'');
+  const q = raw.slice(-2).padStart(2,'0');
   document.querySelectorAll('.cal-row[data-d]').forEach(row => row.classList.remove('cal-hl'));
   // Close all if empty
   if (!val.trim()) {
