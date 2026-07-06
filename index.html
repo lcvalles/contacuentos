@@ -5077,8 +5077,7 @@ function renderRentaPN() {
         <span style="font-size:11px;color:var(--c-text3)">${c.cedula||''}</span>
         <span style="font-size:11px;color:var(--c-text3)">${_rentaEstado(c.estadoProceso).label}</span>
         ${saldo>0?`<span style="font-size:11px;font-weight:700;color:#dc2626">${fmtCOP(saldo)} pendiente</span>`:''}
-        ${c.telefono?`<a href="https://wa.me/57${c.telefono.replace(/\D/g,'')}" target="_blank" style="font-size:11px;background:#25d366;color:#fff;border-radius:6px;padding:3px 9px;text-decoration:none;white-space:nowrap">📱 WhatsApp</a>`:''}
-        <button onclick="_rentaWAOpen('${c.id}')" style="font-size:11px;background:none;border:1px solid var(--c-border);border-radius:6px;padding:3px 9px;cursor:pointer;white-space:nowrap">💬 Mensaje</button>
+        ${c.telefono?`<a href="https://wa.me/57${c.telefono.replace(/\D/g,'')}" target="_blank" style="font-size:11px;background:#25d366;color:#fff;border-radius:6px;padding:3px 9px;text-decoration:none;white-space:nowrap">📱 WhatsApp</a><button onclick="_rentaWAOpen('${c.id}')" style="font-size:11px;background:none;border:1px solid var(--c-border);border-radius:6px;padding:3px 9px;cursor:pointer;white-space:nowrap">💬 Mensaje</button>`:''}
       </div>`;
     }).join('')}
     </div>
