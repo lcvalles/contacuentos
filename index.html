@@ -5632,8 +5632,19 @@ function _rentaBackup() {
 function _rentaExportCSV() {
   const clientes = STATE.rentaPN||[];
   if (!clientes.length) { showToast('Sin clientes para exportar'); return; }
-  const headers = ['Nombre','Cédula','Teléfono','Tipo','Estado','Fecha vencimiento','Valor servicio','Pagado','Saldo','Medio pago','Observaciones'];
-  const rows = clientes.map(c=>[c.nombre,c.cedula,c.telefono,c.tipoCliente,_rentaEstado(c.estadoProceso).label.replace(/[^\w\s]/g,'').trim(),c.fechaDeclaracion,c.valorServicio||0,c.valorPagado||0,(c.valorServicio||0)-(c.valorPagado||0),c.medioPago,c.observaciones||''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
+  const headers = ['Nombre','Cédula','Teléfono','Tipo','Últ. Díg.','Estado','F. Presentación','Vencimiento DIAN','Cobro','Pagado','Saldo','Medio pago','Donde pagó','F. Pago','Usuario DIAN','Contraseña','Firma','Exógena','Referido','Notas'];
+  const rows = clientes.map(c=>{
+    const estado = _rentaEstado(c.estadoProceso).label.replace(/[^\w\sáéíóúüñÁÉÍÓÚÜÑ]/g,'').trim();
+    return [
+      c.nombre, c.cedula, c.telefono, c.tipoCliente,
+      c.ultimosDigitosCedula||'', estado,
+      c.fechaPresentacion||'', c.fechaDeclaracion||'',
+      c.valorServicio||0, c.valorPagado||0, (c.valorServicio||0)-(c.valorPagado||0),
+      c.medioPago||'', c.dondePago||'', c.fechaPago||'',
+      c.usuarioDian||'', c.contrasenaPortal||'', c.firmaDian||'',
+      c.exogena?'Sí':'No', c.referidoInfo||'', c.observaciones||''
+    ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',');
+  });
   const csv = [headers.join(','),...rows].join('\n');
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);
