@@ -1397,6 +1397,7 @@ tr:hover .td-actions{opacity:1}
       <h1 class="topbar-title">🧾 Renta P/N</h1>
       <div style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
         <button onclick="_rentaOpenModal()" style="display:flex;align-items:center;gap:4px;padding:6px 14px;background:var(--c-gold);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">➕ Cliente</button>
+        <button onclick="_rentaBackup()" style="padding:6px 12px;background:none;border:1px solid var(--c-border);border-radius:8px;font-size:12px;cursor:pointer;color:var(--c-text2)">💾 Backup</button>
         <button onclick="_rentaExportCSV()" style="padding:6px 12px;background:none;border:1px solid var(--c-border);border-radius:8px;font-size:12px;cursor:pointer;color:var(--c-text2)">📤 CSV</button>
         <button onclick="_rentaOpenConfig()" style="padding:6px 12px;background:none;border:1px solid var(--c-border);border-radius:8px;font-size:12px;cursor:pointer;color:var(--c-text2)">⚙️ Config</button>
       </div>
@@ -5615,6 +5616,17 @@ function _rentaSaveConfig() {
   STATE.rentaPNConfig.cuentas = (el('rc_cuentas')||{}).value?.trim()||'';
   STATE.rentaPNConfig.docsRequeridos = (el('rc_docs')||{}).value?.trim()||'';
   save(); closeModal('rentaConfigModal'); showToast('Configuración guardada');
+}
+
+function _rentaBackup() {
+  const clientes = STATE.rentaPN||[];
+  if (!clientes.length) { showToast('Sin clientes para respaldar'); return; }
+  const payload = { fecha: new Date().toISOString(), total: clientes.length, clientes };
+  const a = document.createElement('a');
+  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(payload, null, 2));
+  a.download = `backup_renta_${todayStr()}.json`;
+  a.click();
+  showToast('✅ Backup descargado — ' + clientes.length + ' clientes');
 }
 
 function _rentaExportCSV() {
