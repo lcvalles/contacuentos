@@ -3788,6 +3788,7 @@ function _matchPN(rango, d2) {
 // Dado un vencimiento, devuelve la empresa que corresponde
 function _coForVenc(v) {
   if (!v||!STATE.companies) return null;
+  if (v.cat==='renta_pn') return null; // Renta PN es para personas naturales, no empresas
   return STATE.companies.find(co => {
     if (!co.nit) return false;
     if (v.nit==='all') return true;
@@ -3799,6 +3800,7 @@ function _coForVenc(v) {
 // Devuelve TODAS las empresas que coinciden con una obligación (no solo la primera)
 function _cosForVenc(v) {
   if (!v||!STATE.companies) return [];
+  if (v.cat==='renta_pn') return []; // Renta PN es para personas naturales, no empresas
   return STATE.companies.filter(co=>{
     if (!co.nit) return false;
     if (v.nit==='all') return true;
@@ -3815,6 +3817,7 @@ function _calSetCo(id) { _calCoFilter = id; renderCalendario(); }
 function _calObligKey(v, co) { return `${v.ds}_${v.cat}_${co?co.id:'all'}`; }
 // Cuando hay filtro activo, prioriza la empresa seleccionada en vez de la primera coincidencia
 function _coForDisplay(v) {
+  if (v.cat==='renta_pn') return null; // Renta PN no pertenece a ninguna empresa
   if (_calCoFilter) {
     const sel = (STATE.companies||[]).find(c=>c.id===_calCoFilter);
     if (sel&&sel.nit&&v.nit!=='all') {
@@ -3947,13 +3950,14 @@ function _calSelectDay(ds) {
   if (_calCoFilter) {
     const sel = (STATE.companies||[]).find(c=>c.id===_calCoFilter);
     if (sel&&sel.nit) dayVenc = dayVenc.filter(v => {
+      if (v.cat==='renta_pn') return false; // PN no aplica a empresas jurídicas
       if (v.nit==='all') return true;
       if (v.nitD2!==undefined) return _nitD2(sel.nit)===v.nitD2;
       if (v.nit===null) return _matchPN(v.nitRango,_nitD2(sel.nit));
       return _nitD1(sel.nit)===v.nit;
     });
   }
-  const display = dayVenc.filter(v=>v.nit==='all'||!!_coForVenc(v));
+  const display = dayVenc.filter(v=>v.nit==='all'||v.cat==='renta_pn'||!!_coForVenc(v));
   if (!display.length) { panel.style.display='none'; return; }
   const d = new Date(ds+'T12:00:00');
   panel.style.display = 'block';
@@ -4025,7 +4029,7 @@ function renderCalendario() {
       if (v.ds < today || v.ds > limStr) return false;
       const k = `${v.ds}_${v.cat}_${v.nit??v.nitD2??v.nitRango}`;
       if (seen7.has(k)) return false; seen7.add(k);
-      return v.nit==='all' || !!_coForVenc(v);
+      return v.nit==='all' || v.cat==='renta_pn' || !!_coForVenc(v);
     }).sort((a,b)=>a.ds.localeCompare(b.ds));
 
     if (alertItems.length) {
@@ -4204,6 +4208,7 @@ function renderCalendario() {
     const selCo = (STATE.companies||[]).find(c=>c.id===_calCoFilter);
     if (selCo && selCo.nit) {
       venc = venc.filter(v => {
+        if (v.cat==='renta_pn') return false; // PN no aplica a empresas jurídicas
         if (v.nit==='all') return true;
         if (v.nitD2!==undefined) return _nitD2(selCo.nit)===v.nitD2;
         if (v.nit===null) return _matchPN(v.nitRango, _nitD2(selCo.nit));
@@ -4211,7 +4216,7 @@ function renderCalendario() {
       });
     }
   } else if (onlyMine && misNits.size>0) {
-    venc = venc.filter(v => v.nit==='all' || !!_coForVenc(v));
+    venc = venc.filter(v => v.nit==='all' || v.cat==='renta_pn' || !!_coForVenc(v));
   }
 
   // Construir mapa por día: día → array de cats únicas
@@ -4246,7 +4251,7 @@ function renderCalendario() {
     const cats = [...new Set(dayV.map(v=>v.cat))];
     const dots = cats.map(cat=>{
       const meta = _CAT_META[cat];
-      const mine = dayV.some(v=>v.cat===cat&&(v.nit==='all'||!!_coForVenc(v)));
+      const mine = dayV.some(v=>v.cat===cat&&(v.nit==='all'||v.cat==='renta_pn'||!!_coForVenc(v)));
       return `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${meta.color};${mine?'box-shadow:0 0 0 2px white,0 0 0 3px '+meta.color:'opacity:.7'};flex-shrink:0" title="${meta.nombre}"></span>`;
     }).join('');
     const bg = isToday ? 'var(--c-gold-bg)' : isFestivo ? '#fff1f2' : isWE ? '#fafafa' : 'var(--c-surface)';
@@ -4280,6 +4285,7 @@ function _renderCalList(venc, misNits) {
     const expanded = [];
     items.forEach(v => {
       if (v.nit==='all') { expanded.push({v, co:null}); return; }
+      if (v.cat==='renta_pn') { expanded.push({v, co:null}); return; } // PN: sin empresa
       const cos = _calCoFilter ? [_coForDisplay(v)].filter(Boolean) : _cosForVenc(v);
       cos.forEach(co => expanded.push({v, co}));
     });
@@ -4345,8 +4351,8 @@ function renderDashVenc() {
     seen.add(key); return true;
   }).sort((a,b)=>a.ds.localeCompare(b.ds));
 
-  const mias    = upcoming.filter(v => v.nit !== 'all' && !!_coForVenc(v));
-  const general = upcoming.filter(v => v.nit === 'all');
+  const mias    = upcoming.filter(v => v.nit !== 'all' && v.cat !== 'renta_pn' && !!_coForVenc(v));
+  const general = upcoming.filter(v => v.nit === 'all' || v.cat === 'renta_pn');
 
   const _col = (items, empty) => {
     if (!items.length) return `<div style="padding:12px 14px;font-size:12px;color:var(--c-text3)">${empty}</div>`;
