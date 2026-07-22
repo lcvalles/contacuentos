@@ -5164,7 +5164,7 @@ function renderRentaPN() {
         </select>
       </td>
       <td style="padding:4px 8px;white-space:nowrap">
-        <input type="date" value="${c.fechaPago||''}" onchange="_rentaInlineEdit('${c.id}','fechaPago',this.value)" style="font-size:11px;padding:3px 6px;border:1px solid var(--c-border);border-radius:6px;background:var(--c-surface);color:var(--c-text);max-width:130px">
+        <input type="date" value="${(c.fechaPago&&!c.fechaPago.startsWith('2025'))?c.fechaPago:''}" onchange="_rentaInlineEdit('${c.id}','fechaPago',this.value)" style="font-size:11px;padding:3px 6px;border:1px solid var(--c-border);border-radius:6px;background:var(--c-surface);color:var(--c-text);max-width:130px">
       </td>
       <td style="padding:4px 8px;min-width:120px"><input type="text" value="${(c.referidoInfo||'').replace(/"/g,'&quot;')}" placeholder="—" onblur="_rentaInlineEdit('${c.id}','referidoInfo',this.value)" style="width:100%;font-size:11px;padding:3px 6px;border:1px solid var(--c-border);border-radius:6px;background:var(--c-surface);color:var(--c-text);box-sizing:border-box"></td>
       <td style="padding:10px 12px;min-width:110px">
@@ -5417,7 +5417,7 @@ function _rentaOpenModal(id) {
     </div>
     <div>
       <label style="font-size:11px;color:var(--c-text3);font-weight:600">📅 Fecha de pago</label>
-      <input id="rn_fpago" type="date" class="field-input" value="${c?c.fechaPago||'':''}" style="width:100%;margin-top:4px">
+      <input id="rn_fpago" type="date" class="field-input" value="${c?((c.fechaPago&&!c.fechaPago.startsWith('2025'))?c.fechaPago:''):''}" style="width:100%;margin-top:4px">
     </div>
     <div>
       <label style="font-size:11px;color:var(--c-text3);font-weight:600">🔢 Últ. dígitos (NIT)</label>
