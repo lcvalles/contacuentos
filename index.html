@@ -4870,9 +4870,7 @@ const RENTA_ESTADOS = [
   {id:'en-revision',           label:'🔎 En revisión',            avance:50, color:'#8b5cf6', bg:'#8b5cf6', text:'#fff'},
   {id:'elaborando',            label:'🧾 Elaborando declaración', avance:70, color:'#14b8a6', bg:'#14b8a6', text:'#fff'},
   {id:'pendiente-presentacion',label:'📨 Pendiente presentación', avance:85, color:'#ec4899', bg:'#ec4899', text:'#fff'},
-  {id:'presentada',            label:'✅ Presentada',             avance:95, color:'#16a34a', bg:'#16a34a', text:'#fff'},
-  {id:'pendiente-pago-dian',   label:'💰 Pendiente pago DIAN',    avance:95, color:'#dc2626', bg:'#dc2626', text:'#fff'},
-  {id:'finalizada',            label:'🏁 Finalizada',             avance:100,color:'#0f766e', bg:'#0f766e', text:'#fff'},
+  {id:'presentada',            label:'✅ Presentada',             avance:100,color:'#16a34a', bg:'#16a34a', text:'#fff'},
   {id:'no-presenta-renta',     label:'🚫 No presenta Renta',      avance:100,color:'#6b7280', bg:'#6b7280', text:'#fff'},
   {id:'deserto',               label:'🏳️ Desertó',               avance:0,  color:'#374151', bg:'#374151', text:'#fff'},
 ];
@@ -5122,7 +5120,7 @@ function renderRentaPN() {
     `<button onclick="_rentaSetFilter('${f}')" style="font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid ${_rentaFilter===f?'var(--c-gold)':'var(--c-border)'};background:${_rentaFilter===f?'var(--c-gold-lt)':'transparent'};color:${_rentaFilter===f?'var(--c-gold)':'var(--c-text3)'};cursor:pointer;font-weight:${_rentaFilter===f?'700':'400'}">${f.charAt(0).toUpperCase()+f.slice(1)}</button>`
   ).join('');
 
-  const _COMPLETADOS = new Set(['finalizada','no-presenta-renta','deserto','no-presenta']);
+  const _COMPLETADOS = new Set(['finalizada','no-presenta-renta','deserto','no-presenta','presentada']);
   const _sortVenc = (a,b) => (a.fechaDeclaracion||'9999').localeCompare(b.fechaDeclaracion||'9999');
   const activeClients    = filtered.filter(c=>!_COMPLETADOS.has(c.estadoProceso)).sort(_sortVenc);
   const completedClients = filtered.filter(c=> _COMPLETADOS.has(c.estadoProceso)).sort(_sortVenc);
