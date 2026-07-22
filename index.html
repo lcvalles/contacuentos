@@ -5139,7 +5139,7 @@ function renderRentaPN() {
         ${c.telefono?`<div style="display:flex;align-items:center;gap:5px"><a href="https://wa.me/57${c.telefono.replace(/\D/g,'')}" target="_blank" style="color:var(--c-teal);text-decoration:none">${c.telefono}</a><button onclick="_rentaWAOpen('${c.id}')" title="Mensaje WA" style="background:none;border:1px solid var(--c-border);border-radius:5px;padding:2px 5px;cursor:pointer;font-size:11px;flex-shrink:0">💬</button></div>`:'—'}
       </td>
       <td style="padding:4px 8px;text-align:center">${(()=>{const tp=_rentaTipo(c.tipoCliente);return `<button onclick="event.stopPropagation();_rentaTipoDD('${c.id}',this)" style="font-size:10px;padding:3px 10px;border-radius:20px;background:${tp.color}18;color:${tp.color};font-weight:700;border:1px solid ${tp.color}40;cursor:pointer;white-space:nowrap">${tp.label}</button>`;})()}</td>
-      <td style="padding:4px 8px;white-space:nowrap"><input type="date" value="${(c.fechaPresentacion&&!c.fechaPresentacion.startsWith('2025'))?c.fechaPresentacion:(c.fechaDeclaracion||'')}" onchange="_rentaInlineEdit('${c.id}','fechaPresentacion',this.value)" style="font-size:11px;padding:3px 6px;border:1px solid var(--c-border);border-radius:6px;background:var(--c-surface);color:var(--c-text);max-width:130px"></td>
+      <td style="padding:4px 8px;white-space:nowrap"><input type="date" value="${c.fechaPresentacion||''}" onchange="_rentaInlineEdit('${c.id}','fechaPresentacion',this.value)" style="font-size:11px;padding:3px 6px;border:1px solid var(--c-border);border-radius:6px;background:var(--c-surface);color:var(--c-text);max-width:130px"></td>
       <td style="padding:10px 8px;font-size:12px;white-space:nowrap;color:${diasColor};font-weight:${dias!==null&&dias<=3?'700':'400'}">${_rentaFmtFecha(c.fechaDeclaracion)} <span style="font-size:10px">${diasLabel}</span></td>
       <td style="padding:10px 8px;font-size:12px;text-align:center;color:var(--c-text2)">${c.ultimosDigitosCedula||'—'}</td>
       <td style="padding:10px 8px;font-size:12px;color:var(--c-text2);white-space:nowrap">${c.usuarioDian||'—'}</td>
@@ -5152,7 +5152,7 @@ function renderRentaPN() {
         <button onclick="event.stopPropagation();_rentaEstadoDD('${c.id}',this)" style="font-size:11px;padding:4px 11px;border-radius:20px;background:${estado.bg||'#6b7280'};color:${estado.text||'#fff'};font-weight:700;border:none;cursor:pointer;max-width:180px;width:100%;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5);flex-shrink:0;display:inline-block"></span>${estado.label}</button>
       </td>
       <td style="padding:4px 8px;white-space:nowrap">
-        <input type="text" inputmode="numeric" value="${c.valorServicio||150000}" onblur="_rentaInlineEdit('${c.id}','valorServicio',this.value)" style="width:80px;font-size:12px;text-align:right;padding:3px 6px;border:1px solid var(--c-border);border-radius:6px;background:var(--c-surface);color:var(--c-text)">
+        <input type="text" inputmode="numeric" value="${c.valorServicio||0}" onblur="_rentaInlineEdit('${c.id}','valorServicio',this.value)" style="width:80px;font-size:12px;text-align:right;padding:3px 6px;border:1px solid var(--c-border);border-radius:6px;background:var(--c-surface);color:var(--c-text)">
       </td>
       <td style="padding:4px 8px;white-space:nowrap">
         <input type="text" inputmode="numeric" value="${c.valorPagado||''}" placeholder="0" onblur="_rentaInlineEdit('${c.id}','valorPagado',this.value)" style="width:80px;font-size:12px;text-align:right;padding:3px 6px;border:1px solid var(--c-border);border-radius:6px;background:var(--c-surface);color:${c.valorPagado?'#16a34a':'var(--c-text)'}">
@@ -5378,7 +5378,7 @@ function _rentaOpenModal(id) {
     </div>
     <div>
       <label style="font-size:11px;color:var(--c-text3);font-weight:600">📆 Fecha presentación</label>
-      <input id="rn_fpres" type="date" class="field-input" value="${c?((c.fechaPresentacion&&!c.fechaPresentacion.startsWith('2025'))?c.fechaPresentacion:(c.fechaDeclaracion||'')):''}" style="width:100%;margin-top:4px">
+      <input id="rn_fpres" type="date" class="field-input" value="${c?c.fechaPresentacion||'':''}" style="width:100%;margin-top:4px">
     </div>
     <div>
       <label style="font-size:11px;color:var(--c-text3);font-weight:600">📅 Vencimiento DIAN</label>
@@ -5405,7 +5405,7 @@ function _rentaOpenModal(id) {
     </div>
     <div>
       <label style="font-size:11px;color:var(--c-text3);font-weight:600">💵 Cobro</label>
-      <input id="rn_valor" type="text" inputmode="numeric" class="field-input" value="${c&&c.valorServicio?c.valorServicio:cfg.valorServicio||''}" placeholder="$ Valor" style="width:100%;margin-top:4px">
+      <input id="rn_valor" type="text" inputmode="numeric" class="field-input" value="${c?c.valorServicio||'':''}" placeholder="$ Valor" style="width:100%;margin-top:4px">
     </div>
     <div>
       <label style="font-size:11px;color:var(--c-text3);font-weight:600">💰 Valor pagado</label>
