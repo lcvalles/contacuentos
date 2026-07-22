@@ -1888,7 +1888,7 @@ function _bvPN(periodos) {
   return periodos.flatMap(({ label, mes, f2 }) =>
     Object.entries(f2).map(([rango, d]) => {
       const [y,m] = mes.split('-');
-      return { cat:'renta_pn', color:'#ec4899', bg:'#fdf2f8', nombre:'Renta PN', icon:'👤', label:`${label} · Cédulas ...${rango}`, ds:`${y}-${m}-${String(d).padStart(2,'0')}`, nit:null, nitRango:rango };
+      return { cat:'renta_pn', color:'#ec4899', bg:'#fdf2f8', nombre:'Renta PN', icon:'👤', label, ds:`${y}-${m}-${String(d).padStart(2,'0')}`, nit:null, nitRango:rango };
     })
   );
 }
@@ -3785,6 +3785,20 @@ function _matchPN(rango, d2) {
   if (a==='99'&&b==='00') return d2==='99'||d2==='00';
   return d2===a||d2===b;
 }
+// Devuelve los nombres de clientes PN cuya cédula termina en el rango dado
+function _pnClientesRango(nitRango) {
+  const clientes = STATE.rentaPN || [];
+  if (!clientes.length || !nitRango) return '';
+  const [a, b] = nitRango.split('-');
+  const matches = clientes.filter(c => {
+    const last2 = (c.cedula||'').replace(/\D/g,'').slice(-2).padStart(2,'0');
+    return last2===a || (b && last2===b);
+  });
+  if (!matches.length) return '';
+  const nombres = matches.map(c => (c.nombre||'').trim().split(' ')[0]);
+  if (nombres.length <= 4) return nombres.join(', ');
+  return nombres.slice(0,4).join(', ') + ` +${nombres.length-4} más`;
+}
 // Dado un vencimiento, devuelve la empresa que corresponde
 function _coForVenc(v) {
   if (!v||!STATE.companies) return null;
@@ -3972,7 +3986,7 @@ function _calSelectDay(ds) {
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600;color:var(--c-text)">${v.nombre} <span style="font-weight:400;color:var(--c-text2)">— ${v.label}</span></div>
         <div style="font-size:11.5px;color:var(--c-text3);margin-top:2px">
-          ${v.nit==='all'?'Aplica a todos los NIT':co?`<span style="color:${co.color};font-weight:700">${co.name}</span>`:''}
+          ${v.nit==='all'?'Aplica a todos los NIT':co?`<span style="color:${co.color};font-weight:700">${co.name}</span>`:v.cat==='renta_pn'?(()=>{ const n=_pnClientesRango(v.nitRango); return n?`<span style="color:#ec4899;font-weight:600">${n}</span>`:`<span>Cédulas ...${v.nitRango}</span>`; })():''}
         </div>
       </div>
     </div>`;
@@ -4320,8 +4334,9 @@ function _renderCalList(venc, misNits) {
       const dateLbl=done
         ? `<span onclick="event.stopPropagation();_calPickDoneDate('${key}','${doneDate||ds}')" title="Cambiar fecha de realización" style="font-size:9px;color:#15803d;font-weight:600;cursor:pointer;text-decoration:underline dotted;margin-left:1px">${doneDate?fmtDate(doneDate):'✓'}</span>`
         : '';
+      const _pnN = v.cat==='renta_pn' ? _pnClientesRango(v.nitRango) : '';
       return `<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:3px 5px 3px 9px;border-radius:12px;background:${done?'#f0fdf4':v.bg};color:${done?'#15803d':v.color};border:1px solid ${done?'#86efac':v.color+'30'};font-weight:600;${done?'opacity:.8':''}">
-        <span style="${done?'text-decoration:line-through':''}">${v.icon} ${v.nombre}${co?` · <span style="color:${co.color||'inherit'}">${co.name}</span>`:''}</span>
+        <span style="${done?'text-decoration:line-through':''}">${v.icon} ${v.nombre}${co?` · <span style="color:${co.color||'inherit'}">${co.name}</span>`:_pnN?` · <span style="font-weight:500;font-size:10px">${_pnN}</span>`:''}</span>
         ${dateLbl}
         <button onclick="_calToggleDone('${key}','${ds}')" title="${done?'Quitar realizado':'Marcar como realizado'}" style="background:${done?'#16a34a':'transparent'};border:1px solid ${done?'#16a34a':v.color+'60'};border-radius:50%;width:15px;height:15px;cursor:pointer;font-size:8px;color:${done?'#fff':v.color};display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;margin-left:2px">✓</button>
         <button onclick="_calSkipOblig('${key}')" title="No aplica" style="background:transparent;border:none;cursor:pointer;font-size:13px;color:var(--c-text3);padding:0;line-height:1;flex-shrink:0;margin-left:1px">×</button>
@@ -4367,8 +4382,9 @@ function renderDashVenc() {
         <div style="display:flex;flex-wrap:wrap;gap:4px">
           ${vs.map(v=>{
               const co=_coForVenc(v);
-              const coName=co?`<span style="opacity:.7;font-size:9px;font-weight:400"> ${co.name}</span>`:'';
-              return `<span style="font-size:10.5px;padding:2px 7px;border-radius:10px;background:${v.bg};color:${v.color};border:1px solid ${v.color}30;font-weight:600;display:inline-flex;align-items:center;gap:3px;white-space:nowrap">${v.icon} ${v.nombre}${coName}</span>`;
+              const pnN=v.cat==='renta_pn'?_pnClientesRango(v.nitRango):'';
+              const extra=co?`<span style="opacity:.7;font-size:9px;font-weight:400"> ${co.name}</span>`:pnN?`<span style="opacity:.8;font-size:9px;font-weight:400"> ${pnN}</span>`:'';
+              return `<span style="font-size:10.5px;padding:2px 7px;border-radius:10px;background:${v.bg};color:${v.color};border:1px solid ${v.color}30;font-weight:600;display:inline-flex;align-items:center;gap:3px;white-space:nowrap">${v.icon} ${v.nombre}${extra}</span>`;
             }).join('')}
         </div>
       </div>`;
