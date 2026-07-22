@@ -1888,7 +1888,7 @@ function _bvPN(periodos) {
   return periodos.flatMap(({ label, mes, f2 }) =>
     Object.entries(f2).map(([rango, d]) => {
       const [y,m] = mes.split('-');
-      return { cat:'renta_pn', color:'#ec4899', bg:'#fdf2f8', nombre:'Renta PN', icon:'👤', label, ds:`${y}-${m}-${String(d).padStart(2,'0')}`, nit:null, nitRango:rango };
+      return { cat:'renta_pn', color:'#ec4899', bg:'#fdf2f8', nombre:'Renta PN', icon:'👤', label:`${label} · Cédulas ...${rango}`, ds:`${y}-${m}-${String(d).padStart(2,'0')}`, nit:null, nitRango:rango };
     })
   );
 }
