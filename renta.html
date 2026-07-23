@@ -139,7 +139,18 @@ img{max-width:100%}
 .edu-body{font-size:.9375rem;color:var(--c-text2);line-height:1.8}
 .edu-body p{margin-bottom:14px}
 
-/* TOPES */
+/* TOPES HERO (franja visible sin clic) */
+.hero-topes{margin-top:32px;padding-top:24px;border-top:1px solid var(--c-border)}
+.hero-topes-intro{font-size:.82rem;color:var(--c-text2);margin-bottom:13px;font-weight:500}
+.hero-topes-intro strong{color:var(--c-text)}
+.hero-topes-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.hero-tope{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:var(--r-md);padding:11px 10px;text-align:center}
+.hero-tope-ico{font-size:1.1rem;margin-bottom:4px}
+.hero-tope-name{font-size:.68rem;color:var(--c-text3);line-height:1.3;margin-bottom:4px}
+.hero-tope-amt{font-family:var(--f-display);font-size:.97rem;font-weight:600;color:var(--c-teal);font-variant-numeric:tabular-nums;white-space:nowrap}
+.hero-topes-foot{margin-top:9px;font-size:.73rem;color:var(--c-text3)}
+
+/* TOPES (tab educativa — detallada) */
 .topes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:28px}
 .tope-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-lg);padding:18px;box-shadow:var(--sh-sm)}
 .tope-ico{font-size:1.375rem;margin-bottom:8px}
@@ -304,6 +315,8 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
   .nav-logo-name{display:none}
   .about-badges{grid-template-columns:1fr}
   .topes-grid{grid-template-columns:1fr}
+  .hero-topes-grid{grid-template-columns:repeat(2,1fr);gap:7px}
+  .hero-tope:last-child{grid-column:1/-1}
 }
 </style>
 </head>
@@ -347,6 +360,18 @@ footer{background:var(--c-text);color:rgba(255,255,255,.75);padding:48px 0 28px}
         </div>
         <p class="hero-hint">El sistema toma solo los últimos 2 dígitos · No se almacena ningún dato</p>
         <div class="hero-result" id="hero-result" role="alert" aria-live="polite"></div>
+
+        <div class="hero-topes">
+          <p class="hero-topes-intro">Estás obligado a declarar si en 2025 superaste <strong>alguno</strong> de estos topes:</p>
+          <div class="hero-topes-grid">
+            <div class="hero-tope"><div class="hero-tope-ico">🏦</div><div class="hero-tope-name">Patrimonio bruto</div><div class="hero-tope-amt">$221.095.500</div></div>
+            <div class="hero-tope"><div class="hero-tope-ico">💵</div><div class="hero-tope-name">Ingresos totales</div><div class="hero-tope-amt">$69.718.600</div></div>
+            <div class="hero-tope"><div class="hero-tope-ico">💳</div><div class="hero-tope-name">Tarjeta de crédito</div><div class="hero-tope-amt">$69.718.600</div></div>
+            <div class="hero-tope"><div class="hero-tope-ico">🛒</div><div class="hero-tope-name">Compras y consumos</div><div class="hero-tope-amt">$69.718.600</div></div>
+            <div class="hero-tope"><div class="hero-tope-ico">🏛️</div><div class="hero-tope-name">Consignaciones bancarias</div><div class="hero-tope-amt">$69.718.600</div></div>
+          </div>
+          <p class="hero-topes-foot">Valores año gravable 2025 · <a href="#informacion" style="color:var(--c-teal);text-decoration:underline">Ver detalles</a></p>
+        </div>
       </div>
       <div class="hero-brand">
         <div class="hero-brand-outer">
