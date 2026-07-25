@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cómo crear tu usuario en la DIAN · Yulieth Castrillón Contadora</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%230b7a6a'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='central' text-anchor='middle' fill='%23e8cc80' font-family='Georgia%2C serif' font-size='13' font-weight='bold'%3EYC%3C/text%3E%3C/svg%3E">
+<meta name="description" content="Guía paso a paso para crear tu usuario en el portal DIAN (MUISCA) y poder declarar renta en línea. Explicado de forma simple, sin tecnicismos.">
+<meta name="keywords" content="crear usuario DIAN, registro MUISCA, portal DIAN Colombia, declarar renta en línea, usuario DIAN personas naturales">
+<meta property="og:title" content="Cómo crear tu usuario en la DIAN · Paso a paso">
+<meta property="og:description" content="Guía sencilla para registrarte en el portal DIAN y declarar renta sin complicaciones.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:       #f2f1ed;
+  --c-surface:  #ffffff;
+  --c-surface2: #faf9f6;
+  --c-border:   #e4e2da;
+  --c-border2:  #cbc9c0;
+  --c-text:     #181815;
+  --c-text2:    #52514a;
+  --c-text3:    #908e85;
+  --c-teal:     #0b7a6a;
+  --c-teal-lt:  #0e8e7a;
+  --c-teal-bg:  #e0f5f0;
+  --c-teal-bd:  #80ccc0;
+  --c-gold:     #b08a1a;
+  --c-gold-bg:  #fdf5dc;
+  --c-gold-bd:  #e8cc80;
+  --c-green:    #1a5e35;
+  --c-green-bg: #eaf5ee;
+  --c-amber:    #a06010;
+  --c-amber-bg: #fff4e0;
+  --c-red:      #b02020;
+  --c-red-bg:   #fdf0f0;
+  --r-md: 8px; --r-lg: 12px; --r-xl: 16px;
+  --sh-sm: 0 1px 3px rgba(0,0,0,.07),0 0 0 1px rgba(0,0,0,.04);
+  --sh-md: 0 4px 12px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04);
+  --f-display: 'Crimson Pro', Georgia, serif;
+  --f-body: 'DM Sans', system-ui, sans-serif;
+  --max-w: 900px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+body{font-family:var(--f-body);background:var(--c-bg);color:var(--c-text);line-height:1.6}
+a{color:inherit;text-decoration:none}
+button{font-family:var(--f-body);cursor:pointer;border:none;background:none}
+img{max-width:100%}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:var(--c-border2);border-radius:10px}
+:focus-visible{outline:2px solid var(--c-teal);outline-offset:2px}
+
+.wrap{max-width:var(--max-w);margin:0 auto;padding:0 24px}
+
+/* ANNOUNCE BAR */
+.announce-bar{background:var(--c-teal);color:#fff;text-align:center;padding:11px 24px;font-size:.9375rem;font-weight:500;letter-spacing:.01em}
+.announce-bar a{color:#e8cc80;text-decoration:underline;text-underline-offset:2px}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(242,241,237,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border)}
+.nav-inner{max-width:var(--max-w);margin:0 auto;padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.nav-logo{display:flex;align-items:center;gap:10px}
+.nav-logo-circle{width:38px;height:38px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1.5px solid var(--c-gold-bd)}
+.nav-logo-circle img{width:100%;height:100%;object-fit:cover;object-position:center 18%}
+.nav-logo-name{font-family:var(--f-display);font-size:1.1rem;font-weight:600;color:var(--c-teal)}
+.nav-wa{display:flex;align-items:center;gap:7px;background:#25d366;color:#fff;padding:8px 18px;border-radius:var(--r-lg);font-size:.875rem;font-weight:500;transition:background .15s;white-space:nowrap}
+.nav-wa:hover{background:#1fbb58}
+
+/* HERO */
+.hero{padding:60px 0 52px;background:var(--c-surface);border-bottom:1px solid var(--c-border)}
+.hero-eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--c-teal);margin-bottom:14px}
+.hero-title{font-family:var(--f-display);font-size:clamp(2rem,5vw,3rem);font-weight:600;line-height:1.15;color:var(--c-text);text-wrap:balance;margin-bottom:16px}
+.hero-title em{color:var(--c-teal);font-style:italic}
+.hero-sub{font-size:1.0625rem;color:var(--c-text2);max-width:600px;line-height:1.65;margin-bottom:28px}
+.hero-reqs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px}
+.hero-req{display:flex;align-items:center;gap:8px;background:var(--c-teal-bg);border:1px solid var(--c-teal-bd);border-radius:var(--r-md);padding:10px 12px}
+.hero-req-ico{font-size:1.25rem;flex-shrink:0}
+.hero-req-text{font-size:.78rem;font-weight:500;color:var(--c-teal);line-height:1.3}
+.hero-note{margin-top:16px;font-size:.8125rem;color:var(--c-text3);display:flex;align-items:center;gap:6px}
+.hero-note::before{content:'';display:inline-block;width:20px;height:1px;background:var(--c-border2);flex-shrink:0}
+
+/* SECTIONS */
+.section{padding:64px 0}
+.section-alt{background:var(--c-surface)}
+.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--c-teal);margin-bottom:10px}
+.s-title{font-family:var(--f-display);font-size:clamp(1.5rem,3.5vw,2.1rem);font-weight:600;line-height:1.2;color:var(--c-text);text-wrap:balance;margin-bottom:10px}
+.s-title em{color:var(--c-teal);font-style:italic}
+.s-sub{font-size:.9375rem;color:var(--c-text2);max-width:600px;line-height:1.6;margin-bottom:32px}
+
+/* STEPS */
+.steps{margin-top:0;display:flex;flex-direction:column;gap:0}
+.step{display:grid;grid-template-columns:56px 1fr;gap:0 20px;position:relative}
+.step-left{display:flex;flex-direction:column;align-items:center}
+.step-num{width:48px;height:48px;border-radius:50%;background:var(--c-teal);color:#fff;font-family:var(--f-display);font-size:1.35rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(11,122,106,.25);position:relative;z-index:1}
+.step-line{width:2px;background:var(--c-teal-bd);flex:1;margin:4px 0}
+.step:last-child .step-line{display:none}
+.step-body{padding:0 0 36px 0}
+.step-body h3{font-family:var(--f-display);font-size:1.25rem;font-weight:600;color:var(--c-text);margin-bottom:6px;padding-top:10px;line-height:1.25}
+.step-body p{font-size:.9375rem;color:var(--c-text2);line-height:1.6;max-width:560px}
+.step-tip{margin-top:10px;background:var(--c-gold-bg);border:1px solid var(--c-gold-bd);border-radius:var(--r-md);padding:9px 13px;font-size:.8125rem;color:var(--c-amber);display:flex;align-items:flex-start;gap:8px;max-width:480px}
+.step-tip strong{font-weight:600}
+.step-url{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:var(--c-teal-bg);border:1px solid var(--c-teal-bd);border-radius:var(--r-md);padding:7px 13px;font-size:.8125rem;font-weight:600;color:var(--c-teal);font-family:monospace}
+
+/* PROBLEMAS */
+.prob-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:4px}
+.prob-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-xl);padding:20px 20px 18px;box-shadow:var(--sh-sm)}
+.prob-tag{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--c-amber);background:var(--c-amber-bg);border-radius:20px;padding:3px 10px;margin-bottom:11px}
+.prob-q{font-weight:600;font-size:.95rem;color:var(--c-text);margin-bottom:8px;line-height:1.35}
+.prob-a{font-size:.875rem;color:var(--c-text2);line-height:1.55}
+.prob-sol{margin-top:10px;padding:8px 12px;background:var(--c-green-bg);border-left:3px solid var(--c-green);border-radius:0 var(--r-md) var(--r-md) 0;font-size:.8125rem;color:var(--c-green);font-weight:500}
+
+/* FAQ */
+.faq-list{margin-top:4px;border:1px solid var(--c-border);border-radius:var(--r-xl);overflow:hidden;background:var(--c-surface);box-shadow:var(--sh-sm)}
+.faq-item{border-bottom:1px solid var(--c-border)}
+.faq-item:last-child{border-bottom:none}
+.faq-q{width:100%;text-align:left;padding:16px 20px;font-size:.9375rem;font-weight:600;color:var(--c-text);display:flex;align-items:center;justify-content:space-between;gap:12px;background:transparent;transition:background .12s}
+.faq-q:hover{background:var(--c-teal-bg)}
+.faq-arrow{color:var(--c-teal);font-size:1.1rem;flex-shrink:0;transition:transform .2s}
+.faq-q[aria-expanded="true"] .faq-arrow{transform:rotate(180deg)}
+.faq-a{display:none;padding:0 20px 16px;font-size:.9rem;color:var(--c-text2);line-height:1.65;max-width:660px}
+.faq-a.open{display:block}
+
+/* CTA BAND */
+.cta-band{background:var(--c-teal);padding:56px 24px;text-align:center}
+.cta-eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:12px}
+.cta-title{font-family:var(--f-display);font-size:clamp(1.5rem,3vw,2.1rem);font-weight:600;color:#fff;margin-bottom:10px;text-wrap:balance}
+.cta-sub{font-size:.9375rem;color:rgba(255,255,255,.75);margin-bottom:28px;max-width:520px;margin-left:auto;margin-right:auto;line-height:1.6}
+.cta-btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.cta-btn{display:inline-flex;align-items:center;gap:8px;background:#25d366;color:#fff;padding:13px 28px;border-radius:var(--r-lg);font-size:1rem;font-weight:600;transition:background .15s;text-decoration:none}
+.cta-btn:hover{background:#1fbb58}
+.cta-btn-sec{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;padding:13px 28px;border-radius:var(--r-lg);font-size:1rem;font-weight:500;transition:background .15s;text-decoration:none}
+.cta-btn-sec:hover{background:rgba(255,255,255,.2)}
+
+/* FOOTER */
+footer{background:#1a1f1e;color:rgba(255,255,255,.55);padding:44px 0 28px}
+.footer-grid{display:grid;grid-template-columns:1.8fr 1fr 1fr;gap:32px;margin-bottom:32px}
+.f-logo{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.f-logo-circle{width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1.5px solid #b08a1a}
+.f-logo-circle img{width:100%;height:100%;object-fit:cover;object-position:center 18%}
+.f-logo-name{font-family:var(--f-display);font-size:1.05rem;font-weight:600;color:rgba(255,255,255,.88)}
+.f-logo-sub{font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.38);display:block}
+.f-desc{font-size:.82rem;line-height:1.6;max-width:260px}
+.f-head{font-size:.68rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.38);margin-bottom:12px}
+.f-link{display:block;font-size:.875rem;color:rgba(255,255,255,.55);margin-bottom:7px;transition:color .12s}
+.f-link:hover{color:rgba(255,255,255,.88)}
+.f-contact{font-size:.875rem;margin-bottom:7px}
+.f-divider{border:none;border-top:1px solid rgba(255,255,255,.08);margin-bottom:20px}
+.f-bottom{display:flex;align-items:center;justify-content:space-between;font-size:.8rem;flex-wrap:wrap;gap:8px}
+.f-legal{display:flex;gap:16px}
+.f-legal a{color:rgba(255,255,255,.38);font-size:.75rem;transition:color .12s}
+.f-legal a:hover{color:rgba(255,255,255,.7)}
+.habeas{margin-top:20px;font-size:.73rem;line-height:1.65;color:rgba(255,255,255,.28);border-top:1px solid rgba(255,255,255,.06);padding-top:18px;max-width:760px}
+
+/* FLOATING WA */
+.wa-float{position:fixed;bottom:24px;right:24px;z-index:200;width:52px;height:52px;background:#25d366;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(37,211,102,.35);transition:background .15s,transform .15s}
+.wa-float:hover{background:#1fbb58;transform:scale(1.07)}
+.wa-float-ico{font-size:1.5rem}
+
+@media(max-width:640px){
+  .hero-reqs{grid-template-columns:1fr 1fr}
+  .step{grid-template-columns:44px 1fr;gap:0 14px}
+  .step-num{width:40px;height:40px;font-size:1.1rem}
+  .footer-grid{grid-template-columns:1fr}
+  .f-bottom{flex-direction:column;align-items:flex-start}
+  .prob-grid{grid-template-columns:1fr}
+  .cta-btns{flex-direction:column;align-items:center}
+}
+</style>
+</head>
+<body>
+
+<!-- ANNOUNCE BAR -->
+<div class="announce-bar">
+  ¿Ya tienes usuario DIAN? Consulta tu fecha de declaración en <a href="https://contacuentos.site/renta">contacuentos.site/renta</a>
+</div>
+
+<!-- NAV -->
+<nav class="nav" aria-label="Navegación principal">
+  <div class="nav-inner">
+    <a class="nav-logo" href="https://contacuentos.site/renta">
+      <div class="nav-logo-circle">
+        <img src="LogoYC.jpeg" alt="Logo Yulieth Castrillón">
+      </div>
+      <span class="nav-logo-name">Yulieth Castrillón</span>
+    </a>
+    <a class="nav-wa" id="nav-wa" href="#" target="_blank" rel="noopener">💬 WhatsApp</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-eyebrow">Guía práctica · Portal DIAN</div>
+    <h1 class="hero-title">Crea tu usuario en la DIAN<br><em>paso a paso</em></h1>
+    <p class="hero-sub">Para declarar renta en línea necesitas tener un usuario en el portal MUISCA de la DIAN. Si aún no lo tienes, aquí te explicamos exactamente cómo crearlo — sin tecnicismos.</p>
+    <p style="font-size:.85rem;font-weight:600;color:var(--c-text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Antes de empezar, ten a la mano:</p>
+    <div class="hero-reqs">
+      <div class="hero-req"><div class="hero-req-ico">🪪</div><div class="hero-req-text">Tu cédula de ciudadanía</div></div>
+      <div class="hero-req"><div class="hero-req-ico">📧</div><div class="hero-req-text">Correo electrónico activo</div></div>
+      <div class="hero-req"><div class="hero-req-ico">📱</div><div class="hero-req-text">Celular con señal</div></div>
+      <div class="hero-req"><div class="hero-req-ico">💻</div><div class="hero-req-text">Computador o celular con internet</div></div>
+    </div>
+    <p class="hero-note">El proceso toma aproximadamente 10 minutos</p>
+  </div>
+</section>
+
+<!-- PASOS -->
+<section class="section section-alt" id="pasos">
+  <div class="wrap">
+    <div class="eyebrow">Proceso completo</div>
+    <h2 class="s-title">Los <em>7 pasos</em> para registrarte</h2>
+    <p class="s-sub">Sigue cada paso en orden. Si en algún punto tienes un problema, revisa la sección "Problemas frecuentes" más abajo.</p>
+
+    <div class="steps">
+
+      <!-- PASO 1 -->
+      <div class="step">
+        <div class="step-left">
+          <div class="step-num">1</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <h3>Entra al portal MUISCA de la DIAN</h3>
+          <p>Abre el navegador de tu computador o celular (Chrome, Safari, Edge) y ve a la siguiente dirección:</p>
+          <div class="step-url">🌐 muisca.dian.gov.co</div>
+          <div class="step-tip">
+            <span>💡</span>
+            <span><strong>Importante:</strong> Escribe la dirección directamente en la barra del navegador. No busques en Google "portal DIAN" — pueden aparecer páginas falsas. Usa siempre la dirección oficial <strong>muisca.dian.gov.co</strong>.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 2 -->
+      <div class="step">
+        <div class="step-left">
+          <div class="step-num">2</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <h3>Haz clic en "Regístrese aquí"</h3>
+          <p>En la pantalla de inicio del portal verás los campos de usuario y contraseña para quien ya tiene cuenta. Debajo de esos campos (o en la esquina superior) encuentra el enlace que dice <strong>"Regístrese aquí"</strong> o <strong>"¿No tienes usuario? Regístrate"</strong> y haz clic allí.</p>
+          <div class="step-tip">
+            <span>💡</span>
+            <span>Si el botón dice "Regístrese como usuario transaccional" — ese es el correcto para declarar renta.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 3 -->
+      <div class="step">
+        <div class="step-left">
+          <div class="step-num">3</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <h3>Selecciona tu tipo de documento e ingresa tu cédula</h3>
+          <p>Aparece un formulario. En el campo <strong>"Tipo de documento"</strong> selecciona <strong>Cédula de Ciudadanía</strong>. Luego escribe tu número de cédula en el campo de abajo — sin puntos, sin espacios, solo los números.</p>
+          <div class="step-tip">
+            <span>⚠️</span>
+            <span><strong>Si aparece el mensaje "ya existe un usuario con este documento"</strong>, significa que ya tienes una cuenta creada. Ve directamente a recuperar tu contraseña (ver Problemas frecuentes).</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 4 -->
+      <div class="step">
+        <div class="step-left">
+          <div class="step-num">4</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <h3>Completa tus datos personales</h3>
+          <p>El sistema te pedirá que confirmes o ingreses tu información personal. Ten en cuenta que los datos deben coincidir <strong>exactamente</strong> con los de tu cédula:</p>
+          <ul style="margin:10px 0 0 18px;font-size:.9375rem;color:var(--c-text2);line-height:1.8">
+            <li>Primer nombre y segundo nombre</li>
+            <li>Primer apellido y segundo apellido</li>
+            <li>Fecha de nacimiento (día / mes / año)</li>
+            <li>Lugar de expedición de la cédula</li>
+          </ul>
+          <div class="step-tip" style="margin-top:12px">
+            <span>💡</span>
+            <span>Si tu cédula tiene un segundo nombre o apellido compuesto, inclúyelo tal cual. Un error en el nombre puede bloquear el proceso.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 5 -->
+      <div class="step">
+        <div class="step-left">
+          <div class="step-num">5</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <h3>Registra tu correo y crea tu contraseña</h3>
+          <p>Ingresa el correo electrónico al que tienes acceso fácil — ese correo será tu usuario de acceso. Luego crea una contraseña segura que cumpla con:</p>
+          <ul style="margin:10px 0 0 18px;font-size:.9375rem;color:var(--c-text2);line-height:1.8">
+            <li>Mínimo 8 caracteres</li>
+            <li>Al menos una letra mayúscula (A–Z)</li>
+            <li>Al menos un número (0–9)</li>
+            <li>Al menos un carácter especial (!, @, #, $…)</li>
+          </ul>
+          <div class="step-tip" style="margin-top:12px">
+            <span>💡</span>
+            <span><strong>Anota tu contraseña</strong> en un lugar seguro — papel, notas del celular, etc. Si la olvidas tendrás que recuperarla por correo.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 6 -->
+      <div class="step">
+        <div class="step-left">
+          <div class="step-num">6</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <h3>Activa tu cuenta desde el correo</h3>
+          <p>La DIAN te envía un correo con el asunto <strong>"Activación de cuenta MUISCA"</strong>. Ábrelo y haz clic en el enlace de activación.</p>
+          <ul style="margin:10px 0 0 18px;font-size:.9375rem;color:var(--c-text2);line-height:1.8">
+            <li>El enlace puede tardar hasta 5 minutos en llegar</li>
+            <li>Si no lo ves en la bandeja principal, revisa <strong>correo no deseado / spam</strong></li>
+            <li>El enlace es válido por <strong>24 horas</strong> — si se vence, debes reiniciar el proceso</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- PASO 7 -->
+      <div class="step">
+        <div class="step-left">
+          <div class="step-num" style="background:var(--c-green)">✓</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <h3>¡Listo! Ya puedes ingresar al portal</h3>
+          <p>Una vez activada la cuenta, regresa a <strong>muisca.dian.gov.co</strong> e ingresa con tu correo y contraseña. Ya tienes acceso completo al portal para consultar tu RUT, presentar tu declaración de renta y usar todos los servicios en línea de la DIAN.</p>
+          <div class="step-tip" style="background:var(--c-green-bg);border-color:#86efac;color:var(--c-green)">
+            <span>✅</span>
+            <span><strong>Guarda tus credenciales:</strong> usuario (correo) y contraseña en un lugar seguro. Las necesitarás cada año para declarar renta.</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEMAS FRECUENTES -->
+<section class="section" id="problemas">
+  <div class="wrap">
+    <div class="eyebrow">Solución de problemas</div>
+    <h2 class="s-title">Si algo no funciona</h2>
+    <p class="s-sub">Estos son los tres problemas más comunes durante el registro y cómo resolverlos.</p>
+    <div class="prob-grid">
+      <div class="prob-card">
+        <div class="prob-tag">⚠️ Problema 1</div>
+        <div class="prob-q">"Ya existe un usuario con ese número de documento"</div>
+        <div class="prob-a">Esto significa que ya tienes una cuenta registrada en el portal, posiblemente creada hace años sin que lo recuerdes.</div>
+        <div class="prob-sol">Haz clic en <strong>"¿Olvidé mi contraseña?"</strong> en la pantalla de inicio. La DIAN te envía un enlace de recuperación al correo con el que te registraste.</div>
+      </div>
+      <div class="prob-card">
+        <div class="prob-tag">⚠️ Problema 2</div>
+        <div class="prob-q">El correo de activación no llega</div>
+        <div class="prob-a">Los correos de la DIAN a veces caen en la carpeta de spam o correo no deseado, especialmente en Gmail y Hotmail.</div>
+        <div class="prob-sol">Revisa la carpeta <strong>Spam / No deseado</strong>. Si no está después de 10 minutos, intenta el registro nuevamente con un correo diferente (Gmail funciona mejor).</div>
+      </div>
+      <div class="prob-card">
+        <div class="prob-tag">⚠️ Problema 3</div>
+        <div class="prob-q">El sistema dice que mi cédula no está en el RUT</div>
+        <div class="prob-a">Para usar el portal DIAN, tu cédula debe estar inscrita en el Registro Único Tributario (RUT). Si nunca lo has hecho, hay que inscribirse primero.</div>
+        <div class="prob-sol">En este caso <strong>escríbenos</strong> — te orientamos en el proceso de inscripción al RUT antes de continuar con la declaración.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section section-alt" id="faq">
+  <div class="wrap">
+    <div class="eyebrow">Preguntas frecuentes</div>
+    <h2 class="s-title">Dudas sobre el registro</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" onclick="toggleFaq(this)">
+          ¿Tengo que ir a una oficina de la DIAN para registrarme?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">No. El registro en el portal MUISCA es completamente en línea y puedes hacerlo desde tu casa, en cualquier momento, sin cita ni desplazamiento. Solo necesitas tus datos personales, un correo electrónico y conexión a internet.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" onclick="toggleFaq(this)">
+          ¿Puedo crear el usuario desde el celular?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">Sí, el portal MUISCA funciona en celular. Sin embargo, recomendamos usar un computador o tablet si es posible — la pantalla más grande facilita leer los formularios y hace el proceso menos propenso a errores de digitación.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" onclick="toggleFaq(this)">
+          ¿Qué hago si ya olvidé la contraseña que creé antes?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">En la pantalla de inicio de muisca.dian.gov.co hay un enlace que dice "¿Olvidé mi contraseña?" o "Recuperar contraseña". Al hacer clic, la DIAN te envía un enlace de recuperación al correo con el que te registraste. Si ya no tienes acceso a ese correo, el proceso se complica — en ese caso escríbenos y te orientamos.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" onclick="toggleFaq(this)">
+          ¿La contraseña de la DIAN vence?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">Sí. El portal DIAN solicita cambio de contraseña periódicamente por seguridad, generalmente cada 3 a 6 meses. Cuando vence, el sistema te pide crear una nueva la próxima vez que ingresas. Por eso es importante tener siempre acceso al correo con el que te registraste.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" onclick="toggleFaq(this)">
+          ¿Me ayudan a crear el usuario si no puedo hacerlo solo?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">Sí. Puedes escribirnos por WhatsApp y te acompañamos paso a paso durante el proceso de registro. También puedes compartir pantalla con nosotros para que te guiemos en tiempo real. No hay costo adicional por este acompañamiento — es parte del servicio.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-band">
+  <div class="cta-eyebrow">¿Necesitas ayuda?</div>
+  <h2 class="cta-title">Te acompañamos en todo el proceso</h2>
+  <p class="cta-sub">Si tienes problemas con el registro, ya creaste tu usuario y quieres declarar, o simplemente tienes dudas — escríbenos. Te respondemos rápido.</p>
+  <div class="cta-btns">
+    <a class="cta-btn" id="cta-wa" href="#" target="_blank" rel="noopener">💬 Escribir por WhatsApp</a>
+    <a class="cta-btn-sec" href="https://contacuentos.site/renta">← Volver a declaración de renta</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="f-logo">
+          <div class="f-logo-circle"><img src="LogoYC.jpeg" alt="Logo YC"></div>
+          <div>
+            <span class="f-logo-name">Yulieth Castrillón</span>
+            <span class="f-logo-sub">Contadora Pública</span>
+          </div>
+        </div>
+        <p class="f-desc">Contadora Pública especializada en declaración de renta para personas naturales en Colombia. Atención personalizada con más de 6 años de experiencia.</p>
+      </div>
+      <div>
+        <div class="f-head">Páginas</div>
+        <a class="f-link" href="https://contacuentos.site/renta">Declaración de renta</a>
+        <a class="f-link" href="#pasos">Crear usuario DIAN</a>
+        <a class="f-link" href="#problemas">Problemas frecuentes</a>
+        <a class="f-link" href="#faq">Preguntas frecuentes</a>
+      </div>
+      <div>
+        <div class="f-head">Contacto</div>
+        <div class="f-contact">💬 <a class="f-link" id="footer-wa" href="#" target="_blank" style="margin:0">WhatsApp</a></div>
+        <div class="f-contact">🌐 <span>contacuentos.site</span></div>
+      </div>
+    </div>
+    <hr class="f-divider">
+    <div class="f-bottom">
+      <span>© 2026 Yulieth Castrillón · Contadora Pública</span>
+      <div class="f-legal">
+        <a href="#">Política de privacidad</a>
+        <a href="#">Tratamiento de datos</a>
+      </div>
+    </div>
+    <div class="habeas">
+      <strong style="color:rgba(255,255,255,.6)">Autorización Habeas Data:</strong> Al comunicarte con nosotros autorizas el tratamiento de tus datos personales con fines exclusivos de la prestación del servicio contable y tributario, de conformidad con la Ley 1581 de 2012 y el Decreto 1377 de 2013. Tus datos no serán compartidos con terceros ni utilizados para fines distintos al servicio solicitado.
+    </div>
+  </div>
+</footer>
+
+<!-- FLOATING WA -->
+<a class="wa-float" id="wa-float" href="#" target="_blank" rel="noopener" aria-label="Consultar por WhatsApp">
+  <span class="wa-float-ico">💬</span>
+</a>
+
+<script>
+const WA_PHONE = '573177635252';
+const WA_MSG   = 'Hola, necesito ayuda para crear mi usuario en el portal DIAN. ¿Me pueden orientar?\n\nhttps://contacuentos.site/usuario-dian';
+
+function setWALinks() {
+  const url = `https://wa.me/${WA_PHONE}?text=${encodeURIComponent(WA_MSG)}`;
+  ['nav-wa','cta-wa','footer-wa','wa-float'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.href = url;
+  });
+}
+setWALinks();
+
+function toggleFaq(btn) {
+  const expanded = btn.getAttribute('aria-expanded') === 'true';
+  document.querySelectorAll('.faq-q').forEach(b => {
+    b.setAttribute('aria-expanded','false');
+    const a = b.nextElementSibling;
+    if (a) a.classList.remove('open');
+  });
+  if (!expanded) {
+    btn.setAttribute('aria-expanded','true');
+    const a = btn.nextElementSibling;
+    if (a) a.classList.add('open');
+  }
+}
+</script>
+</body>
+</html>
