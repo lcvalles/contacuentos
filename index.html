@@ -5158,15 +5158,12 @@ function renderRentaPN() {
   ).join('');
 
   const _COMPLETADOS = new Set(['finalizada','no-presenta-renta','deserto','no-presenta','presentada']);
-  const _sortVenc = (a,b) => (a.fechaDeclaracion||'9999').localeCompare(b.fechaDeclaracion||'9999');
+  const _NOVEDADES   = new Set(['no-presenta-renta','deserto','no-presenta']);
   const _PRESENTADAS = new Set(['finalizada','presentada']);
-  const _sortCompletados = (a,b) => {
-    const aPres = _PRESENTADAS.has(a.estadoProceso) ? 1 : 0;
-    const bPres = _PRESENTADAS.has(b.estadoProceso) ? 1 : 0;
-    return aPres!==bPres ? aPres-bPres : _sortVenc(a,b);
-  };
-  const activeClients    = filtered.filter(c=>!_COMPLETADOS.has(c.estadoProceso)).sort(_sortVenc);
-  const completedClients = filtered.filter(c=> _COMPLETADOS.has(c.estadoProceso)).sort(_sortCompletados);
+  const _sortVenc = (a,b) => (a.fechaDeclaracion||'9999').localeCompare(b.fechaDeclaracion||'9999');
+  const activeClients      = filtered.filter(c=>!_COMPLETADOS.has(c.estadoProceso)).sort(_sortVenc);
+  const novedadClients     = filtered.filter(c=> _NOVEDADES.has(c.estadoProceso)).sort(_sortVenc);
+  const presentadaClients  = filtered.filter(c=> _PRESENTADAS.has(c.estadoProceso)).sort(_sortVenc);
   const _makeRow = (c, num, dimmed=false) => {
     const estado = _rentaEstado(c.estadoProceso);
     const avance = _rentaAvance(c.estadoProceso);
@@ -5227,11 +5224,13 @@ function renderRentaPN() {
       </td>
     </tr>`;
   };
-  const _sepRow = completedClients.length ? `<tr><td colspan="21" style="padding:6px 16px;background:var(--c-surface2);border-top:2px solid var(--c-border);border-bottom:2px solid var(--c-border);text-align:center;font-size:11px;color:var(--c-text3);font-weight:600;letter-spacing:1px">── COMPLETADOS (${completedClients.length}) ──</td></tr>` : '';
+  const _sepRow = (label,count) => count ? `<tr><td colspan="21" style="padding:6px 16px;background:var(--c-surface2);border-top:2px solid var(--c-border);border-bottom:2px solid var(--c-border);text-align:center;font-size:11px;color:var(--c-text3);font-weight:600;letter-spacing:1px">── ${label} (${count}) ──</td></tr>` : '';
   const tableRows = filtered.length
     ? activeClients.map((c,i)=>_makeRow(c,i+1,false)).join('')
-      + _sepRow
-      + completedClients.map((c,i)=>_makeRow(c,activeClients.length+i+1,true)).join('')
+      + _sepRow('NOVEDADES',novedadClients.length)
+      + novedadClients.map((c,i)=>_makeRow(c,activeClients.length+i+1,true)).join('')
+      + _sepRow('PRESENTADAS',presentadaClients.length)
+      + presentadaClients.map((c,i)=>_makeRow(c,activeClients.length+novedadClients.length+i+1,true)).join('')
     : `<tr><td colspan="21" style="padding:24px;text-align:center;color:var(--c-text3);font-size:13px">Sin clientes${_rentaSearch||_rentaFilter!=='todos'?' que coincidan con el filtro':' aún. Agrega el primero con ➕ Cliente'}.</td></tr>`;
 
   e.innerHTML = `
