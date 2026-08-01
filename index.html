@@ -4806,7 +4806,7 @@ let _rentaHiddenCols = _rcStored ? new Set(JSON.parse(_rcStored)) : new Set([8,9
 function _rentaUpdateColVis() {
   let st = document.getElementById('renta-col-vis-style');
   if (!st) { st = document.createElement('style'); st.id='renta-col-vis-style'; document.head.appendChild(st); }
-  st.textContent = [..._rentaHiddenCols].map(c=>`#renta-table th:nth-child(${Number(c)+1}),#renta-table td:nth-child(${Number(c)+1}){display:none!important}`).join('');
+  st.textContent = [..._rentaHiddenCols].map(c=>`.renta-table th:nth-child(${Number(c)+1}),.renta-table td:nth-child(${Number(c)+1}){display:none!important}`).join('');
 }
 function _rentaToggleCol(idx) {
   idx = Number(idx);
@@ -5082,14 +5082,47 @@ function renderRentaPN() {
       </td>
     </tr>`;
   };
-  const _sepRow = (label,count) => count ? `<tr><td colspan="21" style="padding:6px 16px;background:var(--c-surface2);border-top:2px solid var(--c-border);border-bottom:2px solid var(--c-border);text-align:center;font-size:11px;color:var(--c-text3);font-weight:600;letter-spacing:1px">── ${label} (${count}) ──</td></tr>` : '';
-  const tableRows = filtered.length
-    ? activeClients.map((c,i)=>_makeRow(c,i+1,false)).join('')
-      + _sepRow('NOVEDADES',novedadClients.length)
-      + novedadClients.map((c,i)=>_makeRow(c,activeClients.length+i+1,true)).join('')
-      + _sepRow('PRESENTADAS',presentadaClients.length)
-      + presentadaClients.map((c,i)=>_makeRow(c,activeClients.length+novedadClients.length+i+1,true)).join('')
-    : `<tr><td colspan="21" style="padding:24px;text-align:center;color:var(--c-text3);font-size:13px">Sin clientes${_rentaSearch||_rentaFilter!=='todos'?' que coincidan con el filtro':' aún. Agrega el primero con ➕ Cliente'}.</td></tr>`;
+  const activeRows     = activeClients.map((c,i)=>_makeRow(c,i+1,false)).join('')
+    || (filtered.length ? '' : `<tr><td colspan="21" style="padding:24px;text-align:center;color:var(--c-text3);font-size:13px">Sin clientes${_rentaSearch||_rentaFilter!=='todos'?' que coincidan con el filtro':' aún. Agrega el primero con ➕ Cliente'}.</td></tr>`);
+  const novedadRows    = novedadClients.map((c,i)=>_makeRow(c,activeClients.length+i+1,true)).join('');
+  const presentadaRows = presentadaClients.map((c,i)=>_makeRow(c,activeClients.length+novedadClients.length+i+1,true)).join('');
+  const _theadHtml = (withSearch) => `<thead style="position:sticky;top:0;z-index:2">
+          <tr style="background:var(--c-surface2);font-size:10px;color:var(--c-text3);text-transform:uppercase;letter-spacing:.5px">
+            <th style="padding:8px 6px;text-align:center;font-weight:600">#</th>
+            <th style="padding:6px 10px;text-align:left;font-weight:600;min-width:180px">
+              ${withSearch ? `<div style="font-size:9px;margin-bottom:3px;opacity:.8">👤 CLIENTE</div>
+              <input id="rentaSearchHeader" type="text" placeholder="Buscar nombre…" value="${_rentaSearch}"
+                oninput="_rentaSetSearch(this.value)"
+                style="width:100%;font-size:12px;padding:4px 8px;border:1px solid var(--c-border);border-radius:6px;background:var(--c-surface);color:var(--c-text);text-transform:none;letter-spacing:0;font-weight:400;box-sizing:border-box">` : '👤 CLIENTE'}
+            </th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">🪪 Cédula</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">📱 Teléfono</th>
+            <th style="padding:8px 8px;text-align:center;font-weight:600">Tipo</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">📆 F. Presentación</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">📅 Vencimiento</th>
+            <th style="padding:8px 8px;text-align:center;font-weight:600">🔢 Últ. Díg.</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">👤 Usuario</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">🔑 Contraseña</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">✍️ Firma</th>
+            <th style="padding:8px 8px;text-align:center;font-weight:600">Exógena</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">📌 Estado</th>
+            <th style="padding:8px 8px;text-align:right;font-weight:600">💵 Cobro</th>
+            <th style="padding:8px 8px;text-align:right;font-weight:600">💰 Pagado</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">🏦 Donde Pagó</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">📅 F. Pago</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">👥 Referido</th>
+            <th style="padding:8px 12px;text-align:left;font-weight:600">📈 Avance</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">📝 Notas</th>
+            <th style="padding:8px 8px;text-align:left;font-weight:600">⚙️</th>
+          </tr>
+        </thead>`;
+  const _rentaTableBlock = (rowsHtml, maxH, withSearch=false) => `
+    <div style="overflow-x:scroll;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px;width:100%;box-sizing:border-box;max-height:${maxH}">
+      <table class="renta-table" style="width:max(100%,1750px);border-collapse:collapse">
+        ${_theadHtml(withSearch)}
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>`;
 
   e.innerHTML = `
   <!-- KPI Bar -->
@@ -5125,42 +5158,18 @@ function renderRentaPN() {
         </div>
       </div>
     </div>
-    <div style="overflow-x:scroll;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px;width:100%;box-sizing:border-box;max-height:calc(100vh - 320px)">
-      <table id="renta-table" style="width:max(100%,1750px);border-collapse:collapse">
-        <thead style="position:sticky;top:0;z-index:2">
-          <tr style="background:var(--c-surface2);font-size:10px;color:var(--c-text3);text-transform:uppercase;letter-spacing:.5px">
-            <th style="padding:8px 6px;text-align:center;font-weight:600">#</th>
-            <th style="padding:6px 10px;text-align:left;font-weight:600;min-width:180px">
-              <div style="font-size:9px;margin-bottom:3px;opacity:.8">👤 CLIENTE</div>
-              <input id="rentaSearchHeader" type="text" placeholder="Buscar nombre…" value="${_rentaSearch}"
-                oninput="_rentaSetSearch(this.value)"
-                style="width:100%;font-size:12px;padding:4px 8px;border:1px solid var(--c-border);border-radius:6px;background:var(--c-surface);color:var(--c-text);text-transform:none;letter-spacing:0;font-weight:400;box-sizing:border-box">
-            </th>
-            <th style="padding:8px 8px;text-align:left;font-weight:600">🪪 Cédula</th>
-            <th style="padding:8px 8px;text-align:left;font-weight:600">📱 Teléfono</th>
-            <th style="padding:8px 8px;text-align:center;font-weight:600">Tipo</th>
-            <th style="padding:8px 8px;text-align:left;font-weight:600">📆 F. Presentación</th>
-            <th style="padding:8px 8px;text-align:left;font-weight:600">📅 Vencimiento</th>
-            <th style="padding:8px 8px;text-align:center;font-weight:600">🔢 Últ. Díg.</th>
-            <th style="padding:8px 8px;text-align:left;font-weight:600">👤 Usuario</th>
-            <th style="padding:8px 8px;text-align:left;font-weight:600">🔑 Contraseña</th>
-            <th style="padding:8px 8px;text-align:left;font-weight:600">✍️ Firma</th>
-            <th style="padding:8px 8px;text-align:center;font-weight:600">Exógena</th>
-            <th style="padding:8px 8px;text-align:left;font-weight:600">📌 Estado</th>
-            <th style="padding:8px 8px;text-align:right;font-weight:600">💵 Cobro</th>
-            <th style="padding:8px 8px;text-align:right;font-weight:600">💰 Pagado</th>
-            <th style="padding:8px 8px;text-align:left;font-weight:600">🏦 Donde Pagó</th>
-            <th style="padding:8px 8px;text-align:left;font-weight:600">📅 F. Pago</th>
-            <th style="padding:8px 8px;text-align:left;font-weight:600">👥 Referido</th>
-            <th style="padding:8px 12px;text-align:left;font-weight:600">📈 Avance</th>
-            <th style="padding:8px 8px;text-align:left;font-weight:600">📝 Notas</th>
-            <th style="padding:8px 8px;text-align:left;font-weight:600">⚙️</th>
-          </tr>
-        </thead>
-        <tbody>${tableRows}</tbody>
-      </table>
-    </div>
+    ${_rentaTableBlock(activeRows, 'calc(100vh - 320px)', true)}
   </div>
+
+  ${novedadClients.length ? `<div class="card" style="margin-bottom:14px">
+    <div class="card-header"><span class="card-title">⚠️ Novedades (${novedadClients.length})</span></div>
+    ${_rentaTableBlock(novedadRows, '360px')}
+  </div>` : ''}
+
+  ${presentadaClients.length ? `<div class="card" style="margin-bottom:14px">
+    <div class="card-header"><span class="card-title">✅ Presentadas (${presentadaClients.length})</span></div>
+    ${_rentaTableBlock(presentadaRows, '360px')}
+  </div>` : ''}
 
   <!-- Gráfica donut -->
   ${donutItems.length ? `<div class="card" style="margin-bottom:14px">
