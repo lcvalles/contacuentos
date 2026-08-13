@@ -2108,8 +2108,10 @@ function _handleStaleSession() {
   if (sessionDay >= today) return; // sesión de hoy o futura, OK
   // Sesión de día anterior: guardar lo trabajado hasta medianoche y detener
   let d = sessionDay;
-  while (d < today) {
-    const next = new Date(d + 'T05:00:00.000Z'); // medianoche Colombia en UTC
+  let _guard = 0;
+  while (d < today && _guard++ < 400) {
+    const [y, m, day] = d.split('-').map(Number);
+    const next = new Date(Date.UTC(y, m - 1, day + 1, 5, 0, 0, 0)); // medianoche Colombia (fin del día d) en UTC
     const nextDay = coFmt.format(next);
     const endIso = next.toISOString();
     const minsD = Math.round((next - new Date(s.startIso)) / 60000);
@@ -5423,6 +5425,7 @@ const _e = {
 };
 
 const RENTA_WA_MSGS = [
+  { id:8, label:`${_e.bill} Cobro servicio`, fn:(c,cfg)=>`Hola, ${_pn(c.nombre)} ${_e.wave}\n\nQuiero agradecerte por confiar en mi acompañamiento para la elaboración de tu Declaración de Renta ${_e.smile}\n\nTe comparto el valor pendiente correspondiente a los honorarios del servicio:\n\n${_e.money} *Saldo pendiente:* $${((c.valorServicio||0)-(c.valorPagado||0)).toLocaleString('es-CO')}\n\nPuedes realizar el pago mediante:\n${cfg.cuentas||'Cuenta de Ahorros Bancolombia: 39900001197\nLlave Bre-B Bancolombia: 1035862468'}\n\nCuando realices el pago, te agradecería que me compartas el comprobante para registrar la operación.\n\nMuchas gracias ${_e.smile}` },
   { id:1, label:`${_e.mail} Primer contacto`, fn:(c,cfg)=>{
     const numE = [_e.n1,_e.n2,_e.n3,_e.n4,_e.n5];
     const docs = (cfg.docsRequeridos||'Certificación de ingresos y retenciones\nCertificado de retención en la fuente\nCertificados bancarios\nExtractos de cuentas\nCualquier otro soporte relevante').split('\n').filter(d=>d.trim());
@@ -5435,17 +5438,16 @@ const RENTA_WA_MSGS = [
   { id:5, label:`${_e.mag} Proceso en curso`, fn:(c)=>`Hola, ${_pn(c.nombre)} ${_e.wave}\n\nQuiero informarte que ya me encuentro trabajando en la revisión y elaboración de tu Declaración de Renta ${_e.receipt}\n\nActualmente estoy validando la información recibida para asegurar que todo quede correctamente presentado ante la DIAN.\n\nSi requiero algún documento adicional, te estaré contactando oportunamente.\n\nSeguimos avanzando ${_e.smile}` },
   { id:6, label:`${_e.check} Declaración presentada`, fn:(c)=>`Hola, ${_pn(c.nombre)} ${_e.wave}\n\nTe confirmo que tu Declaración de Renta ya fue presentada exitosamente ante la DIAN ${_e.check}\n\nEn las próximas horas, te compartiré el soporte correspondiente y la documentación final para tus archivos.\n\nGracias por confiar en mi trabajo y permitirme acompañarte en este proceso ${_e.smile}` },
   { id:7, label:`${_e.money} Pago DIAN pendiente`, fn:(c)=>`Hola, ${_pn(c.nombre)} ${_e.wave}\n\nTu Declaración de Renta ya fue presentada correctamente ${_e.check}\n\nSin embargo, quedó un valor pendiente de pago ante la DIAN:\n\n${_e.money} *Valor a pagar:* $${(c.valorDIAN||0).toLocaleString('es-CO')}\n\nLa fecha límite de pago es el *${_rentaFmtFecha(c.fechaDeclaracion)}* ${_e.cal}\n\nTe recomiendo realizarlo antes del vencimiento para evitar intereses o sanciones.\n\nUna vez realizado el pago, por favor compárteme el soporte ${_e.smile}` },
-  { id:8, label:`${_e.bill} Cobro servicio`, fn:(c,cfg)=>`Hola, ${_pn(c.nombre)} ${_e.wave}\n\nQuiero agradecerte por confiar en mi acompañamiento para la elaboración de tu Declaración de Renta ${_e.smile}\n\nTe comparto el valor pendiente correspondiente a los honorarios del servicio:\n\n${_e.money} *Saldo pendiente:* $${((c.valorServicio||0)-(c.valorPagado||0)).toLocaleString('es-CO')}\n\nPuedes realizar el pago mediante:\n${cfg.cuentas||'Cuenta de Ahorros Bancolombia: 39900001197\nLlave Bre-B Bancolombia: 1035862468'}\n\nCuando realices el pago, te agradecería que me compartas el comprobante para registrar la operación.\n\nMuchas gracias ${_e.smile}` },
   { id:9, label:`${_e.flag} Cierre del proceso`, fn:(c)=>`Hola, ${_pn(c.nombre)} ${_e.wave}\n\nHemos finalizado completamente tu proceso de Declaración de Renta correspondiente a este año ${_e.flag}\n\nLa declaración fue presentada y todos los compromisos asociados quedaron al día.\n\nGracias nuevamente por tu confianza y por permitirme acompañarte como tu contadora ${_e.smile}\n\nQuedo atenta para cualquier consulta futura.` },
   { id:10, label:`${_e.pen} Mensaje personalizado`, fn:(c)=>`` },
   { id:11, label:`${_e.chart} Topes para declarar 2026`, fn:(c)=>`Hola, ${_pn(c.nombre)} ${_e.wave}\n\n${_e.think} ¿Sabes si estás obligado(a) a declarar renta este año?\n\nDebes presentar tu *Declaración de Renta 2025* si cumples cualquiera de los siguientes topes establecidos por la DIAN:\n\n${_e.money} *Patrimonio bruto al cierre del 31 de diciembre de 2025:*\n→ Igual o superior a $221.095.500\n\n${_e.bill} *Ingresos totales durante el periodo fiscal 2025:*\n→ Igual o superior a $69.718.600\n\n${_e.card} *Gastos con tarjeta de crédito:*\n→ Igual o superior a $69.718.600\n\n${_e.cart} *Adquisiciones y consumos:*\n→ Igual o superior a $69.718.600\n\n${_e.bank} *Consignaciones bancarias, depósitos o inversiones durante 2025:*\n→ Igual o superior a $69.718.600\n\nSi cumples cualquiera de estas condiciones, ¡estás obligado(a) a declarar! ${_e.clip}\n\nCuéntame y con gusto te ayudo a verificar tu situación ${_e.smile}\n\nMás información: https://contacuentos.site/renta` },
 ];
 
-let _rentaWAClientId = null, _rentaWAMsgId = 1;
+let _rentaWAClientId = null, _rentaWAMsgId = RENTA_WA_MSGS[0].id;
 
 function _rentaWAOpen(clientId) {
   _rentaWAClientId = clientId;
-  _rentaWAMsgId = 1;
+  _rentaWAMsgId = RENTA_WA_MSGS[0].id;
   _rentaWARender();
   openModal('rentaWAModal');
 }
