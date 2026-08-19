@@ -4944,6 +4944,11 @@ function renderRentaPN() {
     const d = _rentaDiasRestantes(c.fechaDeclaracion);
     return d !== null && d <= 3;
   }).length;
+  const gestionadasUrgentes = clientes.filter(c=>{
+    if(!['presentada','no-presenta','no-presenta-renta','deserto'].includes(c.estadoProceso)) return false;
+    const d = _rentaDiasRestantes(c.fechaDeclaracion);
+    return d !== null && d <= 3;
+  }).length;
 
   // Alertas
   const rentaDismissed = STATE.rentaAlertDismissed || {};
@@ -5010,6 +5015,24 @@ function renderRentaPN() {
       return seg;
     }).join('');
     donutSVG=`<svg width="120" height="120" style="flex-shrink:0">${segments}<text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="16" font-weight="800" fill="var(--c-text)">${totalC}</text></svg>`;
+  }
+
+  // Donut de cobros
+  const cobrosItems = [];
+  if (recaudado > 0) cobrosItems.push({label:'Recaudado', value:recaudado, color:'#16a34a'});
+  if (pendienteCobro > 0) cobrosItems.push({label:'Por cobrar', value:pendienteCobro, color:'#f59e0b'});
+  let cobrosSVG = '';
+  if (cobrosItems.length && proyectado > 0) {
+    const r=40, cx=60, cy=60, circ=2*Math.PI*r;
+    let offset=0;
+    const segments = cobrosItems.map(it=>{
+      const pct=it.value/proyectado;
+      const dash=circ*pct, gap=circ*(1-pct);
+      const seg=`<circle r="${r}" cx="${cx}" cy="${cy}" fill="none" stroke="${it.color}" stroke-width="18" stroke-dasharray="${dash.toFixed(1)} ${gap.toFixed(1)}" stroke-dashoffset="${(circ - offset*circ).toFixed(1)}" transform="rotate(-90 ${cx} ${cy})"/>`;
+      offset+=pct;
+      return seg;
+    }).join('');
+    cobrosSVG=`<svg width="120" height="120" style="flex-shrink:0">${segments}<text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="15" font-weight="800" fill="var(--c-text)">${pctRecaudo}%</text></svg>`;
   }
 
   const filtersHTML = ['todos','nuevos','antiguos','reactivados','desertados','pagados','pendientes','urgentes','presentados'].map(f=>
@@ -5134,11 +5157,12 @@ function renderRentaPN() {
       {lbl:'⏳ Por cobrar',  val:fmtCOP(pendienteCobro), sub:'saldo pendiente', color:'amber'},
       {lbl:'👥 Clientes',   val:total, sub:`${nuevos} nuevos · ${antiguos} antiguos`, color:'teal'},
       {lbl:'📑 Presentadas',val:presentadas, sub:`de ${total} totales`, color:'teal'},
-      {lbl:'🚨 Urgentes',   val:urgentes, sub:'vencen en ≤3 días', color:urgentes>0?'amber':'teal'},
+      {lbl:'🚨 Urgentes',   val:urgentes, sub:'vencen en ≤3 días', color:urgentes>0?'amber':'teal', extra:`✓ ${gestionadasUrgentes} gestionadas`},
     ].map(k=>`<div class="stat-card ${k.color}" style="margin:0">
       <div class="stat-label">${k.lbl}</div>
       <div class="stat-value ${k.color}" style="font-size:20px">${k.val}</div>
       <div class="stat-sub">${k.sub}</div>
+      ${k.extra?`<div class="stat-sub" style="color:var(--c-teal);font-weight:600">${k.extra}</div>`:''}
     </div>`).join('')}
   </div>
 
@@ -5173,20 +5197,36 @@ function renderRentaPN() {
   </div>` : ''}
 
   <!-- Gráfica donut -->
-  ${donutItems.length ? `<div class="card" style="margin-bottom:14px">
-    <div class="card-header"><span class="card-title">🍩 Estado del proceso</span></div>
-    <div style="padding:16px;display:flex;align-items:center;gap:24px;flex-wrap:wrap">
-      ${donutSVG}
-      <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:200px">
-        ${donutItems.map(e=>`<div style="display:flex;align-items:center;gap:8px">
-          <div style="width:10px;height:10px;border-radius:50%;background:${e.color};flex-shrink:0"></div>
-          <span style="font-size:12px;flex:1">${e.label}</span>
-          <span style="font-size:12px;font-weight:700;color:var(--c-text)">${estadoCount[e.id]}</span>
-          <span style="font-size:11px;color:var(--c-text3)">${Math.round(estadoCount[e.id]/(clientes.length||1)*100)}%</span>
-        </div>`).join('')}
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;margin-bottom:14px">
+    ${donutItems.length ? `<div class="card" style="margin:0">
+      <div class="card-header"><span class="card-title">🍩 Estado del proceso</span></div>
+      <div style="padding:16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+        ${donutSVG}
+        <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:160px">
+          ${donutItems.map(e=>`<div style="display:flex;align-items:center;gap:8px">
+            <div style="width:10px;height:10px;border-radius:50%;background:${e.color};flex-shrink:0"></div>
+            <span style="font-size:12px;flex:1">${e.label}</span>
+            <span style="font-size:12px;font-weight:700;color:var(--c-text)">${estadoCount[e.id]}</span>
+            <span style="font-size:11px;color:var(--c-text3)">${Math.round(estadoCount[e.id]/(clientes.length||1)*100)}%</span>
+          </div>`).join('')}
+        </div>
       </div>
-    </div>
-  </div>` : ''}`;
+    </div>` : ''}
+    ${cobrosItems.length ? `<div class="card" style="margin:0">
+      <div class="card-header"><span class="card-title">💰 Cobros</span></div>
+      <div style="padding:16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+        ${cobrosSVG}
+        <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:160px">
+          ${cobrosItems.map(it=>`<div style="display:flex;align-items:center;gap:8px">
+            <div style="width:10px;height:10px;border-radius:50%;background:${it.color};flex-shrink:0"></div>
+            <span style="font-size:12px;flex:1">${it.label}</span>
+            <span style="font-size:12px;font-weight:700;color:var(--c-text)">${fmtCOP(it.value)}</span>
+            <span style="font-size:11px;color:var(--c-text3)">${Math.round(it.value/proyectado*100)}%</span>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>` : ''}
+  </div>`;
   _rentaUpdateColVis();
 }
 
