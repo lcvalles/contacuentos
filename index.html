@@ -1800,6 +1800,7 @@ function loadState() {
   if (!STATE._facIncluded) STATE._facIncluded = {};
   if (!STATE._facExcluded) STATE._facExcluded = {};
   if (!STATE.rentaPN) STATE.rentaPN = [];
+  if (!STATE.rentaAlertDismissed) STATE.rentaAlertDismissed = {};
   if (!STATE.rentaPNConfig) STATE.rentaPNConfig = { añoGravable:2025, añoPresentacion:2026, valorServicio:150000, porcentajeAnticipo:50, cuentas:'', firma:'Yuli - Contadora 😊', docsRequeridos:'Certificación de ingresos y retenciones\nCertificado de retención en la fuente\nCertificados bancarios\nExtractos de cuentas\nCualquier otro soporte relevante' };
   if (!STATE.rentaPNDocsV2 && STATE.rentaPNConfig) { STATE.rentaPNConfig.docsRequeridos = 'Certificación de ingresos y retenciones\nCertificado de retención en la fuente\nCertificados bancarios\nExtractos de cuentas\nCualquier otro soporte relevante'; STATE.rentaPNDocsV2 = true; }
 }
@@ -4945,10 +4946,12 @@ function renderRentaPN() {
   }).length;
 
   // Alertas
+  const rentaDismissed = STATE.rentaAlertDismissed || {};
   const alertas = clientes.filter(c=>{
     if(['presentada','finalizada'].includes(c.estadoProceso)) return false;
     const d = _rentaDiasRestantes(c.fechaDeclaracion);
-    return d !== null && d <= 3;
+    if (d === null || d > 3) return false;
+    return rentaDismissed[c.id] !== c.fechaDeclaracion;
   }).sort((a,b)=>a.fechaDeclaracion>b.fechaDeclaracion?1:-1);
 
   const alertaHTML = alertas.length ? `
@@ -4968,6 +4971,7 @@ function renderRentaPN() {
         <span style="font-size:11px;color:var(--c-text3)">${_rentaEstado(c.estadoProceso).label}</span>
         ${saldo>0?`<span style="font-size:11px;font-weight:700;color:#dc2626">${fmtCOP(saldo)} pendiente</span>`:''}
         ${c.telefono?`<a href="https://wa.me/57${c.telefono.replace(/\D/g,'')}" target="_blank" style="font-size:11px;background:#25d366;color:#fff;border-radius:6px;padding:3px 9px;text-decoration:none;white-space:nowrap">📱 WhatsApp</a><button onclick="_rentaWAOpen('${c.id}')" style="font-size:11px;background:none;border:1px solid var(--c-border);border-radius:6px;padding:3px 9px;cursor:pointer;white-space:nowrap">💬 Mensaje</button>`:''}
+        <button onclick="_rentaDismissAlert('${c.id}')" title="Ya lo gestioné, quitar de esta lista" style="font-size:11px;background:none;border:1px solid var(--c-border);border-radius:6px;padding:3px 9px;cursor:pointer;white-space:nowrap;color:var(--c-text3)">✓ Gestionado</button>
       </div>`;
     }).join('')}
     </div>
@@ -5204,6 +5208,15 @@ function _rentaInlineEdit(id, field, value) {
   STATE.rentaPN[idx].saldoPendiente = (STATE.rentaPN[idx].valorServicio||0)-(STATE.rentaPN[idx].valorPagado||0);
   STATE.rentaPN[idx].fechaActualizacion = new Date().toISOString();
   save();
+}
+
+function _rentaDismissAlert(id) {
+  const c = (STATE.rentaPN||[]).find(x=>x.id===id);
+  if (!c) return;
+  if (!STATE.rentaAlertDismissed) STATE.rentaAlertDismissed = {};
+  STATE.rentaAlertDismissed[id] = c.fechaDeclaracion || true;
+  save();
+  renderRentaPN();
 }
 
 function _rentaFixAmorMio() {
