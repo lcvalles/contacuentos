@@ -4939,16 +4939,13 @@ function renderRentaPN() {
   const pendienteCobro = proyectado - recaudado;
   const pctRecaudo = proyectado>0 ? Math.round(recaudado/proyectado*100) : 0;
   const presentadas = clientes.filter(c=>['presentada','pendiente-pago-dian','finalizada'].includes(c.estadoProceso)).length;
-  const urgentes = clientes.filter(c=>{
+  const urgentesClientes = clientes.filter(c=>{
     if(['presentada','finalizada'].includes(c.estadoProceso)) return false;
     const d = _rentaDiasRestantes(c.fechaDeclaracion);
     return d !== null && d <= 3;
-  }).length;
-  const gestionadasUrgentes = clientes.filter(c=>{
-    if(!['presentada','no-presenta','no-presenta-renta','deserto'].includes(c.estadoProceso)) return false;
-    const d = _rentaDiasRestantes(c.fechaDeclaracion);
-    return d !== null && d <= 3;
-  }).length;
+  });
+  const urgentes = urgentesClientes.length;
+  const gestionadasUrgentes = urgentesClientes.filter(c=>['no-presenta','no-presenta-renta','deserto'].includes(c.estadoProceso)).length;
 
   // Alertas
   const rentaDismissed = STATE.rentaAlertDismissed || {};
