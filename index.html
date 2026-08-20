@@ -875,8 +875,18 @@ tr:hover .td-actions{opacity:1}
               <div id="dashVencMias" style="max-height:240px;overflow-y:auto"></div>
             </div>
             <div>
-              <div style="padding:7px 14px;background:#f0f9ff;border-bottom:2px solid #bae6fd"><span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#0ea5e9">📋 General / Otros NIT</span></div>
-              <div id="dashVencGeneral" style="max-height:240px;overflow-y:auto"></div>
+              <div style="padding:7px 14px;background:var(--c-teal-bg);border-bottom:2px solid var(--c-teal-bd);display:flex;align-items:center;justify-content:space-between;gap:6px">
+                <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--c-teal)">✅ Tareas de empresas</span>
+                <button class="btn btn-secondary btn-xs" onclick="navigate('tareas')" style="font-size:10px;padding:2px 8px">Ver todas</button>
+              </div>
+              <div style="padding:7px 10px;border-bottom:1px solid var(--c-border);display:flex;gap:5px">
+                <select id="dashTaskEmpresaSel" class="field-input" style="font-size:11px;padding:4px 6px;height:auto;flex:1;min-width:0">
+                  <option value="">Empresa…</option>
+                </select>
+                <input id="dashTaskDescInput" type="text" class="field-input" placeholder="Nueva tarea…" autocomplete="off" style="font-size:11px;padding:4px 6px;height:auto;flex:1.4;min-width:0" onkeydown="if(event.key==='Enter')_dashTaskAdd()">
+                <button class="btn btn-primary btn-xs" onclick="_dashTaskAdd()" style="flex-shrink:0">+</button>
+              </div>
+              <div id="dashTaskList" style="max-height:190px;overflow-y:auto"></div>
             </div>
           </div>
         </div>
@@ -2361,6 +2371,7 @@ function renderDashboard() {
   _renderCoBars(coMins);
   _renderBestHours(allSess);
   renderDashVenc();
+  _renderDashTasks();
   // Mostrar celebración si ya se cumplió la meta pero no se ha visto aún
   if (VIEW_DATE === todayStr() && prod >= goal) setTimeout(_checkGoal, 500);
 }
@@ -2672,7 +2683,38 @@ function saveTask(){
   const desc=((el('tDesc')||{}).value||'').trim(); if(!desc)return;
   STATE.tasks.push({id:'t'+Date.now(),desc,titulo:desc,empresa:(el('tEmpresa')||{}).value||'',estado:(el('tEstado')||{}).value||'pending',fecha:(el('tFecha')||{}).value||'',etiqueta:(el('tEtiqueta')||{}).value||'',nota:(el('tNota')||{}).value||'',done:false});
   ['tDesc','tNota','tFecha','tEtiqueta'].forEach(id=>{if(el(id))el(id).value='';});
-  save(); renderTasks();
+  save(); renderTasks(); _renderDashTasks();
+}
+function _dashTaskAdd(){
+  const empresa=(el('dashTaskEmpresaSel')||{}).value||'';
+  const desc=((el('dashTaskDescInput')||{}).value||'').trim();
+  if(!empresa){showToast('Selecciona una empresa');return;}
+  if(!desc){showToast('Escribe la tarea');return;}
+  STATE.tasks.push({id:'t'+Date.now(),desc,titulo:desc,empresa,estado:'pending',fecha:'',etiqueta:'',nota:'',done:false});
+  if(el('dashTaskDescInput'))el('dashTaskDescInput').value='';
+  save(); renderTasks(); _renderDashTasks();
+}
+function _renderDashTasks(){
+  const e=el('dashTaskList'); if(!e)return;
+  const tasks=(STATE.tasks||[]).filter(t=>t.empresa&&!(t.estado==='done'||t.done));
+  if(!tasks.length){e.innerHTML='<div style="padding:12px 14px;font-size:12px;color:var(--c-text3)">Sin tareas de empresas pendientes.</div>';return;}
+  e.innerHTML=tasks.map(t=>{
+    const co=STATE.companies.find(c=>c.id===t.empresa);
+    const ri=STATE.tasks.indexOf(t);
+    return `<div class="task-item" style="padding:6px 10px">
+      <input type="checkbox" class="task-cb" onchange="toggleTaskDone(${ri})">
+      <div class="task-body">
+        <div class="task-desc">${t.desc||t.titulo||''}</div>
+        <div class="task-meta">
+          ${co?`<span class="task-tag">${co.name}</span>`:''}
+          ${t.fecha?`<span class="task-tag">${t.fecha}</span>`:''}
+        </div>
+      </div>
+      <div class="task-actions">
+        <button class="icon-btn" style="color:var(--c-red)" onclick="deleteTask(${ri})">✕</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 function renderTasks(){
   const e2=el('taskList'); if(!e2)return;
@@ -2707,8 +2749,8 @@ function renderTasks(){
     </div>`;
   }).join('');
 }
-function toggleTaskDone(i){const t=STATE.tasks[i];if(!t)return;t.done=!t.done;t.estado=t.done?'done':'pending';save();renderTasks();}
-function deleteTask(i){if(!confirm('¿Eliminar tarea?'))return;STATE.tasks.splice(i,1);save();renderTasks();}
+function toggleTaskDone(i){const t=STATE.tasks[i];if(!t)return;t.done=!t.done;t.estado=t.done?'done':'pending';save();renderTasks();_renderDashTasks();}
+function deleteTask(i){if(!confirm('¿Eliminar tarea?'))return;STATE.tasks.splice(i,1);save();renderTasks();_renderDashTasks();}
 function openEditTask(i){
   const t=STATE.tasks[i];if(!t)return;
   if(el('editTaskId'))el('editTaskId').value=i;
@@ -2725,13 +2767,15 @@ function saveEditTask(){
   const i=parseInt((el('editTaskId')||{}).value);const t=STATE.tasks[i];if(!t)return;
   const desc=((el('editTaskDesc')||{}).value||'').trim();if(!desc)return;
   STATE.tasks[i]={...t,desc,titulo:desc,empresa:(el('editTaskEmpresa')||{}).value||'',estado:(el('editTaskEstado')||{}).value||'pending',fecha:(el('editTaskFecha')||{}).value||'',etiqueta:(el('editTaskEtiqueta')||{}).value||'',nota:(el('editTaskNota')||{}).value||''};
-  save();closeModal('modalTask');renderTasks();showToast('Tarea guardada');
+  save();closeModal('modalTask');renderTasks();_renderDashTasks();showToast('Tarea guardada');
 }
 function _populateAllSelects(){
   const tfE=el('tfEmpresa');
   if(tfE)tfE.innerHTML='<option value="">Todas las empresas</option>'+_sortedCos().map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
   const tE=el('tEmpresa');
   if(tE)tE.innerHTML='<option value="">Sin empresa</option>'+_sortedCos().map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
+  const dtE=el('dashTaskEmpresaSel');
+  if(dtE)dtE.innerHTML='<option value="">Empresa…</option>'+_sortedCos().map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
 }
 
 // ── Companies ─────────────────────────────────────────────────────────────────
@@ -4222,8 +4266,8 @@ function _renderCalList(venc, misNits) {
 }
 
 function renderDashVenc() {
-  const eMias = el('dashVencMias'), eGen = el('dashVencGeneral');
-  if (!eMias || !eGen) return;
+  const eMias = el('dashVencMias');
+  if (!eMias) return;
   const today = todayStr();
   const limitDate = new Date(); limitDate.setDate(limitDate.getDate()+14);
   const limitStr = limitDate.toISOString().slice(0,10);
@@ -4237,7 +4281,6 @@ function renderDashVenc() {
   }).sort((a,b)=>a.ds.localeCompare(b.ds));
 
   const mias    = upcoming.filter(v => v.nit !== 'all' && v.cat !== 'renta_pn' && !!_coForVenc(v));
-  const general = upcoming.filter(v => v.nit === 'all' || v.cat === 'renta_pn');
 
   const _col = (items, empty) => {
     if (!items.length) return `<div style="padding:12px 14px;font-size:12px;color:var(--c-text3)">${empty}</div>`;
@@ -4262,7 +4305,6 @@ function renderDashVenc() {
   };
 
   eMias.innerHTML = _col(mias, 'Agrega el NIT a tus empresas para ver sus vencimientos aquí.');
-  eGen.innerHTML  = _col(general, 'Sin vencimientos generales próximos.');
 }
 
 // ── Facturación ───────────────────────────────────────────────────────────────
