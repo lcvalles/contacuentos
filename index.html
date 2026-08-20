@@ -879,11 +879,17 @@ tr:hover .td-actions{opacity:1}
                 <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--c-teal)">✅ Tareas de empresas</span>
                 <button class="btn btn-secondary btn-xs" onclick="navigate('tareas')" style="font-size:10px;padding:2px 8px">Ver todas</button>
               </div>
-              <div style="padding:7px 10px;border-bottom:1px solid var(--c-border);display:flex;gap:5px">
+              <div style="padding:7px 10px;border-bottom:1px solid var(--c-border);display:flex;gap:5px;align-items:center;flex-wrap:wrap">
                 <select id="dashTaskEmpresaSel" class="field-input" style="font-size:11px;padding:4px 6px;height:auto;flex:1;min-width:0">
                   <option value="">Empresa…</option>
                 </select>
                 <input id="dashTaskDescInput" type="text" class="field-input" placeholder="Nueva tarea…" autocomplete="off" style="font-size:11px;padding:4px 6px;height:auto;flex:1.4;min-width:0" onkeydown="if(event.key==='Enter')_dashTaskAdd()">
+                <span style="display:inline-flex;gap:4px;align-items:center;flex-shrink:0">
+                  <button id="dT_alta"  onclick="setDashTaskUrg('alta')"  title="Urgencia alta"  style="width:11px;height:11px;border-radius:50%;background:#ef4444;border:none;cursor:pointer;padding:0;opacity:.3"></button>
+                  <button id="dT_media" onclick="setDashTaskUrg('media')" title="Urgencia media" style="width:11px;height:11px;border-radius:50%;background:#eab308;border:none;cursor:pointer;padding:0;opacity:1"></button>
+                  <button id="dT_baja"  onclick="setDashTaskUrg('baja')"  title="Urgencia baja"  style="width:11px;height:11px;border-radius:50%;background:#22c55e;border:none;cursor:pointer;padding:0;opacity:.3"></button>
+                  <input type="hidden" id="dashTaskUrgVal" value="media">
+                </span>
                 <button class="btn btn-primary btn-xs" onclick="_dashTaskAdd()" style="flex-shrink:0">+</button>
               </div>
               <div id="dashTaskList" style="max-height:190px;overflow-y:auto"></div>
@@ -2685,29 +2691,51 @@ function saveTask(){
   ['tDesc','tNota','tFecha','tEtiqueta'].forEach(id=>{if(el(id))el(id).value='';});
   save(); renderTasks(); _renderDashTasks();
 }
+function setDashTaskUrg(u){
+  if(el('dashTaskUrgVal'))el('dashTaskUrgVal').value=u;
+  ['alta','media','baja'].forEach(x=>{const b=el('dT_'+x);if(b)b.style.opacity=x===u?'1':'0.3';});
+}
 function _dashTaskAdd(){
   const empresa=(el('dashTaskEmpresaSel')||{}).value||'';
   const desc=((el('dashTaskDescInput')||{}).value||'').trim();
+  const urgencia=(el('dashTaskUrgVal')||{}).value||'media';
   if(!empresa){showToast('Selecciona una empresa');return;}
   if(!desc){showToast('Escribe la tarea');return;}
-  STATE.tasks.push({id:'t'+Date.now(),desc,titulo:desc,empresa,estado:'pending',fecha:'',etiqueta:'',nota:'',done:false});
+  STATE.tasks.push({id:'t'+Date.now(),desc,titulo:desc,empresa,estado:'pending',urgencia,fecha:'',etiqueta:'',nota:'',done:false});
   if(el('dashTaskDescInput'))el('dashTaskDescInput').value='';
+  setDashTaskUrg('media');
   save(); renderTasks(); _renderDashTasks();
+}
+function dashTaskField(i,field,value){
+  const t=STATE.tasks[i]; if(!t)return;
+  t[field]=value;
+  save(); _renderDashTasks();
 }
 function _renderDashTasks(){
   const e=el('dashTaskList'); if(!e)return;
-  const tasks=(STATE.tasks||[]).filter(t=>t.empresa&&!(t.estado==='done'||t.done));
+  let tasks=(STATE.tasks||[]).filter(t=>t.empresa&&!(t.estado==='done'||t.done));
+  tasks=[...tasks.filter(t=>(t.urgencia||'media')==='alta'), ...tasks.filter(t=>(t.urgencia||'media')!=='alta')];
   if(!tasks.length){e.innerHTML='<div style="padding:12px 14px;font-size:12px;color:var(--c-text3)">Sin tareas de empresas pendientes.</div>';return;}
+  const urgColors={alta:'#ef4444',media:'#eab308',baja:'#22c55e'};
   e.innerHTML=tasks.map(t=>{
     const co=STATE.companies.find(c=>c.id===t.empresa);
     const ri=STATE.tasks.indexOf(t);
-    return `<div class="task-item" style="padding:6px 10px">
+    const urgencia=t.urgencia||'media';
+    const isAlta=urgencia==='alta';
+    const rowBg=urgencia==='alta'?'#fef2f2':urgencia==='media'?'#fefce8':'';
+    const urgDots=['alta','media','baja'].map(u=>{
+      const c=urgColors[u]; const active=urgencia===u;
+      return `<button onclick="dashTaskField(${ri},'urgencia','${u}')" title="${u}" style="width:9px;height:9px;border-radius:50%;background:${c};border:none;cursor:pointer;padding:0;opacity:${active?1:0.25};transform:scale(${active?1.25:1});flex-shrink:0"></button>`;
+    }).join('');
+    return `<div class="task-item" style="padding:6px 10px${rowBg?`;background:${rowBg}`:''}">
       <input type="checkbox" class="task-cb" onchange="toggleTaskDone(${ri})">
+      <span class="dot" style="background:${urgColors[urgencia]};margin-top:3px"></span>
       <div class="task-body">
-        <div class="task-desc">${t.desc||t.titulo||''}</div>
+        <div class="task-desc">${t.desc||t.titulo||''}${isAlta?' 🚩':''}</div>
         <div class="task-meta">
           ${co?`<span class="task-tag">${co.name}</span>`:''}
           ${t.fecha?`<span class="task-tag">${t.fecha}</span>`:''}
+          <span style="display:inline-flex;gap:3px;align-items:center">${urgDots}</span>
         </div>
       </div>
       <div class="task-actions">
