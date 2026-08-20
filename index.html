@@ -866,41 +866,63 @@ tr:hover .td-actions{opacity:1}
         </div>
         <div class="card" style="overflow:hidden">
           <div class="card-header">
-            <span class="card-title">📅 Vencimientos próximos</span>
-            <button class="btn btn-secondary btn-xs" onclick="navigate('tributario')">Ver calendario</button>
+            <span class="card-title">Tareas</span>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;overflow:hidden">
+          <div style="display:grid;grid-template-columns:1fr 1fr">
+            <!-- Laboral (izquierda) -->
             <div style="border-right:1px solid var(--c-border)">
-              <div style="padding:7px 14px;background:var(--c-gold-bg);border-bottom:2px solid var(--c-gold-bd)"><span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--c-gold)">⚑ Mis empresas</span></div>
-              <div id="dashVencMias" style="max-height:240px;overflow-y:auto"></div>
+              <div style="padding:7px 14px;background:var(--c-gold-bg);border-bottom:2px solid var(--c-gold-bd)"><span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--c-gold)">💼 Laboral</span></div>
+              <div id="dashTasksLaboral"></div>
+              <div style="padding:8px 12px;border-top:1px solid var(--c-border)">
+                <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
+                  <input type="text" id="dashLaboralInput" placeholder="Nueva…" class="quick-add-input" autocomplete="off" style="font-size:12px;flex:1;min-width:60px" onkeydown="if(event.key==='Enter')dashAddTask('profesional')">
+                  <span style="display:inline-flex;gap:4px;align-items:center">
+                    <button id="dLA_alta"  onclick="setDashNewUrg('laboral','alta')"  title="Alta"  style="width:11px;height:11px;border-radius:50%;background:#ef4444;border:none;cursor:pointer;padding:0;opacity:.3"></button>
+                    <button id="dLA_media" onclick="setDashNewUrg('laboral','media')" title="Media" style="width:11px;height:11px;border-radius:50%;background:#eab308;border:none;cursor:pointer;padding:0;opacity:1"></button>
+                    <button id="dLA_baja"  onclick="setDashNewUrg('laboral','baja')"  title="Baja"  style="width:11px;height:11px;border-radius:50%;background:#22c55e;border:none;cursor:pointer;padding:0;opacity:.3"></button>
+                    <input type="hidden" id="dashLaboralUrg" value="media">
+                  </span>
+                  <select class="dash-task-sel" id="dashLaboralEmpresa" style="max-width:90px"></select>
+                  <button class="btn btn-primary btn-xs" onclick="dashAddTask('profesional')">+</button>
+                </div>
+              </div>
             </div>
+            <!-- Personal (derecha) -->
             <div>
-              <div style="padding:7px 14px;background:var(--c-teal-bg);border-bottom:2px solid var(--c-teal-bd);display:flex;align-items:center;justify-content:space-between;gap:6px">
-                <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--c-teal)">✅ Tareas de empresas</span>
-                <button class="btn btn-secondary btn-xs" onclick="navigate('tareas')" style="font-size:10px;padding:2px 8px">Ver todas</button>
+              <div style="padding:7px 14px;background:#dcfce7;border-bottom:2px solid #86efac"><span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#15803d">💚 Personal</span></div>
+              <div id="dashTasksPersonal"></div>
+              <div style="padding:8px 12px;border-top:1px solid var(--c-border)">
+                <div style="display:flex;gap:5px;align-items:center">
+                  <input type="text" id="dashPersonalInput" placeholder="Nueva…" class="quick-add-input" autocomplete="off" style="font-size:12px;flex:1;min-width:0" onkeydown="if(event.key==='Enter')dashAddTask('personal')">
+                  <span style="display:inline-flex;gap:4px;align-items:center">
+                    <button id="dPA_alta"  onclick="setDashNewUrg('personal','alta')"  title="Alta"  style="width:11px;height:11px;border-radius:50%;background:#ef4444;border:none;cursor:pointer;padding:0;opacity:.3"></button>
+                    <button id="dPA_media" onclick="setDashNewUrg('personal','media')" title="Media" style="width:11px;height:11px;border-radius:50%;background:#eab308;border:none;cursor:pointer;padding:0;opacity:1"></button>
+                    <button id="dPA_baja"  onclick="setDashNewUrg('personal','baja')"  title="Baja"  style="width:11px;height:11px;border-radius:50%;background:#22c55e;border:none;cursor:pointer;padding:0;opacity:.3"></button>
+                    <input type="hidden" id="dashPersonalUrg" value="media">
+                  </span>
+                  <button class="btn btn-primary btn-xs" onclick="dashAddTask('personal')">+</button>
+                </div>
               </div>
-              <div style="padding:7px 10px;border-bottom:1px solid var(--c-border);display:flex;gap:5px;align-items:center;flex-wrap:wrap">
-                <select id="dashTaskEmpresaSel" class="field-input" style="font-size:11px;padding:4px 6px;height:auto;flex:1;min-width:0">
-                  <option value="">Empresa…</option>
-                </select>
-                <input id="dashTaskDescInput" type="text" class="field-input" placeholder="Nueva tarea…" autocomplete="off" style="font-size:11px;padding:4px 6px;height:auto;flex:1.4;min-width:0" onkeydown="if(event.key==='Enter')_dashTaskAdd()">
-                <span style="display:inline-flex;gap:4px;align-items:center;flex-shrink:0">
-                  <button id="dT_alta"  onclick="setDashTaskUrg('alta')"  title="Urgencia alta"  style="width:11px;height:11px;border-radius:50%;background:#ef4444;border:none;cursor:pointer;padding:0;opacity:.3"></button>
-                  <button id="dT_media" onclick="setDashTaskUrg('media')" title="Urgencia media" style="width:11px;height:11px;border-radius:50%;background:#eab308;border:none;cursor:pointer;padding:0;opacity:1"></button>
-                  <button id="dT_baja"  onclick="setDashTaskUrg('baja')"  title="Urgencia baja"  style="width:11px;height:11px;border-radius:50%;background:#22c55e;border:none;cursor:pointer;padding:0;opacity:.3"></button>
-                  <input type="hidden" id="dashTaskUrgVal" value="media">
-                </span>
-                <button class="btn btn-primary btn-xs" onclick="_dashTaskAdd()" style="flex-shrink:0">+</button>
-              </div>
-              <div id="dashTaskList" style="max-height:190px;overflow-y:auto"></div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-header"><span class="card-title">Tiempo por empresa</span></div>
-        <div class="card-body" id="coBreakdown"></div>
+      <div class="grid-2">
+        <div class="card" style="overflow:hidden">
+          <div class="card-header">
+            <span class="card-title">📅 Vencimientos próximos</span>
+            <button class="btn btn-secondary btn-xs" onclick="navigate('tributario')">Ver calendario</button>
+          </div>
+          <div>
+            <div style="padding:7px 14px;background:var(--c-gold-bg);border-bottom:2px solid var(--c-gold-bd)"><span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--c-gold)">⚑ Mis empresas</span></div>
+            <div id="dashVencMias" style="max-height:240px;overflow-y:auto"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Tiempo por empresa</span></div>
+          <div class="card-body" id="coBreakdown"></div>
+        </div>
       </div>
 
       <!-- QUICK ENTRY CARD -->
@@ -2374,10 +2396,10 @@ function renderDashboard() {
   setText('goalSubTxt', prod >= goal ? '✓ Meta diaria alcanzada' : `Faltan ${fmtMins(goal-prod)} para la meta`);
   setText('goalHrsLabel', (STATE.settings.dailyGoal || 8) + 'h');
   _renderDashSessions(allSess);
+  _renderDashTasks();
   _renderCoBars(coMins);
   _renderBestHours(allSess);
   renderDashVenc();
-  _renderDashTasks();
   // Mostrar celebración si ya se cumplió la meta pero no se ha visto aún
   if (VIEW_DATE === todayStr() && prod >= goal) setTimeout(_checkGoal, 500);
 }
@@ -2691,58 +2713,75 @@ function saveTask(){
   ['tDesc','tNota','tFecha','tEtiqueta'].forEach(id=>{if(el(id))el(id).value='';});
   save(); renderTasks(); _renderDashTasks();
 }
-function setDashTaskUrg(u){
-  if(el('dashTaskUrgVal'))el('dashTaskUrgVal').value=u;
-  ['alta','media','baja'].forEach(x=>{const b=el('dT_'+x);if(b)b.style.opacity=x===u?'1':'0.3';});
+function _renderDashTasks() {
+  _populateSel('dashLaboralEmpresa');
+  _renderDashTasksCol('personal', 'dashTasksPersonal');
+  _renderDashTasksCol('profesional', 'dashTasksLaboral');
 }
-function _dashTaskAdd(){
-  const empresa=(el('dashTaskEmpresaSel')||{}).value||'';
-  const desc=((el('dashTaskDescInput')||{}).value||'').trim();
-  const urgencia=(el('dashTaskUrgVal')||{}).value||'media';
-  if(!empresa){showToast('Selecciona una empresa');return;}
-  if(!desc){showToast('Escribe la tarea');return;}
-  STATE.tasks.push({id:'t'+Date.now(),desc,titulo:desc,empresa,estado:'pending',urgencia,fecha:'',etiqueta:'',nota:'',done:false});
-  if(el('dashTaskDescInput'))el('dashTaskDescInput').value='';
-  setDashTaskUrg('media');
-  save(); renderTasks(); _renderDashTasks();
-}
-function dashTaskField(i,field,value){
-  const t=STATE.tasks[i]; if(!t)return;
-  t[field]=value;
-  save(); _renderDashTasks();
-}
-function _renderDashTasks(){
-  const e=el('dashTaskList'); if(!e)return;
-  let tasks=(STATE.tasks||[]).filter(t=>t.empresa&&!(t.estado==='done'||t.done));
-  tasks=[...tasks.filter(t=>(t.urgencia||'media')==='alta'), ...tasks.filter(t=>(t.urgencia||'media')!=='alta')];
-  if(!tasks.length){e.innerHTML='<div style="padding:12px 14px;font-size:12px;color:var(--c-text3)">Sin tareas de empresas pendientes.</div>';return;}
-  const urgColors={alta:'#ef4444',media:'#eab308',baja:'#22c55e'};
-  e.innerHTML=tasks.map(t=>{
-    const co=STATE.companies.find(c=>c.id===t.empresa);
-    const ri=STATE.tasks.indexOf(t);
-    const urgencia=t.urgencia||'media';
-    const isAlta=urgencia==='alta';
-    const rowBg=urgencia==='alta'?'#fef2f2':urgencia==='media'?'#fefce8':'';
-    const urgDots=['alta','media','baja'].map(u=>{
-      const c=urgColors[u]; const active=urgencia===u;
-      return `<button onclick="dashTaskField(${ri},'urgencia','${u}')" title="${u}" style="width:9px;height:9px;border-radius:50%;background:${c};border:none;cursor:pointer;padding:0;opacity:${active?1:0.25};transform:scale(${active?1.25:1});flex-shrink:0"></button>`;
+function _renderDashTasksCol(tipo, containerId) {
+  const e2 = el(containerId); if (!e2) return;
+  let tasks = STATE.tasks.filter(t => (!t.fecha || t.fecha === VIEW_DATE) && !t.done && t.estado !== 'done' && (t.tipo||'profesional') === tipo);
+  // Alta urgencia primero
+  tasks = [...tasks.filter(t=>(t.urgencia||'media')==='alta'), ...tasks.filter(t=>(t.urgencia||'media')!=='alta')];
+  if (!tasks.length) { e2.innerHTML = '<div style="padding:12px 16px;font-size:12px;color:var(--c-text3)">Sin tareas.</div>'; return; }
+  e2.style.padding = '4px 0';
+  const urgColors = { alta:'#ef4444', media:'#eab308', baja:'#22c55e' };
+  const estadoOpts = [['pending','Pendiente'],['inprogress','En progreso'],['blocked','Bloqueada'],['waiting','En espera'],['review','En revisión'],['cancelled','Cancelada']];
+  e2.innerHTML = tasks.map(t => {
+    const ri = STATE.tasks.indexOf(t);
+    const urgencia = t.urgencia || 'media';
+    const estado = t.estado || 'pending';
+    const empresa = t.empresa || '';
+    const co = STATE.companies.find(c => c.id === empresa);
+    const isAlta = urgencia === 'alta';
+    const dotColor = urgColors[urgencia] || urgColors.media;
+    const urgDots = ['alta','media','baja'].map(u => {
+      const c = urgColors[u]; const active = urgencia === u;
+      return `<button onclick="dashTaskField(${ri},'urgencia','${u}')" title="${u}" style="width:9px;height:9px;border-radius:50%;background:${c};border:none;cursor:pointer;padding:0;opacity:${active?1:0.22};transform:scale(${active?1.3:1});transition:all .1s;flex-shrink:0"></button>`;
     }).join('');
-    return `<div class="task-item" style="padding:6px 10px${rowBg?`;background:${rowBg}`:''}">
-      <input type="checkbox" class="task-cb" onchange="toggleTaskDone(${ri})">
-      <span class="dot" style="background:${urgColors[urgencia]};margin-top:3px"></span>
-      <div class="task-body">
-        <div class="task-desc">${t.desc||t.titulo||''}${isAlta?' 🚩':''}</div>
-        <div class="task-meta">
-          ${co?`<span class="task-tag">${co.name}</span>`:''}
-          ${t.fecha?`<span class="task-tag">${t.fecha}</span>`:''}
-          <span style="display:inline-flex;gap:3px;align-items:center">${urgDots}</span>
-        </div>
+    const estOpts = estadoOpts.map(([v,l])=>`<option value="${v}"${estado===v?' selected':''}>${l}</option>`).join('');
+    const coOpts = `<option value=""${!empresa?' selected':''}>Sin empresa</option>`+_sortedCos().map(c=>`<option value="${c.id}"${empresa===c.id?' selected':''}>${c.name}</option>`).join('');
+    const empresaSel = !empresa ? `<select class="dash-task-sel" onchange="dashTaskField(${ri},'empresa',this.value)">${coOpts}</select>` : '';
+    const meta = tipo === 'profesional'
+      ? `${co?`<div style="font-size:10.5px;color:var(--c-text3);margin-top:1px">${co.name}</div>`:''}
+         <div style="display:flex;gap:4px;align-items:center;margin-top:4px;flex-wrap:wrap"><span style="display:inline-flex;gap:3px">${urgDots}</span><select class="dash-task-sel" onchange="dashTaskField(${ri},'estado',this.value)">${estOpts}</select>${empresaSel}</div>`
+      : `<div style="display:inline-flex;gap:3px;margin-top:4px">${urgDots}</div>`;
+    const rowBg = urgencia==='alta' ? 'background:#fef2f2;' : urgencia==='media' ? 'background:#fefce8;' : '';
+    const flagIcon = isAlta ? '<span style="font-size:12px;line-height:1;flex-shrink:0" title="Urgente">🚩</span>' : '';
+    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 12px;margin:5px 8px;border-radius:10px;border:1px solid var(--c-border);${rowBg}box-shadow:0 1px 3px rgba(0,0,0,.05)">
+      <input type="checkbox" style="margin-top:3px;accent-color:var(--c-gold);flex-shrink:0;cursor:pointer" onchange="quickToggleTask(${ri})">
+      <span class="dot" style="background:${dotColor};flex-shrink:0;margin-top:4px"></span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;font-weight:${isAlta?600:500};color:var(--c-text);line-height:1.4;display:flex;align-items:center;gap:5px">${t.desc||t.titulo||''}${flagIcon}</div>
+        ${meta}
       </div>
-      <div class="task-actions">
-        <button class="icon-btn" style="color:var(--c-red)" onclick="deleteTask(${ri})">✕</button>
-      </div>
+      <button class="icon-btn" style="color:var(--c-red);flex-shrink:0" onclick="deleteTask(${ri})">✕</button>
     </div>`;
   }).join('');
+}
+function dashAddTask(tipo) {
+  const isPersonal = tipo === 'personal';
+  const inp = el(isPersonal ? 'dashPersonalInput' : 'dashLaboralInput'); if (!inp || !inp.value.trim()) return;
+  const urgencia = (el(isPersonal ? 'dashPersonalUrg' : 'dashLaboralUrg')||{}).value || 'media';
+  const empresa = isPersonal ? '' : ((el('dashLaboralEmpresa')||{}).value || '');
+  STATE.tasks.push({ id:'t'+Date.now(), desc:inp.value.trim(), titulo:inp.value.trim(), fecha:VIEW_DATE, estado:'pending', urgencia, tipo, empresa, etiqueta:'', nota:'', done:false });
+  inp.value = ''; save(); _renderDashTasks();
+}
+function quickToggleTask(i) {
+  const t = STATE.tasks[i]; if (!t) return;
+  t.done = !t.done; t.estado = t.done ? 'done' : 'pending';
+  save(); _renderDashTasks(); renderDashboard();
+}
+function dashTaskField(i, field, value) {
+  const t = STATE.tasks[i]; if (!t) return;
+  t[field] = value;
+  if (field === 'estado') { t.done = value === 'done'; }
+  save(); _renderDashTasks(); renderDashboard();
+}
+function setDashNewUrg(col, u) {
+  const prefix = col === 'personal' ? 'dPA' : 'dLA';
+  const inp = el(col === 'personal' ? 'dashPersonalUrg' : 'dashLaboralUrg'); if (inp) inp.value = u;
+  ['alta','media','baja'].forEach(x => { const b = el(prefix+'_'+x); if (b) b.style.opacity = x===u?'1':'0.3'; });
 }
 function renderTasks(){
   const e2=el('taskList'); if(!e2)return;
@@ -2802,8 +2841,6 @@ function _populateAllSelects(){
   if(tfE)tfE.innerHTML='<option value="">Todas las empresas</option>'+_sortedCos().map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
   const tE=el('tEmpresa');
   if(tE)tE.innerHTML='<option value="">Sin empresa</option>'+_sortedCos().map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
-  const dtE=el('dashTaskEmpresaSel');
-  if(dtE)dtE.innerHTML='<option value="">Empresa…</option>'+_sortedCos().map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
 }
 
 // ── Companies ─────────────────────────────────────────────────────────────────
