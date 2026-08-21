@@ -2721,8 +2721,12 @@ function _renderDashTasks() {
 function _renderDashTasksCol(tipo, containerId) {
   const e2 = el(containerId); if (!e2) return;
   let tasks = STATE.tasks.filter(t => (!t.fecha || t.fecha === VIEW_DATE) && !t.done && t.estado !== 'done' && (t.tipo||'profesional') === tipo);
-  // Alta urgencia primero
-  tasks = [...tasks.filter(t=>(t.urgencia||'media')==='alta'), ...tasks.filter(t=>(t.urgencia||'media')!=='alta')];
+  // Semáforo: rojo (alta) arriba, amarillo (media) en medio, verde (baja) abajo
+  tasks = [
+    ...tasks.filter(t=>(t.urgencia||'media')==='alta'),
+    ...tasks.filter(t=>(t.urgencia||'media')==='media'),
+    ...tasks.filter(t=>(t.urgencia||'media')==='baja'),
+  ];
   if (!tasks.length) { e2.innerHTML = '<div style="padding:12px 16px;font-size:12px;color:var(--c-text3)">Sin tareas.</div>'; return; }
   e2.style.padding = '4px 0';
   const urgColors = { alta:'#ef4444', media:'#eab308', baja:'#22c55e' };
@@ -2748,7 +2752,8 @@ function _renderDashTasksCol(tipo, containerId) {
       : `<div style="display:inline-flex;gap:3px;margin-top:4px">${urgDots}</div>`;
     const rowBg = urgencia==='alta' ? 'background:#fef2f2;' : urgencia==='media' ? 'background:#fefce8;' : '';
     const flagIcon = isAlta ? '<span style="font-size:12px;line-height:1;flex-shrink:0" title="Urgente">🚩</span>' : '';
-    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 12px;margin:5px 8px;border-radius:10px;border:1px solid var(--c-border);${rowBg}box-shadow:0 1px 3px rgba(0,0,0,.05)">
+    return `<div draggable="true" ondragstart="_dashTaskDragStart(event,${ri})" ondragover="event.preventDefault()" ondrop="_dashTaskDrop(event,${ri})" ondragend="_dashTaskDragEnd(event)" style="display:flex;align-items:flex-start;gap:10px;padding:9px 12px;margin:5px 8px;border-radius:10px;border:1px solid var(--c-border);${rowBg}box-shadow:0 1px 3px rgba(0,0,0,.05)">
+      <span style="cursor:grab;color:var(--c-text3);font-size:12px;line-height:1;flex-shrink:0;margin-top:3px;user-select:none" title="Arrastra para reordenar">⠿</span>
       <input type="checkbox" style="margin-top:3px;accent-color:var(--c-gold);flex-shrink:0;cursor:pointer" onchange="quickToggleTask(${ri})">
       <span class="dot" style="background:${dotColor};flex-shrink:0;margin-top:4px"></span>
       <div style="flex:1;min-width:0">
@@ -2758,6 +2763,22 @@ function _renderDashTasksCol(tipo, containerId) {
       <button class="icon-btn" style="color:var(--c-red);flex-shrink:0" onclick="deleteTask(${ri})">✕</button>
     </div>`;
   }).join('');
+}
+let _dashDragIdx = null;
+function _dashTaskDragStart(e, i) {
+  _dashDragIdx = i;
+  if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', String(i)); } catch(err) {} }
+}
+function _dashTaskDragEnd() { _dashDragIdx = null; }
+function _dashTaskDrop(e, targetIdx) {
+  e.preventDefault();
+  if (_dashDragIdx === null || _dashDragIdx === targetIdx) return;
+  const arr = STATE.tasks;
+  const [moved] = arr.splice(_dashDragIdx, 1);
+  const insertAt = _dashDragIdx < targetIdx ? targetIdx - 1 : targetIdx;
+  arr.splice(insertAt, 0, moved);
+  _dashDragIdx = null;
+  save(); _renderDashTasks();
 }
 function dashAddTask(tipo) {
   const isPersonal = tipo === 'personal';
