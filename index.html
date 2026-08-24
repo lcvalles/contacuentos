@@ -5893,12 +5893,6 @@ async function startApp(){
       if(!STATE.settings)STATE.settings={dailyGoal:8,breakAlert:90};
       if(!STATE.activities||!STATE.activities.length)STATE.activities=JSON.parse(JSON.stringify(SEED_ACTIVITIES));
       else STATE.activities.forEach(a=>{if(_EMOJI_MIGRATION[a.name])a.name=_EMOJI_MIGRATION[a.name];});
-      let _tasksMigrated=false;
-      STATE.tasks.forEach(t=>{if(!t.urgencia){t.urgencia='media';_tasksMigrated=true;}if(!t.tipo){t.tipo='profesional';_tasksMigrated=true;}});
-      // Auto-traer tareas pendientes de días anteriores al día actual
-      const _today=todayStr();
-      STATE.tasks.forEach(t=>{if(!t.done&&t.estado!=='done'&&t.fecha&&t.fecha<_today){t.fecha=_today;_tasksMigrated=true;}});
-      if(_tasksMigrated){STATE._savedAt=Date.now();await Sync._push();}
       // Migración de empresas: actualizar NITs vacíos y agregar empresas nuevas de SEED_COS
       let _cosMigrated=false;
       SEED_COS.forEach(seed=>{
@@ -5922,6 +5916,12 @@ async function startApp(){
   } else {
     setSyncStatus('local');
   }
+  // Normalizar tareas y traer al dia de hoy las que quedaron pendientes de dias anteriores
+  let _tasksMigrated=false;
+  STATE.tasks.forEach(t=>{if(!t.urgencia){t.urgencia='media';_tasksMigrated=true;}if(!t.tipo){t.tipo='profesional';_tasksMigrated=true;}});
+  const _todayTasks=todayStr();
+  STATE.tasks.forEach(t=>{if(!t.done&&t.estado!=='done'&&t.fecha&&t.fecha<_todayTasks){t.fecha=_todayTasks;_tasksMigrated=true;}});
+  if(_tasksMigrated)save();
   VIEW_DATE=todayStr();
   _anaRef=todayStr();
   _CAL_VIEW=todayStr().slice(0,7);
