@@ -5419,6 +5419,41 @@ function _rentaMigracionV2() {
   save();
 }
 
+// Limpia campos del ciclo 2025 que quedaron pegados en los registros (fecha de pago,
+// valor pagado, medio/donde pagó, fecha de presentación). Nada se borra de verdad:
+// el valor original queda archivado en c._archivo2025 por si se necesita consultar.
+// Solo toca campos cuyo valor empieza literalmente con '2025' — cualquier dato 2026
+// (o de años futuros) queda intacto.
+function _rentaLimpiar2025() {
+  if (STATE.rentaLimpieza2025Done) return;
+  (STATE.rentaPN||[]).forEach((c,i) => {
+    let touched = false;
+    const archivo = {};
+    if (c.fechaPago && c.fechaPago.startsWith('2025')) {
+      archivo.fechaPago = c.fechaPago;
+      archivo.valorPagado = c.valorPagado;
+      archivo.medioPago = c.medioPago;
+      archivo.dondePago = c.dondePago;
+      STATE.rentaPN[i].fechaPago = '';
+      STATE.rentaPN[i].valorPagado = 0;
+      STATE.rentaPN[i].medioPago = '';
+      STATE.rentaPN[i].dondePago = '';
+      touched = true;
+    }
+    if (c.fechaPresentacion && c.fechaPresentacion.startsWith('2025')) {
+      archivo.fechaPresentacion = c.fechaPresentacion;
+      STATE.rentaPN[i].fechaPresentacion = '';
+      touched = true;
+    }
+    if (touched) {
+      STATE.rentaPN[i]._archivo2025 = { ...(c._archivo2025||{}), ...archivo };
+      STATE.rentaPN[i].saldoPendiente = (STATE.rentaPN[i].valorServicio||0) - (STATE.rentaPN[i].valorPagado||0);
+    }
+  });
+  STATE.rentaLimpieza2025Done = true;
+  save();
+}
+
 function _rentaOpenModal(id) {
   _rentaEditId = id || null;
   const c = id ? (STATE.rentaPN||[]).find(x=>x.id===id) : null;
@@ -5723,7 +5758,7 @@ function _rentaExportCSV() {
       c.ultimosDigitosCedula||'', estado,
       c.fechaPresentacion||'', c.fechaDeclaracion||'',
       c.valorServicio||0, c.valorPagado||0, (c.valorServicio||0)-(c.valorPagado||0),
-      c.medioPago||'', c.dondePago||'', c.fechaPago||'',
+      c.medioPago||'', c.dondePago||'', (c.fechaPago&&!c.fechaPago.startsWith('2025'))?c.fechaPago:'',
       c.usuarioDian||'', c.contrasenaPortal||'', c.firmaDian||'',
       c.exogena?'Sí':'No', c.referidoInfo||'', c.observaciones||''
     ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',');
@@ -5933,6 +5968,7 @@ async function startApp(){
   _handleStaleSession();
   _rentaImportHistorico();
   _rentaMigracionV2();
+  _rentaLimpiar2025();
   _rentaFixAmorMio();
   _updateTimerUI();
   _renderBanner();
