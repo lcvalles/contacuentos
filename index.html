@@ -5050,6 +5050,104 @@ function _rentaFmtCOP(v) {
   return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',minimumFractionDigits:0,maximumFractionDigits:0}).format(v);
 }
 
+// ── Tiempo dedicado a Renta ──────────────────────────────────────────────────
+// Suma minutos de sesiones productivas cuya actividad es "Declaración de Renta".
+function _rentaTiempoStats() {
+  const esRenta = s => s.mode === 'productive' && /declaraci[oó]n de renta/i.test(s.nota || '');
+  const porDia = {};
+  Object.keys(STATE.days || {}).forEach(ds => {
+    const mins = ((STATE.days[ds] && STATE.days[ds].sessions) || [])
+      .filter(esRenta).reduce((a, s) => a + (s.mins || 0), 0);
+    if (mins > 0) porDia[ds] = mins;
+  });
+  const total = Object.values(porDia).reduce((a, b) => a + b, 0);
+  const fmtISO = d => new Intl.DateTimeFormat('en-CA').format(d);
+  const enRango = (ds, ini, fin) => ds >= fmtISO(ini) && ds <= fmtISO(fin);
+  const sum = (ini, fin) => Object.entries(porDia).filter(([ds]) => enRango(ds, ini, fin)).reduce((a, [, m]) => a + m, 0);
+
+  const hoy = new Date(todayStr() + 'T12:00:00');
+  const dow = hoy.getDay() || 7;
+  const lunes = new Date(hoy); lunes.setDate(hoy.getDate() - dow + 1);
+  const domingo = new Date(lunes); domingo.setDate(lunes.getDate() + 6);
+  const semana = sum(lunes, domingo);
+  const ym = todayStr().slice(0, 7);
+  const mes = Object.entries(porDia).filter(([ds]) => ds.slice(0, 7) === ym).reduce((a, [, m]) => a + m, 0);
+
+  const semanas = [];
+  for (let i = 11; i >= 0; i--) {
+    const ini = new Date(lunes); ini.setDate(lunes.getDate() - i * 7);
+    const fin = new Date(ini); fin.setDate(ini.getDate() + 6);
+    semanas.push({ mins: sum(ini, fin), label: ini.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit' }), esActual: i === 0 });
+  }
+  const meses = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+    const key = fmtISO(d).slice(0, 7);
+    const mins = Object.entries(porDia).filter(([ds]) => ds.slice(0, 7) === key).reduce((a, [, m]) => a + m, 0);
+    meses.push({ mins, label: d.toLocaleDateString('es-CO', { month: 'short' }).replace('.', ''), esActual: i === 0 });
+  }
+  return { total, semana, mes, semanas, meses };
+}
+
+function _rentaTiempoWidget() {
+  const t = _rentaTiempoStats();
+  if (t.total === 0) return '';
+  const fmtH = m => { const h = Math.floor(m / 60), mn = m % 60; return h > 0 ? `${h}h${mn ? ' ' + mn + 'm' : ''}` : `${mn}m`; };
+  const maxW = Math.max(...t.semanas.map(s => s.mins), 1);
+  const maxM = Math.max(...t.meses.map(m => m.mins), 1);
+
+  const barrasSem = t.semanas.map(s => {
+    const pct = s.mins ? Math.max(Math.round(s.mins / maxW * 100), 4) : 0;
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0">
+      <div style="font-size:9px;color:var(--c-text3);font-weight:700;white-space:nowrap;height:12px">${s.mins ? fmtH(s.mins) : ''}</div>
+      <div style="width:100%;height:90px;display:flex;align-items:flex-end">
+        <div title="${fmtH(s.mins)}" style="width:100%;height:${pct}%;background:${s.esActual ? 'var(--c-gold)' : 'var(--c-teal)'};border-radius:4px 4px 0 0;transition:height .3s"></div>
+      </div>
+      <div style="font-size:8.5px;color:var(--c-text3);white-space:nowrap">${s.label}</div>
+    </div>`;
+  }).join('');
+
+  const barrasMes = t.meses.map(m => {
+    const pct = m.mins ? Math.max(Math.round(m.mins / maxM * 100), 4) : 0;
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+      <div style="font-size:9px;color:var(--c-text3);font-weight:700;height:12px">${m.mins ? fmtH(m.mins) : ''}</div>
+      <div style="width:100%;height:46px;display:flex;align-items:flex-end">
+        <div style="width:100%;height:${pct}%;background:${m.esActual ? 'var(--c-gold)' : 'var(--c-border2)'};border-radius:3px 3px 0 0"></div>
+      </div>
+      <div style="font-size:9px;color:var(--c-text3);text-transform:capitalize">${m.label}</div>
+    </div>`;
+  }).join('');
+
+  const rotulo = 'font-size:11px;font-weight:700;color:var(--c-text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px';
+  return `
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-header"><span class="card-title">⏱️ Tiempo dedicado a Renta</span></div>
+    <div style="padding:16px">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
+        <div class="stat-card teal" style="margin:0">
+          <div class="stat-label">📆 Esta semana</div>
+          <div class="stat-value teal" style="font-size:20px">${fmtH(t.semana)}</div>
+          <div class="stat-sub">lun – dom</div>
+        </div>
+        <div class="stat-card teal" style="margin:0">
+          <div class="stat-label">🗓️ Este mes</div>
+          <div class="stat-value teal" style="font-size:20px">${fmtH(t.mes)}</div>
+          <div class="stat-sub">mes en curso</div>
+        </div>
+        <div class="stat-card gold" style="margin:0">
+          <div class="stat-label">Σ Total</div>
+          <div class="stat-value gold" style="font-size:20px">${fmtH(t.total)}</div>
+          <div class="stat-sub">acumulado histórico</div>
+        </div>
+      </div>
+      <div style="${rotulo}">Por semana · últimas 12</div>
+      <div style="display:flex;gap:3px;align-items:flex-end;margin-bottom:22px">${barrasSem}</div>
+      <div style="${rotulo}">Por mes · últimos 6</div>
+      <div style="display:flex;gap:8px;align-items:flex-end">${barrasMes}</div>
+    </div>
+  </div>`;
+}
+
 function renderRentaPN() {
   const e = el('rentaPNBody'); if (!e) return;
   const clientes = STATE.rentaPN || [];
@@ -5351,7 +5449,9 @@ function renderRentaPN() {
         </div>
       </div>
     </div>` : ''}
-  </div>`;
+  </div>
+
+  ${_rentaTiempoWidget()}`;
   _rentaUpdateColVis();
 }
 
