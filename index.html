@@ -1389,6 +1389,7 @@ tr:hover .td-actions{opacity:1}
   <section id="page-rentapn" class="page" aria-label="Renta Persona Natural">
     <div class="topbar">
       <h1 class="topbar-title">🧾 Renta P/N</h1>
+      <div id="rentaAñoTabs" style="display:flex;gap:4px;margin-left:12px"></div>
       <div style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
         <button onclick="_rentaOpenModal()" style="display:flex;align-items:center;gap:4px;padding:6px 14px;background:var(--c-gold);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">➕ Cliente</button>
         <button onclick="_rentaBackup()" style="padding:6px 12px;background:none;border:1px solid var(--c-border);border-radius:8px;font-size:12px;cursor:pointer;color:var(--c-text2)">💾 Backup</button>
@@ -5023,6 +5024,26 @@ const RENTA_NIT_VENC = {
   '93':'2026-10-21','94':'2026-10-21','95':'2026-10-22','96':'2026-10-22',
   '97':'2026-10-23','98':'2026-10-23','99':'2026-10-26','00':'2026-10-26',
 };
+// Calendario DIAN por año de presentación. 2027 queda vacío hasta que salga el decreto.
+const RENTA_NIT_VENC_POR_AÑO = { 2026: RENTA_NIT_VENC, 2027: {} };
+
+// ── Años de Renta P/N ── cada año tiene su propia lista de clientes.
+// 2026 sigue viviendo en STATE.rentaPN (la vista original); los siguientes en STATE.rentaPN<año>.
+const RENTA_AÑOS = [2026, 2027];
+let _rentaAño = parseInt(localStorage.getItem('rentaAño')) || RENTA_AÑOS[RENTA_AÑOS.length-1];
+if (!RENTA_AÑOS.includes(_rentaAño)) _rentaAño = RENTA_AÑOS[RENTA_AÑOS.length-1];
+function _rentaKey(año=_rentaAño) { return año===2026 ? 'rentaPN' : 'rentaPN'+año; }
+function _rentaList(año=_rentaAño) {
+  const k = _rentaKey(año);
+  if (!STATE[k]) STATE[k] = [];
+  return STATE[k];
+}
+function _rentaSetAño(año) {
+  _rentaAño = año;
+  localStorage.setItem('rentaAño', año);
+  _rentaFilter = 'todos'; _rentaSearch = '';
+  renderRentaPN();
+}
 
 let _rentaFilter = 'todos', _rentaSearch = '', _rentaEditId = null;
 
@@ -5031,7 +5052,7 @@ function _rentaFechaVenc(cedula) {
   const str = String(cedula).replace(/\D/g,'');
   if (str.length < 2) return '';
   const ult2 = str.slice(-2).padStart(2,'0');
-  return RENTA_NIT_VENC[ult2] || '';
+  return (RENTA_NIT_VENC_POR_AÑO[_rentaAño]||{})[ult2] || '';
 }
 function _rentaEstado(id) { return RENTA_ESTADOS.find(e=>e.id===id)||RENTA_ESTADOS[0]; }
 function _rentaTipo(id) { return RENTA_TIPOS.find(t=>t.id===id)||RENTA_TIPOS[1]; }
@@ -5150,10 +5171,15 @@ function _rentaTiempoWidget() {
 
 function renderRentaPN() {
   const e = el('rentaPNBody'); if (!e) return;
-  const clientes = STATE.rentaPN || [];
+  const clientes = _rentaList();
   const cfg = STATE.rentaPNConfig || {};
   const fmtCOP = _rentaFmtCOP;
   const today = todayStr();
+
+  const tabs = el('rentaAñoTabs');
+  if (tabs) tabs.innerHTML = RENTA_AÑOS.map(a=>
+    `<button onclick="_rentaSetAño(${a})" style="font-size:12px;padding:4px 14px;border-radius:20px;border:1px solid ${_rentaAño===a?'var(--c-gold)':'var(--c-border)'};background:${_rentaAño===a?'var(--c-gold-lt)':'transparent'};color:${_rentaAño===a?'var(--c-gold)':'var(--c-text3)'};cursor:pointer;font-weight:${_rentaAño===a?'700':'400'}">${a}</button>`
+  ).join('');
 
   // KPIs
   const total = clientes.length;
@@ -5466,17 +5492,17 @@ function _rentaSetSearch(v) {
 }
 
 function _rentaInlineEdit(id, field, value) {
-  const idx = (STATE.rentaPN||[]).findIndex(c=>c.id===id);
-  if (idx<0) return;
+  const c = _rentaList().find(x=>x.id===id);
+  if (!c) return;
   if (field==='valorServicio'||field==='valorPagado') value = parseInt(String(value).replace(/\D/g,''))||0;
-  STATE.rentaPN[idx][field] = value;
-  STATE.rentaPN[idx].saldoPendiente = (STATE.rentaPN[idx].valorServicio||0)-(STATE.rentaPN[idx].valorPagado||0);
-  STATE.rentaPN[idx].fechaActualizacion = new Date().toISOString();
+  c[field] = value;
+  c.saldoPendiente = (c.valorServicio||0)-(c.valorPagado||0);
+  c.fechaActualizacion = new Date().toISOString();
   save();
 }
 
 function _rentaDismissAlert(id) {
-  const c = (STATE.rentaPN||[]).find(x=>x.id===id);
+  const c = _rentaList().find(x=>x.id===id);
   if (!c) return;
   if (!STATE.rentaAlertDismissed) STATE.rentaAlertDismissed = {};
   STATE.rentaAlertDismissed[id] = c.fechaDeclaracion || true;
@@ -5554,9 +5580,41 @@ function _rentaLimpiar2025() {
   save();
 }
 
+// Abre el ciclo 2027 copiando los clientes de 2026 (que queda intacto en su propia vista).
+// - Novedades (no presenta / no presenta renta / desertó) conservan su estado.
+// - Todos los demás (presentadas y cualquier otro estado) arrancan en "Pendiente contacto".
+// - Se conservan todos los campos y el Cobro; se limpian fecha de presentación, vencimiento
+//   (calendario DIAN 2027 aún no publicado) y lo pagado en 2026.
+// - Nuevo → Antiguo, porque ya fue cliente el año anterior.
+function _rentaMigrar2027() {
+  if (STATE.rentaMigracion2027Done) return;
+  const NOVEDADES = new Set(['no-presenta','no-presenta-renta','deserto']);
+  const ahora = new Date().toISOString();
+  const destino = _rentaList(2027);
+  const yaCopiados = new Set(destino.map(c=>c.origen2026Id));
+  (STATE.rentaPN||[]).filter(c=>!yaCopiados.has(c.id)).forEach(c => {
+    const { _archivo2025, valorDIAN, ...resto } = c;
+    destino.push({
+      ...resto,
+      id: c.id+'_2027',
+      origen2026Id: c.id,
+      estadoProceso: NOVEDADES.has(c.estadoProceso) ? c.estadoProceso : 'pendiente-contacto',
+      tipoCliente: c.tipoCliente==='nuevo' ? 'antiguo' : c.tipoCliente,
+      fechaPresentacion: '',
+      fechaDeclaracion: '',
+      valorPagado: 0, medioPago: '', dondePago: '', fechaPago: '',
+      saldoPendiente: c.valorServicio||0,
+      fechaCreacion: ahora,
+      fechaActualizacion: ahora,
+    });
+  });
+  STATE.rentaMigracion2027Done = true;
+  save();
+}
+
 function _rentaOpenModal(id) {
   _rentaEditId = id || null;
-  const c = id ? (STATE.rentaPN||[]).find(x=>x.id===id) : null;
+  const c = id ? _rentaList().find(x=>x.id===id) : null;
   const cfg = STATE.rentaPNConfig||{};
   const isNew = !c;
   if(el('rentaModalTitle')) el('rentaModalTitle').textContent = isNew ? '➕ Nuevo cliente' : '✎ Editar cliente';
@@ -5670,7 +5728,7 @@ function _rentaTogglePwd(inputId, btn) {
 }
 
 function _rentaCopyPwd(clientId, field) {
-  const c = (STATE.rentaPN||[]).find(x=>x.id===clientId);
+  const c = _rentaList().find(x=>x.id===clientId);
   const val = field==='firma' ? c?.firmaDian : c?.contrasenaPortal;
   if (!val) return;
   const label = field==='firma' ? 'Firma' : 'Contraseña';
@@ -5704,14 +5762,14 @@ function _rentaSaveModal() {
     fechaActualizacion: new Date().toISOString(),
   };
   data.saldoPendiente = data.valorServicio - data.valorPagado;
-  if (!STATE.rentaPN) STATE.rentaPN = [];
+  const lista = _rentaList();
   if (_rentaEditId) {
-    const idx = STATE.rentaPN.findIndex(c=>c.id===_rentaEditId);
-    if (idx>=0) STATE.rentaPN[idx] = {...STATE.rentaPN[idx], ...data};
+    const idx = lista.findIndex(c=>c.id===_rentaEditId);
+    if (idx>=0) lista[idx] = {...lista[idx], ...data};
   } else {
     data.id = 'rn_'+Date.now();
     data.fechaCreacion = new Date().toISOString();
-    STATE.rentaPN.push(data);
+    lista.push(data);
   }
   save(); closeModal('rentaModal'); renderRentaPN();
   showToast(_rentaEditId ? 'Cliente actualizado' : 'Cliente agregado');
@@ -5719,7 +5777,7 @@ function _rentaSaveModal() {
 
 function _rentaDelete(id) {
   if (!confirm('¿Eliminar este cliente?')) return;
-  STATE.rentaPN = (STATE.rentaPN||[]).filter(c=>c.id!==id);
+  STATE[_rentaKey()] = _rentaList().filter(c=>c.id!==id);
   save(); renderRentaPN(); showToast('Cliente eliminado');
 }
 
@@ -5766,7 +5824,7 @@ function _rentaWAOpen(clientId) {
 }
 function _rentaWARender() {
   const wb = el('rentaWABody'); if (!wb) return;
-  const c = (STATE.rentaPN||[]).find(x=>x.id===_rentaWAClientId);
+  const c = _rentaList().find(x=>x.id===_rentaWAClientId);
   if (!c) return;
   const cfg = STATE.rentaPNConfig||{};
   const msgDef = RENTA_WA_MSGS.find(m=>m.id===_rentaWAMsgId)||RENTA_WA_MSGS[0];
@@ -5837,18 +5895,18 @@ function _rentaSaveConfig() {
 }
 
 function _rentaBackup() {
-  const clientes = STATE.rentaPN||[];
+  const clientes = _rentaList();
   if (!clientes.length) { showToast('Sin clientes para respaldar'); return; }
-  const payload = { fecha: new Date().toISOString(), total: clientes.length, clientes };
+  const payload = { fecha: new Date().toISOString(), año: _rentaAño, total: clientes.length, clientes };
   const a = document.createElement('a');
   a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(payload, null, 2));
-  a.download = `backup_renta_${todayStr()}.json`;
+  a.download = `backup_renta_${_rentaAño}_${todayStr()}.json`;
   a.click();
   showToast('✅ Backup descargado — ' + clientes.length + ' clientes');
 }
 
 function _rentaExportCSV() {
-  const clientes = STATE.rentaPN||[];
+  const clientes = _rentaList();
   if (!clientes.length) { showToast('Sin clientes para exportar'); return; }
   const headers = ['Nombre','Cédula','Teléfono','Tipo','Últ. Díg.','Estado','F. Presentación','Vencimiento DIAN','Cobro','Pagado','Saldo','Medio pago','Donde pagó','F. Pago','Usuario DIAN','Contraseña','Firma','Exógena','Referido','Notas'];
   const rows = clientes.map(c=>{
@@ -5866,7 +5924,7 @@ function _rentaExportCSV() {
   const csv = [headers.join(','),...rows].join('\n');
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);
-  a.download = `renta_pn_${todayStr()}.csv`;
+  a.download = `renta_pn_${_rentaAño}_${todayStr()}.csv`;
   a.click();
 }
 
@@ -6070,6 +6128,8 @@ async function startApp(){
   _rentaMigracionV2();
   _rentaLimpiar2025();
   _rentaFixAmorMio();
+  _rentaMigrar2027();
+  if (_CURRENT_PAGE === 'rentapn') renderRentaPN();
   _updateTimerUI();
   _renderBanner();
   updateClock();
